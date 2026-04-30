@@ -1,0 +1,49 @@
+﻿using System;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ScheduleX.Core.Entities
+{
+
+    public class Faculty
+    {
+        [Key]
+        public int FacultyId { get; set; }
+
+        [Required]
+        public int DepartmentId { get; set; }
+
+        [ForeignKey(nameof(DepartmentId))]
+        public Department Department { get; set; } = null!;
+
+        [Required, MaxLength(120)]
+        public string FacultyName { get; set; } = null!;
+
+        [MaxLength(30)]
+        public string? FacultyCode { get; set; }
+
+        [MaxLength(120)]
+        public string? Email { get; set; }
+
+        [MaxLength(20)]
+        public string? Phone { get; set; }
+        public bool IsExternal { get; set; } = false;
+        public byte? MaxLecturesPerDay { get; set; }
+
+        public bool IsActive { get; set; } = true;
+
+        public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        // Nav
+        public ICollection<FacultyAvailability> FacultyAvailabilities { get; set; } = new List<FacultyAvailability>();
+        //public ICollection<SubjectOffering> SubjectOfferings { get; set; } = new List<SubjectOffering>();
+        public ICollection<SubjectFaculty> SubjectFaculties { get; set; } = new List<SubjectFaculty>();
+        public ICollection<ExternalFacultyPermission> ExternalPermissions { get; set; }
+           = new List<ExternalFacultyPermission>();
+
+    }
+}
