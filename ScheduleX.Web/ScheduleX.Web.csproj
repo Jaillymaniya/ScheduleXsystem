@@ -24,4 +24,13 @@
     <ProjectReference Include="..\ScheduleX.Infrasturcture\ScheduleX.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Components\Pages\tt\View\" />
+    <Folder Include="Controllers\" />
+    <Folder Include="DTOs\" />
+    <Folder Include="Models\" />
+    <Folder Include="Services\" />
+    <Folder Include="wwwroot\css\" />
+  </ItemGroup>
+
 </Project>
