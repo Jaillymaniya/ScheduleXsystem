@@ -5,19 +5,17 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using ScheduleX.Core.Entities;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 
-//namespace ScheduleX.Infrasturcture.Data
-//{
-//    internal class AppDbContext
-//    {
-//    }
-//}
+
 
 
 
 namespace ScheduleX.Infrastructure.Data;
 
-public class AppDbContext : DbContext
+public class AppDbContext
+    : IdentityDbContext<User, IdentityRole<int>, int> 
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
@@ -25,7 +23,7 @@ public class AppDbContext : DbContext
     public DbSet<AcademicYear> AcademicYears => Set<AcademicYear>(); // ✅ ADDED
 
     public DbSet<Department> Departments => Set<Department>();
-    public DbSet<User> Users => Set<User>();
+
     public DbSet<Course> Courses => Set<Course>();
     public DbSet<TTCoordinatorCourse> TTCoordinatorCourses { get; set; }
     public DbSet<Semester> Semesters => Set<Semester>();
@@ -102,13 +100,13 @@ public class AppDbContext : DbContext
             .HasFilter("[DepartmentCode] IS NOT NULL");
 
         modelBuilder.Entity<User>()
-            .HasIndex(x => x.Username).IsUnique();
+    .HasIndex(x => x.UserName).IsUnique();
 
         modelBuilder.Entity<User>()
             .HasIndex(u => u.Email).IsUnique();
 
         modelBuilder.Entity<User>()
-            .HasIndex(u => u.Phone).IsUnique();
+     .HasIndex(u => u.PhoneNumber).IsUnique();
 
         modelBuilder.Entity<Course>()
             .HasIndex(x => x.CourseCode).IsUnique()

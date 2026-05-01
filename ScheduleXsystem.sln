@@ -17,9 +17,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScheduleX.Core", "ScheduleX.Core\ScheduleX.Core.csproj", "{CC1A406B-108E-48E7-A64B-F7062AA3FB71}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{250BB30C-C512-4963-AD17-152230CF9B57}"
-	ProjectSection(SolutionItems) = preProject
-		README.md = README.md
-	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

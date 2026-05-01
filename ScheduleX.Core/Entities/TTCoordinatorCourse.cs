@@ -19,6 +19,8 @@ namespace ScheduleX.Core.Entities
         [ForeignKey(nameof(UserId))]
         public User User { get; set; } = null!;
 
+
+
         [Required]
         public int CourseId { get; set; }
 

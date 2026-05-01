@@ -1,44 +1,41 @@
-﻿@* @inherits LayoutComponentBase *@
-@* @rendermode InteractiveServer *@
-@* <link href="css/admin-layout.css" rel="stylesheet" /> *@
+﻿
+@* @inherits LayoutComponentBase  *@
+@* @rendermode InteractiveServer  *@
+@* @using Microsoft.AspNetCore.Components.Authorization *@
+@* @inject AuthenticationStateProvider AuthProvider *@
 
-@* <div class="admin-wrapper"> *@
-@*     <AdminSidebar /> *@
+@* @if (isAuthorized) *@
+@* { *@
+@*     <div class="admin-wrapper"> *@
+@*         <AdminSidebar /> *@
 
-@*     <div class="admin-main"> *@
-@*         <AdminTopbar /> *@
+@*         <div class="admin-main"> *@
+@*             <AdminTopbar /> *@
 
-@*         <div class="admin-content"> *@
-@*             @Body *@
+@*             <div class="admin-content"> *@
+@*                 @Body *@
+@*             </div> *@
 @*         </div> *@
 @*     </div> *@
-@* </div> *@
-
-@inherits LayoutComponentBase
-@rendermode InteractiveServer
-@* @inject ScheduleX.Web.Services.AuthState Auth *@
-@* @inject NavigationManager Nav *@
+@* } *@
+@* else *@
+@* { *@
+@*     <RedirectToLogin /> *@
+@* } *@
 
 @* @code { *@
-@*     private bool isLoaded = false; *@
+@*     private bool isAuthorized; *@
 
-@*     protected override async Task OnAfterRenderAsync(bool firstRender) *@
+@*     protected override async Task OnInitializedAsync() *@
 @*     { *@
-@*         if (firstRender && !isLoaded) *@
-@*         { *@
-@*             isLoaded = true; *@
-
-@*             await Auth.LoadFromSession(); *@
-
-@*             if (!Auth.IsLoggedIn || Auth.Role != UserRole.TTCoordinator) *@
-@*             { *@
-@*                 Nav.NavigateTo("/login", true); *@
-@*             } *@
-
-@*             StateHasChanged(); *@
-@*         } *@
+@*         var auth = await AuthProvider.GetAuthenticationStateAsync(); *@
+@*         isAuthorized = auth.User.Identity?.IsAuthenticated == true; *@
 @*     } *@
 @* } *@
+
+
+@inherits LayoutComponentBase
+
 <div class="admin-wrapper">
     <AdminSidebar />
 
@@ -50,4 +47,3 @@
         </div>
     </div>
 </div>
-

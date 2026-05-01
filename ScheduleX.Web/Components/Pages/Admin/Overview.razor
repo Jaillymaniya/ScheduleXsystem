@@ -1,7 +1,8 @@
 ﻿@* @page "/" *@
 @page "/admin/overview"
 @layout ScheduleX.Web.Components.Layout.Admin.AdminLayout
-@inject ScheduleX.Web.Services.AuthState Auth
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Admin")]
 @inject NavigationManager Nav
 
 @using ScheduleX.Core.Entities
@@ -42,13 +43,7 @@
 </div>
 
 @code {
-    // protected override void OnInitialized()
-    // {
-    //     if (!Auth.IsLoggedIn || !Auth.IsAdmin)
-    //     {
-    //         Nav.NavigateTo("/login", true);
-    //     }
-    // }
+  
 
     private int totalDepartments;
     private int totalTTCoordinators;
@@ -57,11 +52,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        if (!Auth.IsLoggedIn || !Auth.IsAdmin)
-        {
-            Nav.NavigateTo("/login", true);
-            return;
-        }
+        
 
 
         // totalDepartments = await _context.Departments.CountAsync();
