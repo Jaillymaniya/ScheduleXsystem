@@ -28,7 +28,9 @@ builder.Services.AddServerSideBlazor()
         options.DetailedErrors = true;
     });
 
-
+// ================= AUTH =================
+builder.Services.AddScoped<ScheduleX.Web.Services.AuthState>();
+builder.Services.AddScoped<ScheduleX.Web.Services.PasswordHasher>();
 
 
 var app = builder.Build();

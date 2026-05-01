@@ -1,0 +1,125 @@
+﻿@page "/tt/overview"
+@layout ScheduleX.Web.Components.Layout.tt.TTLayout
+@inject NavigationManager Nav
+@using Microsoft.EntityFrameworkCore
+@using ScheduleX.Core.Entities
+@using ScheduleX.Infrastructure.Data
+@inject AppDbContext _context
+
+<link href="css/tt.css" rel="stylesheet" />
+
+<div class="tt-page-head">
+    <div>
+        <h2 class="tt-h2">Overview</h2>
+        <p class="tt-muted">Your complete timetable workflow at one place.</p>
+    </div>
+
+    <div class="tt-head-actions">
+        <button class="tt-btn" @onclick="@(() => Nav.NavigateTo("/tt/settings"))">
+            Configure Settings
+        </button>
+
+        <button class="tt-btn primary" @onclick="@(() => Nav.NavigateTo("/tt/generate"))">
+            Generate Now
+        </button>
+    </div>
+</div>
+
+<!-- Top Cards -->
+<div class="tt-grid-4">
+
+    <!-- Semesters -->
+    <div class="tt-card clickable" @onclick="@(() => Nav.NavigateTo("/tt/semester-management"))">
+        <div class="tt-card-top">
+            <div class="tt-card-title">Semesters</div>
+            <div class="tt-pill">FR7</div>
+        </div>
+        <div class="tt-metric">@totalSemesters</div>
+        @* <div class="tt-muted">Active: Sem @activeSemester</div> *@
+    </div>
+
+    <!-- Faculty -->
+    <div class="tt-card clickable" @onclick="@(() => Nav.NavigateTo("/tt/faculty"))">
+        <div class="tt-card-top">
+            <div class="tt-card-title">Faculty</div>
+            <div class="tt-pill">FR8</div>
+        </div>
+        <div class="tt-metric">@totalFaculty</div>
+        <div class="tt-muted">Available: @availableFaculty</div>
+    </div>
+
+    <!-- Subjects -->
+    <div class="tt-card clickable" @onclick="@(() => Nav.NavigateTo("/tt/subjects"))">
+        <div class="tt-card-top">
+            <div class="tt-card-title">Subjects</div>
+            <div class="tt-pill">FR9</div>
+        </div>
+        <div class="tt-metric">@totalSubjects</div>
+        @* <div class="tt-muted">Assigned: @assignedSubjects</div> *@
+    </div>
+
+    <!-- Rooms -->
+    <div class="tt-card clickable" @onclick="@(() => Nav.NavigateTo("/tt/rooms"))">
+        <div class="tt-card-top">
+            <div class="tt-card-title">Rooms / Labs</div>
+            <div class="tt-pill">FR10</div>
+        </div>
+        <div class="tt-metric">@totalRooms</div>
+        <div class="tt-muted">Labs: @totalLabs</div>
+    </div>
+
+</div>
+
+
+
+@code {
+
+    int totalSemesters;
+    // int activeSemester;
+
+    int totalFaculty;
+    int availableFaculty;
+
+    int totalSubjects;
+    // int assignedSubjects;
+
+    int totalRooms;
+    int totalLabs;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        // Semesters
+        var semesters = await _context.Semesters.ToListAsync();
+        totalSemesters = semesters.Count;
+
+        var active = semesters.FirstOrDefault(s => s.IsActive);
+        // activeSemester = active?.SemesterNo ?? 0;
+
+        // Faculty (NO IsAvailable unless you add it)
+        var faculty = await _context.Faculties.ToListAsync();
+        totalFaculty = faculty.Count;
+
+        // If you don't have IsAvailable, keep same
+        availableFaculty = faculty.Count;
+
+        // Subjects
+        var subjects = await _context.Subjects.ToListAsync();
+        totalSubjects = subjects.Count;
+
+        // FIX: based on mapping table instead of FacultyId
+        var subjectFacultyMap = await _context.SubjectFaculties.ToListAsync();
+        // assignedSubjects = subjectFacultyMap.Select(x => x.SubjectId).Distinct().Count();
+        // assignedSubjects = subjects.Count(s => s.SubjectFaculties.Any());
+
+        // Rooms
+        var rooms = await _context.Rooms.ToListAsync();
+        totalRooms = rooms.Count;
+
+        totalLabs = rooms.Count(r => r.RoomType == RoomTypeEnum.Lab);
+    }
+}

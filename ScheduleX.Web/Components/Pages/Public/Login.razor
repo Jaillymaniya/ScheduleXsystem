@@ -1,0 +1,233 @@
+﻿@rendermode InteractiveServer
+@inject NavigationManager Nav
+@page "/login"
+
+<link href="css/login.css" rel="stylesheet" />
+
+@using Microsoft.EntityFrameworkCore
+@using ScheduleX.Core.Entities
+@using ScheduleX.Infrastructure.Data
+
+@inject IDbContextFactory<AppDbContext> DbFactory
+@inject ScheduleX.Web.Services.AuthState Auth
+@inject ScheduleX.Web.Services.PasswordHasher Hasher
+@inject NavigationManager Nav
+<button class="circle-back-btn" @onclick="GoHome">
+    ←
+</button>
+
+<div class="auth-container">
+
+
+    <!-- LEFT BRAND PANEL -->
+    <div class="auth-left">
+        @* <div> *@
+
+        @*     <button class="btn back-btn" @onclick="GoHome"> *@
+        @*         ← Back to Home *@
+        @*     </button> *@
+        @* </div> *@
+        @* <button class="back-btn" @onclick="GoHome"> *@
+        @*     ← *@
+        @* </button> *@
+
+        <h1>ScheduleX</h1>
+        <h3>Timetable Generator</h3>
+        <p>
+            Smart academic scheduling for institutions, faculty,
+            and students — fast, accurate, and automated.
+        </p>
+    </div>
+
+    <div class="auth-right">
+        <div class="login-card">
+
+
+            <h2>Sign in</h2>
+            <p class="subtitle">Access your ScheduleX dashboard</p>
+
+            @if (!string.IsNullOrEmpty(successMessage))
+            {
+                <div class="alert alert-success">
+                    @successMessage
+                </div>
+            }
+
+            <br />
+
+            <!-- USERNAME -->
+            <input class="input"
+                   placeholder="Username"
+                   @bind="Username"
+                   @oninput="ClearMessages" />
+
+            @if (showUserError)
+            {
+                <div class="field-error">Username is required</div>
+            }
+
+            <!-- PASSWORD WITH EYE (UPDATED) -->
+            @* <div class="password-wrapper"> *@
+            @*     <input type="@(_showPassword ? "text" : "password")" *@
+            @*            class="input password-input" *@
+            @*            placeholder="Password" *@
+            @*            @bind="Password" *@
+            @*            @oninput="ClearMessages" /> *@
+
+            @*     <button type="button" class="toggle-eye" @onclick="TogglePassword"> *@
+            @*         <i class="@(_showPassword ? "fa-solid fa-eye-slash" : "fa-solid fa-eye")"></i> *@
+            @*     </button> *@
+            @* </div> *@
+            <div class="password-wrapper">
+                <input type="@(_showPassword ? "text" : "password")"
+                       class="input password-input"
+                       placeholder="Password"
+                       @bind="Password"
+                       @oninput="ClearMessages" />
+
+                <button type="button" class="toggle-eye" @onclick="TogglePassword">
+                    <i class="@(_showPassword ? "fa-solid fa-eye-slash" : "fa-solid fa-eye")"></i>
+                </button>
+            </div>
+
+            @if (showPassError)
+            {
+                <div class="field-error">Password is required</div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(Error))
+            {
+                <div class="server-error">@Error</div>
+            }
+
+            <!-- BUTTON -->
+            <button class="btn primary"
+                    disabled="@_busy"
+                    @onclick="DoLogin">
+                @(_busy ? "Signing in..." : "Sign in")
+            </button>
+
+            <!-- FORGOT -->
+            <div class="forgot">
+                <a href="/forgot-password" class="forgot-link">Forgot password?</a>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+@code {
+
+    private string Username = "";
+    private string Password = "";
+    private string Error = "";
+    private bool _busy;
+
+    private bool showUserError;
+    private bool showPassError;
+
+    private bool _showPassword = false;
+
+    private void TogglePassword()
+    {
+        _showPassword = !_showPassword;
+    }
+
+    private async Task DoLogin()
+    {
+        ClearMessages();
+
+        if (string.IsNullOrWhiteSpace(Username))
+            showUserError = true;
+
+        if (string.IsNullOrWhiteSpace(Password))
+            showPassError = true;
+
+        if (showUserError || showPassError)
+            return;
+
+        if (_busy) return;
+        _busy = true;
+
+        try
+        {
+            await using var db = await DbFactory.CreateDbContextAsync();
+
+            var user = await db.Users
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u =>
+                    EF.Functions.Collate(
+                        u.Username,
+                        "SQL_Latin1_General_CP1_CS_AS"
+                    ) == Username
+                    && u.IsActive);
+
+            // if (user == null || !Hasher.Verify(Password, user.PasswordHash ?? ""))
+            // {
+            //     Error = "Invalid credentials.";
+            //     return;
+            // }
+
+            if (user == null || !Hasher.Verify(Password, user.PasswordHash ?? ""))
+            {
+                Error = "Invalid credentials.";
+
+                // 🔥 CLEAR BOTH FIELDS
+                Username = "";
+                Password = "";
+
+                // optional (reset eye)
+                _showPassword = false;
+
+                return;
+            }
+
+            await Auth.SignIn(user.UserId, user.FullName, user.Role);
+            Auth.DepartmentId = user.DepartmentId ?? 0;
+            Auth.DepartmentName = user.Department?.DepartmentName;
+
+            Nav.NavigateTo(
+                user.Role == UserRole.Admin
+                    ? "/admin/overview"
+                    : "/tt/overview",
+                replace: true);
+        }
+        catch (Exception ex)
+        {
+            Error = ex.Message;
+        }
+        finally
+        {
+            _busy = false;
+        }
+    }
+
+    private void ClearMessages(ChangeEventArgs? e = null)
+    {
+        showUserError = false;
+        showPassError = false;
+        Error = "";
+    }
+
+    string successMessage;
+
+    protected override void OnInitialized()
+    {
+        var uri = Nav.ToAbsoluteUri(Nav.Uri);
+        var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+
+        if (query.TryGetValue("msg", out var msg))
+        {
+            if (msg == "reset-success")
+            {
+                successMessage = "Password changed successfully!";
+            }
+        }
+    }
+
+    private void GoHome()
+    {
+        Nav.NavigateTo("/");
+    }
+}
