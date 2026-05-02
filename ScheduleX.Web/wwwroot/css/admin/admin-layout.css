@@ -306,6 +306,41 @@ body {
         background: #dc2626;
         transform: translateY(-1px);
     }
+/* ===== LOGOUT MODAL ===== */
+
+.logout-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+.logout-modal {
+    background: white;
+    padding: 28px;
+    border-radius: 16px;
+    width: 320px;
+    text-align: center;
+    animation: fadeIn 0.2s ease;
+}
+
+    .logout-modal h3 {
+        margin-bottom: 10px;
+        font-size: 20px;
+        color: #111827;
+    }
+
+    .logout-modal p {
+        font-size: 14px;
+        color: #6b7280;
+        margin-bottom: 20px;
+    }
 
 /* ================= TOPBAR ================= */
 

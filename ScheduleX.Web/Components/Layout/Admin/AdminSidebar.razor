@@ -1,70 +1,168 @@
 ﻿
-@using Microsoft.AspNetCore.Identity
-@using ScheduleX.Core.Entities
-@using Microsoft.AspNetCore.Components.Routing
-@inject NavigationManager Nav
+@* @using Microsoft.AspNetCore.Identity *@
+@* @using ScheduleX.Core.Entities *@
+@* @using Microsoft.AspNetCore.Components.Routing *@
+@* @inject NavigationManager Nav *@
+@* @inject HttpClient Http *@
+@* @inject SignInManager<User> SignInManager *@
+@* <div class="admin-sidebar"> *@
 
-@inject SignInManager<User> SignInManager
+@*     <div class="logo"> *@
+@*         <img src="images/logo.png" alt="ScheduleX Logo" /> *@
+@*         <h3 class="logo-text">ScheduleX</h3> *@
+@*     </div> *@
+
+@*     <ul> *@
+@*         <!-- Dashboard --> *@
+@*         <li> *@
+@*             <NavLink href="/admin/overview"> *@
+@*                 Dashboard *@
+@*             </NavLink> *@
+@*         </li> *@
+
+@*         <!-- Academic Setup --> *@
+@*         <li class="menu-heading">Academic Setup</li> *@
+@*         <li> *@
+@*             <NavLink href="/admin/departments"> *@
+@*                 Departments *@
+@*             </NavLink> *@
+@*         </li> *@
+@*         <li> *@
+@*             <NavLink href="/admin/courses"> *@
+@*                 Courses *@
+@*             </NavLink> *@
+@*         </li> *@
+
+@*         <!-- User Management --> *@
+@*         <li class="menu-heading">User Management</li> *@
+@*         <li> *@
+@*             <NavLink href="/admin/ttcoordinator"> *@
+@*                 Timetable Coordinators *@
+@*             </NavLink> *@
+@*         </li> *@
+
+@*         <!-- Settings --> *@
+@*         <li class="menu-heading">Settings</li> *@
+@*         <li> *@
+@*             <NavLink href="/admin/edit-profile"> *@
+@*                 Profile *@
+@*             </NavLink> *@
+@*         </li> *@
+@*         <li> *@
+@*             <NavLink href="/admin/change-password"> *@
+@*                 Change Password *@
+@*             </NavLink> *@
+@*         </li> *@
+@*     </ul> *@
+
+@*     <div class="logout-section"> *@
+@*         <button class="logout-btn" @onclick="ShowLogoutPopup">Logout</button> *@
+@*     </div> *@
+
+@*     @if (showLogoutPopup) *@
+@*     { *@
+@*         <div class="logout-overlay"> *@
+@*             <div class="logout-modal"> *@
+
+@*                 <h3>Confirm Logout</h3> *@
+@*                 <p>Are you sure you want to logout?</p> *@
+
+@*                 <div class="logout-actions"> *@
+@*                     <button class="btn-cancel" @onclick="HideLogoutPopup">Cancel</button> *@
+
+@*                     <!-- 🔥 THIS IS IMPORTANT --> *@
+@*                     <button class="btn-confirm" @onclick="SubmitLogout"> *@
+@*                         Yes, Logout *@
+@*                     </button> *@
+
+@*                 </div> *@
+
+@*             </div> *@
+@*         </div> *@
+@*     } *@
+
+@* </div> *@
+
+@* @code { *@
+@*     private bool showLogoutPopup = false; *@
+@*     async Task ConfirmLogout() *@
+@*     { *@
+@*         try *@
+@*         { *@
+@*             await Http.PostAsync("api/auth/logout", null); *@
+
+@*             // 🔥 FORCE FULL RELOAD *@
+@*             Nav.NavigateTo("/login", true); *@
+@*         } *@
+@*         catch *@
+@*         { *@
+@*             // fallback *@
+@*             Nav.NavigateTo("/login", true); *@
+@*         } *@
+@*     } *@
+@*     void ShowLogoutPopup() *@
+@*     { *@
+@*         showLogoutPopup = true; *@
+@*     } *@
+
+@*     void HideLogoutPopup() *@
+@*     { *@
+@*         showLogoutPopup = false; *@
+@*     } *@
+@* } *@
+@using Microsoft.AspNetCore.Components.Routing
+
 <div class="admin-sidebar">
 
+    <!-- LOGO -->
     <div class="logo">
         <img src="images/logo.png" alt="ScheduleX Logo" />
         <h3 class="logo-text">ScheduleX</h3>
     </div>
 
+    <!-- MENU -->
     <ul>
-        <!-- Dashboard -->
-        <li>
-            <NavLink href="/admin/overview">
-                Dashboard
-            </NavLink>
-        </li>
+        <li><NavLink href="/admin/overview">Dashboard</NavLink></li>
 
-        <!-- Academic Setup -->
         <li class="menu-heading">Academic Setup</li>
-        <li>
-            <NavLink href="/admin/departments">
-                Departments
-            </NavLink>
-        </li>
-        <li>
-            <NavLink href="/admin/courses">
-                Courses
-            </NavLink>
-        </li>
+        <li><NavLink href="/admin/departments">Departments</NavLink></li>
+        <li><NavLink href="/admin/courses">Courses</NavLink></li>
 
-        <!-- User Management -->
         <li class="menu-heading">User Management</li>
-        <li>
-            <NavLink href="/admin/ttcoordinator">
-                Timetable Coordinators
-            </NavLink>
-        </li>
+        <li><NavLink href="/admin/ttcoordinator">Timetable Coordinators</NavLink></li>
 
-        <!-- Settings -->
         <li class="menu-heading">Settings</li>
-        <li>
-            <NavLink href="/admin/edit-profile">
-                Profile
-            </NavLink>
-        </li>
-        <li>
-            <NavLink href="/admin/change-password">
-                Change Password
-            </NavLink>
-        </li>
+        <li><NavLink href="/admin/edit-profile">Profile</NavLink></li>
+        <li><NavLink href="/admin/change-password">Change Password</NavLink></li>
     </ul>
 
+    <!-- ✅ SIMPLE LOGOUT BUTTON -->
     <div class="logout-section">
-        <button class="logout-btn" @onclick="Logout">Logout</button>
+
+        <form method="post"
+              action="/api/auth/logout"
+              data-enhance="false">
+
+            <button type="submit" class="logout-btn">
+                Logout
+            </button>
+
+        </form>
+
     </div>
 
 </div>
 
-@code {
-    async Task Logout()
-    {
-        await SignInManager.SignOutAsync();
-        Nav.NavigateTo("/login", true);
-    }
-}
+@* @code { *@
+@*     private bool showLogoutPopup = false; *@
+
+@*     void ShowLogoutPopup() *@
+@*     { *@
+@*         showLogoutPopup = true; *@
+@*     } *@
+
+@*     void HideLogoutPopup() *@
+@*     { *@
+@*         showLogoutPopup = false; *@
+@*     } *@
+@* } *@

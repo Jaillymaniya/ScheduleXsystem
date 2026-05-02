@@ -42,6 +42,8 @@ builder.Services.AddAuthorizationCore();
 
 // 🔥 REQUIRED FOR BLAZOR
 builder.Services.AddCascadingAuthenticationState();
+
+
 // ================= COOKIE =================
 builder.Services.ConfigureApplicationCookie(options =>
 {

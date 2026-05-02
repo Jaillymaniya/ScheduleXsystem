@@ -54,6 +54,20 @@ namespace ScheduleX.Web.Controllers
 
             return Redirect("/tt/overview");
         }
+
+       [HttpPost("logout")]
+[IgnoreAntiforgeryToken]
+public async Task<IActionResult> Logout()
+{
+    await _signInManager.SignOutAsync();
+
+    foreach (var cookie in Request.Cookies.Keys)
+    {
+        Response.Cookies.Delete(cookie);
+    }
+
+    return Redirect("/login"); // 🔥 IMPORTANT
+}
     }
 
     public class LoginRequest
@@ -61,4 +75,7 @@ namespace ScheduleX.Web.Controllers
         public string Username { get; set; }
         public string Password { get; set; }
     }
+
+
+
 }
