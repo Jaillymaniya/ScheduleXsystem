@@ -1,0 +1,297 @@
+﻿/* =========================================
+   ACADEMIC YEAR PAGE (SCOPED)
+========================================= */
+.academic-page {
+    padding: 20px;
+    background: #f8fafc;
+}
+
+
+    /* =========================================
+   HEADER
+========================================= */
+    .academic-page .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .academic-page .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+
+    /* =========================================
+   GRID (ADDED FOR SPACE BETWEEN CARDS)
+========================================= */
+    .academic-page .grid-container {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 20px; /* ✅ spacing between Active & Inactive */
+    }
+
+
+    /* =========================================
+   CARD
+========================================= */
+    .academic-page .card {
+        background: #ffffff;
+        padding: 15px; /* ✅ reduced from 20px */
+        border-radius: 12px;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.05);
+    }
+
+        .academic-page .card h4 {
+            margin-bottom: 8px; /* ✅ reduced spacing */
+            font-weight: 600;
+            color: #111827;
+        }
+
+
+    /* =========================================
+   FORM CARD
+========================================= */
+    .academic-page .form-card {
+        margin-bottom: 20px;
+    }
+
+
+    /* =========================================
+   FORM HEADER
+========================================= */
+    .academic-page .form-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+    }
+
+        .academic-page .form-header h3 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+
+    /* =========================================
+   CLOSE BUTTON
+========================================= */
+    .academic-page .close-btn {
+        background: transparent;
+        border: none;
+        font-size: 22px;
+        cursor: pointer;
+        color: #6b7280;
+    }
+
+        .academic-page .close-btn:hover {
+            color: #ef4444;
+        }
+
+
+    /* =========================================
+   FORM
+========================================= */
+    .academic-page .form-group {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 14px;
+    }
+
+        .academic-page .form-group label {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: #374151;
+        }
+
+    .academic-page .form-control {
+        padding: 10px 12px;
+        border-radius: 8px;
+        border: 1px solid #d1d5db;
+        font-size: 14px;
+        transition: 0.2s;
+    }
+
+        .academic-page .form-control:focus {
+            outline: none;
+            border-color: #3b82f6;
+            background: #f9fafb;
+        }
+
+
+    /* =========================================
+   FORM ACTIONS
+========================================= */
+    .academic-page .form-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+
+    /* =========================================
+   BUTTONS
+========================================= */
+    .academic-page button {
+        cursor: pointer;
+        border: none;
+        transition: all 0.2s ease;
+    }
+
+    /* PRIMARY */
+    .academic-page .btn-primary {
+        background: #3b82f6;
+        color: white;
+        padding: 8px 14px;
+        border-radius: 6px;
+        font-size: 14px;
+    }
+
+        .academic-page .btn-primary:hover {
+            background: #2563eb;
+        }
+
+    /* SUCCESS */
+    .academic-page .btn-success {
+        background: #16a34a;
+        color: white;
+        padding: 6px 14px;
+        border-radius: 6px;
+        font-size: 14px;
+    }
+
+        .academic-page .btn-success:hover {
+            background: #15803d;
+        }
+
+    /* DANGER */
+    .academic-page .btn-danger {
+        background: #ef4444;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 6px;
+    }
+
+        .academic-page .btn-danger:hover {
+            background: #dc2626;
+        }
+
+    /* CANCEL */
+    .academic-page .btn-cancel {
+        background: #6b7280;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 6px;
+    }
+
+        .academic-page .btn-cancel:hover {
+            background: #4b5563;
+        }
+
+
+    /* =========================================
+   🟡 EDIT BUTTON (NEW)
+========================================= */
+    .academic-page .btn-edit {
+        background: #3b82f6;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 6px;
+        margin-right: 6px;
+    }
+
+        .academic-page .btn-edit:hover {
+            background: #d97706;
+        }
+
+
+    /* =========================================
+   TABLE STYLE
+========================================= */
+    .academic-page .styled-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+        font-size: 14px;
+    }
+
+        .academic-page .styled-table thead {
+            background: #f1f5f9;
+        }
+
+        .academic-page .styled-table th {
+            padding: 10px; /* ✅ reduced */
+            text-align: center;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .academic-page .styled-table td {
+            padding: 8px; /* ✅ reduced */
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+
+        .academic-page .styled-table tbody tr {
+            transition: all 0.2s ease;
+        }
+
+            .academic-page .styled-table tbody tr:hover {
+                background: #f9fafb;
+                transform: scale(1.01);
+            }
+
+
+/* =========================================
+   TOAST
+========================================= */
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+}
+
+.toast-message {
+    background: #16a34a;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 6px;
+    position: relative;
+    overflow: hidden;
+}
+
+.toast-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 4px;
+    background: rgba(255,255,255,0.8);
+    animation: progress 3s linear forwards;
+    width: 100%;
+}
+
+@keyframes progress {
+    from {
+        width: 100%;
+    }
+
+    to {
+        width: 0%;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}

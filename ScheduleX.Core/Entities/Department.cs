@@ -12,10 +12,15 @@ namespace ScheduleX.Core.Entities
         [Key]
         public int DepartmentId { get; set; }
 
-        [Required, MaxLength(100)]
+        [Required(ErrorMessage = "Department name is required")]
+        [MaxLength(100)]
+        [RegularExpression(@"^[A-Za-z ]+$",
+            ErrorMessage = "Only alphabets and spaces allowed")]
         public string DepartmentName { get; set; } = null!;
 
         [MaxLength(20)]
+        [RegularExpression(@"^[A-Za-z0-9]*$",
+           ErrorMessage = "Only alphanumeric characters allowed")]
         public string? DepartmentCode { get; set; }
 
         public bool IsActive { get; set; } = true;

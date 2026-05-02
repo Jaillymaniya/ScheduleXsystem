@@ -5,6 +5,9 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Identity;
 using ScheduleX.Core.Entities;
 using Microsoft.AspNetCore.Components.Authorization;
+using ScheduleX.Core.Interfaces;
+using ScheduleX.Infrastructure.Repositories;
+using ScheduleX.Web.Services.Admin;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -68,6 +71,13 @@ builder.Services.AddScoped(sp =>
 
 // ================= SERVICES =================
 builder.Services.AddHttpContextAccessor();
+
+
+builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
+builder.Services.AddScoped<DepartmentApiService>();
+builder.Services.AddScoped<IAcademicYearRepository, AcademicYearRepository>();
+builder.Services.AddScoped<AcademicYearApiService>();
+
 
 var app = builder.Build();
 

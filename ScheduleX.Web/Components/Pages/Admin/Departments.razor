@@ -1,0 +1,270 @@
+﻿@page "/admin/departments"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Admin")]
+
+@using ScheduleX.Web.Components.Layout.Admin
+@layout AdminLayout
+
+@using ScheduleX.Web.Services.Admin
+@inject DepartmentApiService DepartmentService
+@inject NavigationManager Nav
+
+<link href="/css/admin/department.css" rel="stylesheet" />
+
+<div class="department-page">
+
+    <!-- HEADER -->
+    <div class="page-header">
+        <div class="header-actions">
+
+            @* <input class="search-box" *@
+            @*        placeholder="Search..." *@
+            @*        @bind="searchText" *@
+            @*        @bind:event="oninput" /> *@
+
+            <button class="btn-primary" @onclick="OpenForm">+ Add Department</button>
+            <button class="btn-success" @onclick="GoNext">Next →</button>
+
+        </div>
+    </div>
+
+    <!-- ================= FORM ================= -->
+    @if (showForm)
+    {
+        <div class="card form-card">
+
+            <div class="form-header">
+                <h3>@(model.DepartmentId == 0 ? "Add Department" : "Edit Department")</h3>
+                <button class="close-btn" @onclick="CloseForm">×</button>
+            </div>
+
+            <EditForm Model="model" OnValidSubmit="Save">
+                <DataAnnotationsValidator />
+
+                <div class="form-group">
+                    <label>Department Name</label>
+                    <InputText class="form-control"
+                               placeholder="Enter department name"
+                               @bind-Value="model.DepartmentName"
+                               @oninput="ValidateName" />
+                    <ValidationMessage For="@(()=>model.DepartmentName)" />
+                </div>
+
+                <div class="form-group">
+                    <label>Department Code</label>
+                    <InputText class="form-control"
+                               placeholder="Enter department code"
+                               @bind-Value="model.DepartmentCode"
+                               @oninput="ValidateCode" />
+                    <ValidationMessage For="@(()=>model.DepartmentCode)" />
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-success">Save</button>
+                    <button type="button" class="btn-cancel" @onclick="CloseForm">Cancel</button>
+                </div>
+
+            </EditForm>
+
+        </div>
+    }
+
+    <!-- ================= LIST ================= -->
+    <div class="grid-container">
+
+        <!-- ACTIVE -->
+        <div class="card">
+            <h4>Active (@ActiveCount)</h4>
+
+            <table class="styled-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Code</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var d in Filtered.Where(x => x.IsActive))
+                    {
+                        <tr>
+                            <td>@d.DepartmentName</td>
+                            <td>@d.DepartmentCode</td>
+                            <td>
+                                <button class="btn-edit" @onclick="()=>Edit(d)">Edit</button>
+                                <button class="btn-danger" @onclick="()=>Toggle(d.DepartmentId)">Deactivate</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- INACTIVE -->
+        <div class="card">
+            <h4>Inactive (@InactiveCount)</h4>
+
+            <table class="styled-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Code</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var d in Filtered.Where(x => !x.IsActive))
+                    {
+                        <tr>
+                            <td>@d.DepartmentName</td>
+                            <td>@d.DepartmentCode</td>
+                            <td>
+                                <button class="btn-edit" disabled>Edit</button>
+                                <button class="btn-success" @onclick="()=>Toggle(d.DepartmentId)">Activate</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<!-- TOAST -->
+@if (showToast)
+{
+    <div class="toast-container">
+        <div class="toast-message">
+            @toastMessage
+            <div class="toast-progress"></div>
+        </div>
+    </div>
+}
+
+
+@code {
+
+    List<Department> list = new();
+    Department model = new();
+
+    string searchText = "";
+
+    bool showForm = false;
+    bool showToast = false;
+    string toastMessage = "";
+    
+    bool isError = false;
+   
+
+    int ActiveCount => list.Count(x => x.IsActive);
+    int InactiveCount => list.Count(x => !x.IsActive);
+
+    IEnumerable<Department> Filtered =>
+        list.Where(x =>
+            string.IsNullOrWhiteSpace(searchText) ||
+            x.DepartmentName.Contains(searchText, StringComparison.OrdinalIgnoreCase));
+
+    protected override async Task OnInitializedAsync()
+    {
+        list = await DepartmentService.GetAllAsync();
+    }
+
+    // 🔥 OPEN FORM
+    void OpenForm()
+    {
+        model = new Department();
+        showForm = true;
+    }
+
+    // 🔥 CLOSE FORM
+    void CloseForm()
+    {
+        showForm = false;
+    }
+
+    // 🔥 SAVE
+    async Task Save()
+    {
+        try
+        {
+            (bool success, string message) result;
+
+            if (model.DepartmentId == 0)
+                result = await DepartmentService.CreateAsync(model);
+            else
+                result = await DepartmentService.UpdateAsync(model);
+
+            ShowToast(result.message);
+
+            if (result.success)
+            {
+                list = await DepartmentService.GetAllAsync();
+                showForm = false; // close after save
+            }
+        }
+        catch
+        {
+            ShowToast("Unexpected error occurred");
+        }
+    }
+
+    // 🔥 EDIT
+    void Edit(Department d)
+    {
+        model = new Department
+            {
+                DepartmentId = d.DepartmentId,
+                DepartmentName = d.DepartmentName,
+                DepartmentCode = d.DepartmentCode
+            };
+
+        showForm = true;
+    }
+
+    // 🔥 TOGGLE
+    async Task Toggle(int id)
+    {
+        var result = await DepartmentService.ToggleAsync(id);
+
+       
+        ShowToast(result.message);
+        if (result.success)
+            list = await DepartmentService.GetAllAsync();
+    }
+
+    // 🔥 VALIDATION
+    void ValidateName(ChangeEventArgs e)
+    {
+        var v = e.Value?.ToString() ?? "";
+        model.DepartmentName = new string(v.Where(c => char.IsLetter(c) || c == ' ').ToArray());
+    }
+
+    void ValidateCode(ChangeEventArgs e)
+    {
+        var v = e.Value?.ToString() ?? "";
+        model.DepartmentCode = new string(v.Where(char.IsLetterOrDigit).ToArray());
+    }
+
+    // 🔥 TOAST
+    async void ShowToast(string message)
+    {
+        toastMessage = message;
+        showToast = true;
+
+        await Task.Delay(3000);
+        showToast = false;
+        StateHasChanged();
+    }
+
+    void GoNext()
+    {
+        Nav.NavigateTo("/admin/courses");
+    }
+}

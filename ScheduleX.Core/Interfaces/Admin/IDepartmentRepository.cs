@@ -1,15 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ScheduleX.Core.Entities;
-namespace ScheduleX.Core.Interfaces;
+﻿using ScheduleX.Core.Entities;
 
-public interface IDepartmentRepository
+namespace ScheduleX.Core.Interfaces
 {
-    Task<List<Department>> GetAllAsync();
-    Task AddAsync(Department department);
-    Task UpdateAsync(Department department);
-    Task ToggleStatusAsync(int id);
+    public interface IDepartmentRepository
+    {
+        Task<List<Department>> GetAllAsync();
+        Task AddAsync(Department department);
+        Task UpdateAsync(Department department);
+        Task ToggleStatusAsync(int id);
+    }
 }

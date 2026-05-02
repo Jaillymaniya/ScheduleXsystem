@@ -1,0 +1,255 @@
+﻿@page "/admin/academic-year"
+@rendermode InteractiveServer
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Admin")]
+
+@using ScheduleX.Web.Components.Layout.Admin
+@layout AdminLayout
+
+@using ScheduleX.Core.Entities
+@using ScheduleX.Web.Services.Admin
+
+@inject AcademicYearApiService Service
+@inject NavigationManager Nav
+
+<link href="/css/admin/academic-year.css" rel="stylesheet" />
+
+<div class="academic-page">
+
+    <!-- HEADER -->
+    <div class="page-header">
+        <div class="header-actions">
+
+            <button class="btn-primary" @onclick="OpenForm">+ Add Academic Year</button>
+            <button class="btn-success" @onclick="GoNext">Next →</button>
+
+        </div>
+    </div>
+
+    <!-- ================= FORM ================= -->
+    @if (showForm)
+    {
+        <div class="card form-card">
+
+            <div class="form-header">
+                <h3>@(model.AcademicYearId == 0 ? "Add Academic Year" : "Edit Academic Year")</h3>
+                <button class="close-btn" @onclick="CloseForm">×</button>
+            </div>
+
+            <EditForm Model="model" OnValidSubmit="Save">
+                <DataAnnotationsValidator />
+
+                <!-- YEAR INPUT -->
+                <div class="form-group">
+                    <label>Academic Year (e.g. 2025-26)</label>
+                    <InputText class="form-control"
+                               placeholder="Enter year (2025-26)"
+                               @bind-Value="model.YearName"
+                               @oninput="GenerateDates" />
+                </div>
+
+                <!-- START DATE -->
+                <div class="form-group">
+                    <label>Start Date</label>
+                    <InputDate class="form-control" @bind-Value="model.StartDate" />
+                </div>
+
+                <!-- END DATE -->
+                <div class="form-group">
+                    <label>End Date</label>
+                    <InputDate class="form-control" @bind-Value="model.EndDate" />
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-success">Save</button>
+                    <button type="button" class="btn-cancel" @onclick="CloseForm">Cancel</button>
+                </div>
+
+            </EditForm>
+
+        </div>
+    }
+
+    <!-- ================= LIST ================= -->
+    <div class="grid-container">
+
+        <!-- ACTIVE -->
+        <div class="card">
+            <h4>Active (@ActiveCount)</h4>
+
+            <table class="styled-table">
+                <thead>
+                    <tr>
+                        <th>Year</th>
+                        <th>Start</th>
+                        <th>End</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var y in Filtered.Where(x => x.IsActive))
+                    {
+                        <tr>
+                            <td>@y.YearName</td>
+                            <td>@y.StartDate</td>
+                            <td>@y.EndDate</td>
+                            <td>
+                                <button class="btn-edit" @onclick="()=>Edit(y)">Edit</button>
+                                <button class="btn-danger" @onclick="()=>Toggle(y.AcademicYearId)">Deactivate</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- INACTIVE -->
+        <div class="card">
+            <h4>Inactive (@InactiveCount)</h4>
+
+            <table class="styled-table">
+                <thead>
+                    <tr>
+                        <th>Year</th>
+                        <th>Start</th>
+                        <th>End</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var y in Filtered.Where(x => !x.IsActive))
+                    {
+                        <tr>
+                            <td>@y.YearName</td>
+                            <td>@y.StartDate</td>
+                            <td>@y.EndDate</td>
+                            <td>
+                                <button class="btn-edit" disabled>Edit</button>
+                                <button class="btn-success" @onclick="()=>Toggle(y.AcademicYearId)">Activate</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- TOAST -->
+@if (showToast)
+{
+    <div class="toast-container">
+        <div class="toast-message">
+            @toastMessage
+            <div class="toast-progress"></div>
+        </div>
+    </div>
+}
+
+@code {
+
+    List<AcademicYear> list = new();
+    AcademicYear model = new();
+
+    string searchText = "";
+
+    bool showForm = false;
+    bool showToast = false;
+    string toastMessage = "";
+
+    int ActiveCount => list.Count(x => x.IsActive);
+    int InactiveCount => list.Count(x => !x.IsActive);
+
+    IEnumerable<AcademicYear> Filtered =>
+        list.Where(x =>
+            string.IsNullOrWhiteSpace(searchText) ||
+            x.YearName.Contains(searchText, StringComparison.OrdinalIgnoreCase));
+
+    protected override async Task OnInitializedAsync()
+    {
+        list = await Service.GetAllAsync();
+    }
+
+    void OpenForm()
+    {
+        model = new AcademicYear();
+        showForm = true;
+    }
+
+    void CloseForm()
+    {
+        showForm = false;
+    }
+
+    // 🔥 AUTO GENERATE DATES FROM YEAR
+    void GenerateDates(ChangeEventArgs e)
+    {
+        var value = e.Value?.ToString() ?? "";
+
+        if (value.Contains('-'))
+        {
+            var parts = value.Split('-');
+
+            if (parts.Length == 2 && int.TryParse(parts[0], out int startYear))
+            {
+                model.StartDate = new DateOnly(startYear, 6, 1);
+                model.EndDate = new DateOnly(startYear + 1, 5, 31);
+            }
+        }
+    }
+
+    async Task Save()
+    {
+        var result = await Service.CreateAsync(model);
+
+        ShowToast(result.message);
+
+        if (result.success)
+        {
+            list = await Service.GetAllAsync();
+            showForm = false;
+        }
+    }
+
+    void Edit(AcademicYear y)
+    {
+        model = new AcademicYear
+            {
+                AcademicYearId = y.AcademicYearId,
+                YearName = y.YearName,
+                StartDate = y.StartDate,
+                EndDate = y.EndDate
+            };
+
+        showForm = true;
+    }
+
+    async Task Toggle(int id)
+    {
+        var result = await Service.ToggleAsync(id);
+
+        ShowToast(result.message);
+
+        if (result.success)
+            list = await Service.GetAllAsync();
+    }
+
+    async void ShowToast(string message)
+    {
+        toastMessage = message;
+        showToast = true;
+
+        await Task.Delay(3000);
+        showToast = false;
+        StateHasChanged();
+    }
+
+    void GoNext()
+    {
+        Nav.NavigateTo("/admin/departments");
+    }
+}
