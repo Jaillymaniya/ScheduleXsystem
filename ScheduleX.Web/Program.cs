@@ -87,6 +87,9 @@ app.UseAuthorization();
 
 app.UseAntiforgery();
 
+app.UseExceptionHandler("/error");
+app.UseStatusCodePagesWithRedirects("/404");
+
 // 🔥 IMPORTANT
 app.MapControllers();
 
