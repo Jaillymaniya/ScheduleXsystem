@@ -39,25 +39,11 @@
             <EditForm Model="model" OnValidSubmit="Save">
                 <DataAnnotationsValidator />
 
-                <!-- YEAR INPUT -->
                 <div class="form-group">
                     <label>Academic Year (e.g. 2025-26)</label>
                     <InputText class="form-control"
                                placeholder="Enter year (2025-26)"
-                               @bind-Value="model.YearName"
-                               @oninput="GenerateDates" />
-                </div>
-
-                <!-- START DATE -->
-                <div class="form-group">
-                    <label>Start Date</label>
-                    <InputDate class="form-control" @bind-Value="model.StartDate" />
-                </div>
-
-                <!-- END DATE -->
-                <div class="form-group">
-                    <label>End Date</label>
-                    <InputDate class="form-control" @bind-Value="model.EndDate" />
+                               @bind-Value="model.YearName" />
                 </div>
 
                 <div class="form-actions">
@@ -81,22 +67,20 @@
                 <thead>
                     <tr>
                         <th>Year</th>
-                        <th>Start</th>
-                        <th>End</th>
                         <th>Action</th>
                     </tr>
                 </thead>
 
                 <tbody>
-                    @foreach (var y in Filtered.Where(x => x.IsActive))
+                    @foreach (var y in list.Where(x => x.IsActive))
                     {
                         <tr>
-                            <td>@y.YearName</td>
-                            <td>@y.StartDate</td>
-                            <td>@y.EndDate</td>
+                            <td>
+                                @y.YearName
+                                <span class="badge-active">Current</span> <!-- 🔥 BADGE -->
+                            </td>
                             <td>
                                 <button class="btn-edit" @onclick="()=>Edit(y)">Edit</button>
-                                <button class="btn-danger" @onclick="()=>Toggle(y.AcademicYearId)">Deactivate</button>
                             </td>
                         </tr>
                     }
@@ -112,23 +96,16 @@
                 <thead>
                     <tr>
                         <th>Year</th>
-                        <th>Start</th>
-                        <th>End</th>
-                        <th>Action</th>
                     </tr>
                 </thead>
 
                 <tbody>
-                    @foreach (var y in Filtered.Where(x => !x.IsActive))
+                    @foreach (var y in list
+                    .Where(x => !x.IsActive)
+                    .OrderByDescending(x => x.YearName))
                     {
                         <tr>
                             <td>@y.YearName</td>
-                            <td>@y.StartDate</td>
-                            <td>@y.EndDate</td>
-                            <td>
-                                <button class="btn-edit" disabled>Edit</button>
-                                <button class="btn-success" @onclick="()=>Toggle(y.AcademicYearId)">Activate</button>
-                            </td>
                         </tr>
                     }
                 </tbody>
@@ -155,19 +132,12 @@
     List<AcademicYear> list = new();
     AcademicYear model = new();
 
-    string searchText = "";
-
     bool showForm = false;
     bool showToast = false;
     string toastMessage = "";
 
     int ActiveCount => list.Count(x => x.IsActive);
     int InactiveCount => list.Count(x => !x.IsActive);
-
-    IEnumerable<AcademicYear> Filtered =>
-        list.Where(x =>
-            string.IsNullOrWhiteSpace(searchText) ||
-            x.YearName.Contains(searchText, StringComparison.OrdinalIgnoreCase));
 
     protected override async Task OnInitializedAsync()
     {
@@ -183,23 +153,6 @@
     void CloseForm()
     {
         showForm = false;
-    }
-
-    // 🔥 AUTO GENERATE DATES FROM YEAR
-    void GenerateDates(ChangeEventArgs e)
-    {
-        var value = e.Value?.ToString() ?? "";
-
-        if (value.Contains('-'))
-        {
-            var parts = value.Split('-');
-
-            if (parts.Length == 2 && int.TryParse(parts[0], out int startYear))
-            {
-                model.StartDate = new DateOnly(startYear, 6, 1);
-                model.EndDate = new DateOnly(startYear + 1, 5, 31);
-            }
-        }
     }
 
     async Task Save()
@@ -220,22 +173,10 @@
         model = new AcademicYear
             {
                 AcademicYearId = y.AcademicYearId,
-                YearName = y.YearName,
-                StartDate = y.StartDate,
-                EndDate = y.EndDate
+                YearName = y.YearName
             };
 
         showForm = true;
-    }
-
-    async Task Toggle(int id)
-    {
-        var result = await Service.ToggleAsync(id);
-
-        ShowToast(result.message);
-
-        if (result.success)
-            list = await Service.GetAllAsync();
     }
 
     async void ShowToast(string message)

@@ -207,7 +207,15 @@
             background: #d97706;
         }
 
-
+/* 🔥 ACTIVE BADGE */
+.badge-active {
+    background: #16a34a;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    margin-left: 8px;
+}
     /* =========================================
    TABLE STYLE
 ========================================= */

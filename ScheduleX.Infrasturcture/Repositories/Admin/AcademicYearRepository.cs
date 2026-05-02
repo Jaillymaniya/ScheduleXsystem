@@ -25,6 +25,19 @@ namespace ScheduleX.Infrastructure.Repositories
             if (exists)
                 throw new Exception("Academic year already exists");
 
+            // 🔥 deactivate all existing years
+            var activeYears = await _context.AcademicYears
+                .Where(x => x.IsActive)
+                .ToListAsync();
+
+            foreach (var item in activeYears)
+            {
+                item.IsActive = false;
+            }
+
+            // new year becomes active
+            year.IsActive = true;
+
             _context.AcademicYears.Add(year);
             await _context.SaveChangesAsync();
         }
@@ -35,15 +48,6 @@ namespace ScheduleX.Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task ToggleStatusAsync(int id)
-        {
-            var item = await _context.AcademicYears.FindAsync(id);
-
-            if (item == null)
-                throw new Exception("Academic year not found");
-
-            item.IsActive = !item.IsActive;
-            await _context.SaveChangesAsync();
-        }
+        
     }
 }

@@ -7,6 +7,6 @@ namespace ScheduleX.Core.Interfaces
         Task<List<AcademicYear>> GetAllAsync();
         Task AddAsync(AcademicYear year);
         Task UpdateAsync(AcademicYear year);
-        Task ToggleStatusAsync(int id);
+       
     }
 }

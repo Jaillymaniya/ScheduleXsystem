@@ -21,14 +21,7 @@ namespace ScheduleX.Web.Services.Admin
         {
             try
             {
-                // 🔥 AUTO GENERATE YEAR NAME
-                model.YearName = $"{model.StartDate.Year}-{model.EndDate.Year % 100}";
-
-                if (model.EndDate <= model.StartDate)
-                    return (false, "End date must be after start date");
-
                 await _repo.AddAsync(model);
-
                 return (true, "Academic Year added successfully");
             }
             catch (Exception ex)
@@ -41,7 +34,7 @@ namespace ScheduleX.Web.Services.Admin
         {
             try
             {
-                model.YearName = $"{model.StartDate.Year}-{model.EndDate.Year % 100}";
+                
 
                 await _repo.UpdateAsync(model);
 
@@ -53,17 +46,6 @@ namespace ScheduleX.Web.Services.Admin
             }
         }
 
-        public async Task<(bool success, string message)> ToggleAsync(int id)
-        {
-            try
-            {
-                await _repo.ToggleStatusAsync(id);
-                return (true, "Status updated");
-            }
-            catch (Exception ex)
-            {
-                return (false, ex.Message);
-            }
-        }
+       
     }
 }

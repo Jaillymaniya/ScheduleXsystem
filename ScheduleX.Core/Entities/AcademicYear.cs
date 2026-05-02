@@ -16,12 +16,7 @@ namespace ScheduleX.Core.Entities
         [MaxLength(20)]
         public string YearName { get; set; } = null!; // "2025-26"
 
-        [Required(ErrorMessage = "Start date is required")]
-        public DateOnly StartDate { get; set; }
-
-        [Required(ErrorMessage = "End date is required")]
-        public DateOnly EndDate { get; set; }
-
+      
         public bool IsActive { get; set; } = true;
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
