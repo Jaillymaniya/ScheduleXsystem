@@ -122,15 +122,28 @@
 
     <!-- MENU -->
     <ul>
-        <li><NavLink href="/admin/overview">Dashboard</NavLink></li>
+        <!-- DASHBOARD -->
+        <li>
+            <NavLink href="/admin/overview">Dashboard</NavLink>
+        </li>
 
-        <li class="menu-heading">Academic Setup</li>
+        <!-- ACADEMIC STRUCTURE -->
+        <li class="menu-heading">Academic Structure</li>
+        <li><NavLink href="/admin/academic-year">Academic Year</NavLink></li>
         <li><NavLink href="/admin/departments">Departments</NavLink></li>
         <li><NavLink href="/admin/courses">Courses</NavLink></li>
+        <li><NavLink href="/admin/semesters">Semesters</NavLink></li>
 
-        <li class="menu-heading">User Management</li>
-        <li><NavLink href="/admin/ttcoordinator">Timetable Coordinators</NavLink></li>
+        <!-- CURRICULUM -->
+        <li class="menu-heading">Curriculum</li>
+        <li><NavLink href="/admin/subjects">Subjects</NavLink></li>
 
+        <!-- STAFF MANAGEMENT -->
+        <li class="menu-heading">Staff Management</li>
+        <li><NavLink href="/admin/faculty">Faculty</NavLink></li>
+        <li><NavLink href="/admin/ttcoordinator">TT Coordinators</NavLink></li>
+
+        <!-- SETTINGS -->
         <li class="menu-heading">Settings</li>
         <li><NavLink href="/admin/edit-profile">Profile</NavLink></li>
         <li><NavLink href="/admin/change-password">Change Password</NavLink></li>
