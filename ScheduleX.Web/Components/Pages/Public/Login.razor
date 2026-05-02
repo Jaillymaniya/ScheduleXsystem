@@ -8,6 +8,8 @@
 @inject SignInManager<User> SignInManager
 @inject UserManager<User> UserManager
 @inject HttpClient Http
+@inject IJSRuntime JS
+
 <link href="css/login.css" rel="stylesheet" />
 
 <button class="circle-back-btn" @onclick="GoHome">
@@ -63,8 +65,11 @@
                 </div>
 
                 <!-- BUTTON -->
-                <button class="btn primary" type="submit">
-                    Sign in
+                @* <button class="btn primary" type="submit"> *@
+                @*     Sign in *@
+                @* </button> *@
+                <button class="btn primary" type="submit" disabled="@isLocked">
+                    @(isLocked ? $"Locked ({remainingSeconds}s)" : "Sign in")
                 </button>
 
             </form>
@@ -74,6 +79,21 @@
     </div>
 
 </div>
+
+@if (showRobotCheck)
+{
+    <div class="overlay">
+        <div class="robot-box">
+            <h3>🤖 Verification Required</h3>
+            <p>Are you a human?</p>
+
+            <label>
+                <input type="checkbox" @onchange="VerifyHuman" />
+                I'm not a robot
+            </label>
+        </div>
+    </div>
+}
 
 @code {
     class LoginResponse
@@ -90,6 +110,51 @@
     private bool _showPassword = false;
 
     private string returnUrl = "/";
+
+    //login wrong attempt
+    private int failedAttempts = 0;
+    private bool showRobotCheck = false;
+    private bool isLocked = false;
+    private int remainingSeconds = 0;
+    private System.Timers.Timer? lockTimer;
+    private bool shouldHandleFailure = false;
+
+
+    private async Task LockLogin()
+    {
+        isLocked = true;
+        remainingSeconds = 30;
+
+        await JS.InvokeVoidAsync("setLock", 30);
+
+        StartTimer();
+    }
+
+    private void StartTimer()
+    {
+        lockTimer?.Stop(); // 🔥 prevent multiple timers
+
+        lockTimer = new System.Timers.Timer(1000);
+        lockTimer.Elapsed += (s, e) =>
+        {
+            remainingSeconds--;
+
+            if (remainingSeconds <= 0)
+            {
+                lockTimer.Stop();
+                isLocked = false;
+                failedAttempts = 0;
+
+                InvokeAsync(StateHasChanged);
+            }
+            else
+            {
+                InvokeAsync(StateHasChanged);
+            }
+        };
+
+        lockTimer.Start();
+    }
 
     private void TogglePassword()
     {
@@ -159,19 +224,131 @@
         Error = "";
     }
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         var uri = Nav.ToAbsoluteUri(Nav.Uri);
         var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+
+        // 🔥 detect failed login
+        if (query.TryGetValue("error", out var error))
+        {
+            if (error == "invalid")
+            {
+                // await HandleFailedAttempt();
+                // ✅ CALL HERE
+                shouldHandleFailure = true; // ✅ delay
+            }
+        }
+
 
         if (query.TryGetValue("ReturnUrl", out var url))
         {
             returnUrl = url!;
         }
+
+        // return Task.CompletedTask;
+
     }
 
     private void GoHome()
     {
         Nav.NavigateTo("/");
     }
+
+    private async Task VerifyHuman(ChangeEventArgs e)
+    {
+        showRobotCheck = false;
+        failedAttempts = 1;
+
+        await JS.InvokeVoidAsync("setAttempts", 1);
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // ✅ restore lock
+            var remaining = await JS.InvokeAsync<int>("getLockRemaining");
+            if (remaining > 0)
+            {
+                isLocked = true;
+                remainingSeconds = remaining;
+                StartTimer();
+            }
+
+            // ✅ restore robot
+            // showRobotCheck = await JS.InvokeAsync<bool>("getRobotCheck");
+
+            // ✅ handle failed attempt safely
+            if (shouldHandleFailure)
+            {
+                shouldHandleFailure = false;
+                await HandleFailedAttempt();
+            }
+
+            // if no error param → reset attempts
+            var uri = Nav.ToAbsoluteUri(Nav.Uri);
+
+            if (!uri.Query.Contains("error"))
+            {
+                await JS.InvokeVoidAsync("resetAttempts");
+            }
+
+            await InvokeAsync(StateHasChanged);
+
+        }
+    }
+
+    // private async Task HandleFailedAttempt()
+    // {
+    //     failedAttempts = await JS.InvokeAsync<int>("getAttempts");
+    //     failedAttempts++;
+
+    //     await JS.InvokeVoidAsync("setAttempts", failedAttempts);
+
+    //     Error = "Invalid username or password";
+
+    //     if (failedAttempts == 2)
+    //     {
+    //         showRobotCheck = true;
+    //         await JS.InvokeVoidAsync("setRobotCheck", true);
+    //     }
+
+    //     if (failedAttempts >= 3)
+    //     {
+    //         await LockLogin();
+    //     }
+
+    //     await InvokeAsync(StateHasChanged);
+
+    // }
+
+    private async Task HandleFailedAttempt()
+    {
+        failedAttempts = await JS.InvokeAsync<int>("getAttempts");
+        failedAttempts++;
+
+        await JS.InvokeVoidAsync("setAttempts", failedAttempts);
+
+        Error = "Invalid username or password";
+
+        if (failedAttempts == 2)
+        {
+            showRobotCheck = true;
+
+            // 🔥 IMPORTANT: force UI refresh immediately
+            await InvokeAsync(StateHasChanged);
+            return;
+        }
+
+        if (failedAttempts >= 3)
+        {
+            await LockLogin();
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
 }

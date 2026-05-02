@@ -1,5 +1,6 @@
 ﻿@* @page "/" *@
 @page "/admin/overview"
+@attribute [Authorize(Roles = "Admin")]
 @layout ScheduleX.Web.Components.Layout.Admin.AdminLayout
 @using Microsoft.AspNetCore.Authorization
 @attribute [Authorize(Roles = "Admin")]
