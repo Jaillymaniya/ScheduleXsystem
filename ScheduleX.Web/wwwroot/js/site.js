@@ -1,4 +1,4 @@
-﻿window.downloadFileFromBase64 = (fileName, base64Data) => {
+﻿window.downloadFile = (fileName, base64Data) => {
     try {
         const link = document.createElement('a');
         link.download = fileName;

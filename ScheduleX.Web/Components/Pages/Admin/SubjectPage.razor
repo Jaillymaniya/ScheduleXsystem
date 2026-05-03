@@ -1,0 +1,756 @@
+﻿@page "/admin/subjects"
+@rendermode InteractiveServer
+@attribute [Authorize(Roles = "Admin")]
+@using ScheduleX.Web.Components.Layout.Admin
+@layout AdminLayout
+@using ScheduleX.Core.Entities
+@using ScheduleX.Web.Services.Admin
+@using System.Text
+@inject SubjectApiService Service
+@inject IJSRuntime JS
+
+<link href="/css/admin/subject.css" rel="stylesheet" />
+
+<div class="subject-page">
+
+    <!-- HEADER -->
+    <div class="page-header">
+        <div class="header-actions">
+            <button class="btn-primary" @onclick="OpenManual">+ Add Subject</button>
+            <button class="btn-success" @onclick="OpenCsv">Upload CSV</button>
+        </div>
+    </div>
+    <div class="top-form-wrapper">
+
+        @if (showEdit)
+        {
+            <div class="card form-card">
+
+                <div class="form-header">
+                    <h3>Edit Subject</h3>
+                    <button class="close-btn" @onclick="()=>showEdit=false">×</button>
+                </div>
+
+                <div class="form-group">
+                    <label>Department</label>
+                    <select class="form-control" @bind="selectedDept" @bind:after="LoadCourses">
+                        @foreach (var d in departments)
+                        {
+                            <option value="@d.DepartmentId">@d.DepartmentName</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Course</label>
+                    <select class="form-control" @bind="editModel.CourseId">
+                        @foreach (var c in courses)
+                        {
+                            <option value="@c.CourseId">@c.CourseName</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Subject Name</label>
+                    <input class="form-control" @bind="editModel.SubjectName" />
+                </div>
+
+                <div class="form-group">
+                    <label>Subject Code</label>
+                    <input class="form-control" @bind="editModel.SubjectCode" />
+                </div>
+
+                <div class="form-group">
+                    <label>Category</label>
+                    <select class="form-control" @bind="editModel.SubjectCategory">
+                        <option value="1">Theory</option>
+                        <option value="2">Practical</option>
+                        <option value="3">Both</option>
+                    </select>
+                </div>
+
+                @if (editModel.SubjectCategory == SubjectCategoryEnum.Theory)
+                {
+                    <div class="form-group">
+                        <label>Theory Credit</label>
+                        <select class="form-control" @bind="editModel.TheoryCredits">
+                            @for (int i = 0; i <= 9; i++)
+                            {
+                                <option value="@i">@i</option>
+                            }
+                        </select>
+                    </div>
+                }
+                else if (editModel.SubjectCategory == SubjectCategoryEnum.Practical)
+                {
+                    <div class="form-group">
+                        <label>Practical Credit</label>
+                        <select class="form-control" @bind="editModel.PracticalCredits">
+                            @for (int i = 0; i <= 9; i++)
+                            {
+                                <option value="@i">@i</option>
+                            }
+                        </select>
+                    </div>
+                }
+                else
+                {
+                    <div class="form-group">
+                        <label>Theory Credit</label>
+                        <select class="form-control" @bind="editModel.TheoryCredits">
+                            @for (int i = 0; i <= 9; i++)
+                            {
+                                <option value="@i">@i</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Practical Credit</label>
+                        <select class="form-control" @bind="editModel.PracticalCredits">
+                            @for (int i = 0; i <= 9; i++)
+                            {
+                                <option value="@i">@i</option>
+                            }
+                        </select>
+                    </div>
+                }
+
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" @bind="editModel.IsElective" /> Elective
+                    </label>
+                </div>
+
+                <div class="form-actions">
+                    <button class="btn-success" @onclick="UpdateSubject">Update</button>
+                    <button class="btn-cancel" @onclick="()=>showEdit=false">Cancel</button>
+                </div>
+
+            </div>
+        }
+
+        @if (showManual)
+        {
+            <div class="card form-card">
+
+                <div class="form-header">
+                    <h3>Add Subject</h3>
+                    <button class="close-btn" @onclick="CloseAll">×</button>
+                </div>
+
+                <div class="form-group">
+                    <label>Department</label>
+                    <select class="form-control" @bind="selectedDept" @bind:after="LoadCourses">
+                        <option value="0">-- Select Department --</option>
+                        @foreach (var d in departments)
+                        {
+                            <option value="@d.DepartmentId">@d.DepartmentName</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Course</label>
+                    <select class="form-control" @bind="model.CourseId">
+                        <option value="0">-- Select Course --</option>
+                        @foreach (var c in courses)
+                        {
+                            <option value="@c.CourseId">@c.CourseName</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Subject Name</label>
+                    <input class="form-control" @bind="model.SubjectName" @oninput="ValidateName" />
+                    <div class="validation-message">@nameError</div>
+                </div>
+
+                <div class="form-group">
+                    <label>Subject Code</label>
+                    <input class="form-control" @bind="model.SubjectCode" @oninput="ValidateCode" />
+                    <div class="validation-message">@codeError</div>
+                </div>
+
+                <div class="form-group">
+                    <label>Category</label>
+                    <select class="form-control" @bind="model.SubjectCategory">
+                        <option value="0">-- Select Category --</option>
+                        <option value="1">Theory</option>
+                        <option value="2">Practical</option>
+                        <option value="3">Both</option>
+                    </select>
+                </div>
+
+                <!-- 🔥 CREDIT SELECT (NO MANUAL INPUT) -->
+                @if (model.SubjectCategory == SubjectCategoryEnum.Theory)
+                {
+                    <div class="form-group">
+                        <label>Theory Credit</label>
+                        <select class="form-control" @bind="model.TheoryCredits">
+                            @for (int i = 0; i <= 9; i++)
+                            {
+                                <option value="@i">@i</option>
+                            }
+                        </select>
+                    </div>
+                }
+                else if (model.SubjectCategory == SubjectCategoryEnum.Practical)
+                {
+                    <div class="form-group">
+                        <label>Practical Credit</label>
+                        <select class="form-control" @bind="model.PracticalCredits">
+                            @for (int i = 0; i <= 9; i++)
+                            {
+                                <option value="@i">@i</option>
+                            }
+                        </select>
+                    </div>
+                }
+                else if (model.SubjectCategory == SubjectCategoryEnum.Both)
+                {
+                    <div class="form-group">
+                        <label>Theory Credit</label>
+                        <select class="form-control" @bind="model.TheoryCredits">
+                            @for (int i = 0; i <= 9; i++)
+                            {
+                                <option value="@i">@i</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Practical Credit</label>
+                        <select class="form-control" @bind="model.PracticalCredits">
+                            @for (int i = 0; i <= 9; i++)
+                            {
+                                <option value="@i">@i</option>
+                            }
+                        </select>
+                    </div>
+                }
+
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" @bind="model.IsElective" /> Elective
+                    </label>
+                </div>
+
+                <div class="form-actions">
+                    <button class="btn-success" @onclick="Save">Save</button>
+                    <button class="btn-cancel" @onclick="CloseAll">Cancel</button>
+                </div>
+
+            </div>
+        }
+
+        @if (showCsv)
+        {
+            <div class="card form-card">
+
+                <div class="form-header">
+                    <h3>Upload CSV</h3>
+                    <button class="close-btn" @onclick="CloseAll">×</button>
+                </div>
+
+                <div class="form-group">
+                    <label>Department</label>
+                    <select class="form-control" @bind="selectedDept" @bind:after="LoadCourses">
+                        <option value="0">-- Select Department --</option>
+                        @foreach (var d in departments)
+                        {
+                            <option value="@d.DepartmentId">@d.DepartmentName</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Course</label>
+                    <select class="form-control" @bind="selectedCourseId">
+                        <option value="0">-- Select Course --</option>
+                        @foreach (var c in courses)
+                        {
+                            <option value="@c.CourseId">@c.CourseName</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="form-actions">
+
+                    <button class="btn-primary"
+                            @onclick="DownloadCsv"
+                            disabled="@(selectedCourseId == 0)">
+                        Download CSV
+                    </button>
+
+                    <InputFile OnChange="UploadCsv"
+                               disabled="@(selectedCourseId == 0)" />
+
+                    <button class="btn-success"
+                            @onclick="SaveCsv"
+                            disabled="@(uploadedSubjects.Count == 0)">
+                        Save
+                    </button>
+
+                </div>
+
+                @if (csvErrors.Any())
+                {
+                    <div class="validation-message">
+                        @foreach (var e in csvErrors)
+                        {
+                            <div>@e</div>
+                        }
+                    </div>
+                }
+
+            </div>
+        }
+        @* ======================edit============== *@
+
+    </div>
+   
+    <!-- FILTER -->
+    <div class="card filter-bar">
+
+        <select @onchange="OnDeptChange" class="filter-control">
+            <option value="0">Select Department</option>
+            @foreach (var d in departments)
+            {
+                <option value="@d.DepartmentId">@d.DepartmentName</option>
+            }
+        </select>
+
+        <select @onchange="OnCourseChange" class="filter-control" disabled="@(selectedDept==0)">
+            <option value="0">Select Course</option>
+            @foreach (var c in courses)
+            {
+                <option value="@c.CourseId">@c.CourseName</option>
+            }
+        </select>
+
+        <input class="filter-control"
+               placeholder="Search subject..."
+               @bind="searchText"
+               @bind:event="oninput"
+               @bind:after="OnSearch" />
+
+        <button class="btn-refresh" @onclick="ResetFilters">
+            🔄
+        </button>
+
+    </div>
+
+    <!-- ACTIVE -->
+    <div class="card">
+        <h4>Active (@activeList.Count)</h4>
+
+        <table class="styled-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Code</th>
+                    <th>Course</th>
+                    <th>Credits</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @foreach (var s in activeList)
+                {
+                    <tr>
+                        <td>@s.SubjectName</td>
+                        <td>@s.SubjectCode</td>
+                        <td>@s.Course.CourseName</td>
+                        <td>@s.TotalCredits</td>
+                        <td>
+                            <button class="btn-edit" @onclick="()=>Edit(s)">Edit</button>
+                            <button class="btn-danger" @onclick="()=>Deactivate(s.SubjectId)">Deactivate</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- INACTIVE -->
+    <div class="card">
+        <h4>Inactive (@inactiveList.Count)</h4>
+
+        <table class="styled-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Code</th>
+                    <th>Course</th>
+                    <th>Credits</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @foreach (var s in inactiveList)
+                {
+                    <tr>
+                        <td>@s.SubjectName</td>
+                        <td>@s.SubjectCode</td>
+                        <td>@s.Course.CourseName</td>
+                        <td>@s.TotalCredits</td>
+                        <td>
+                            <button class="btn-edit" disabled>Edit</button>
+                            <button class="btn-success" @onclick="()=>Activate(s.SubjectId)">Activate</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <!-- ================= MANUAL ================= -->
+    
+
+    <!-- ================= CSV ================= -->
+  
+    
+</div>
+
+@if (showToast)
+{
+    <div class="toast-container">
+        <div class="toast-message @(isError ? "toast-error" : "toast-success")">
+            @toastMessage
+        </div>
+    </div>
+}
+
+@code {
+
+    bool showManual = false;
+    bool showCsv = false;
+    bool isError = false;
+    List<Department> departments = new();
+    List<Course> courses = new();
+
+    Subject model = new();
+
+    int selectedDept;
+    int selectedCourseId;
+
+    List<Subject> uploadedSubjects = new();
+    List<string> csvErrors = new();
+
+    string nameError = "";
+    string codeError = "";
+
+    bool showToast;
+    string toastMessage;
+
+    List<Subject> allSubjects = new();
+    List<Subject> activeList = new();
+    List<Subject> inactiveList = new();
+
+   
+    bool showEdit = false;
+    Subject editModel = new();
+    
+    int selectedCourse = 0;
+
+    string searchText = "";
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+       
+        departments = await Service.GetDepartments();
+        allSubjects = await Service.GetAllSubjects();
+
+        ApplyFilter();
+    }
+    async Task OnDeptChange(ChangeEventArgs e)
+    {
+        selectedDept = Convert.ToInt32(e.Value);
+        courses = await Service.GetCourses(selectedDept);
+
+        selectedCourse = 0;
+        ApplyFilter();
+    }
+    void OnCourseChange(ChangeEventArgs e)
+    {
+        selectedCourse = Convert.ToInt32(e.Value);
+        ApplyFilter();
+    }
+    void ApplyFilter()
+    {
+        var data = allSubjects.AsQueryable();
+
+        if (selectedDept > 0)
+            data = data.Where(x => x.Course.DepartmentId == selectedDept);
+
+        if (selectedCourse > 0)
+            data = data.Where(x => x.CourseId == selectedCourse);
+
+        if (!string.IsNullOrWhiteSpace(searchText))
+            data = data.Where(x => x.SubjectName.ToLower().Contains(searchText.ToLower()));
+
+        activeList = data.Where(x => x.IsActive).ToList();
+        inactiveList = data.Where(x => !x.IsActive).ToList();
+    }
+    async Task Activate(int id)
+    {
+        var res = await Service.Activate(id);
+        ShowToast(res.message, !res.success);
+        allSubjects = await Service.GetAllSubjects();
+        ApplyFilter();
+    }
+
+    async Task Deactivate(int id)
+    {
+        var res = await Service.Delete(id);
+        ShowToast(res.message, !res.success);
+        allSubjects = await Service.GetAllSubjects();
+        ApplyFilter();
+    }
+    void OpenManual() { showManual = true; showCsv = false; }
+    void OpenCsv() { showCsv = true; showManual = false; }
+    void CloseAll() { showManual = false; showCsv = false; }
+
+    async Task LoadCourses()
+    {
+        courses = await Service.GetCourses(selectedDept);
+    }
+
+    async Task Save()
+    {
+        if (selectedDept == 0)
+        {
+            ShowToast("Please select department", true);
+            return;
+        }
+
+        if (model.CourseId == 0)
+        {
+            ShowToast("Please select course", true);
+            return;
+        }
+
+        if ((int)model.SubjectCategory == 0)
+        {
+            ShowToast("Please select category", true);
+            return;
+        }
+       
+        ValidateForm();
+
+        if (!string.IsNullOrEmpty(nameError) || !string.IsNullOrEmpty(codeError))
+            return;
+        var res = await Service.Create(model);
+        ShowToast(res.Item2, !res.Item1);
+       
+    }
+
+    void ValidateName(ChangeEventArgs e)
+    {
+        var v = e.Value?.ToString() ?? "";
+        model.SubjectName = new string(v.Where(c =>
+            char.IsLetterOrDigit(c) || " &().-".Contains(c)).ToArray());
+    }
+
+    void ValidateCode(ChangeEventArgs e)
+    {
+        var v = e.Value?.ToString() ?? "";
+        model.SubjectCode = new string(v.Where(char.IsLetterOrDigit).ToArray());
+    }
+
+    void ValidateForm()
+    {
+        nameError = string.IsNullOrWhiteSpace(model.SubjectName) ? "Required" : "";
+
+        codeError = string.IsNullOrWhiteSpace(model.SubjectCode) ? "Required" : "";
+    }
+
+    async Task DownloadCsv()
+    {
+        var bytes = CsvHelper.GenerateSubjectTemplate();
+        await JS.InvokeVoidAsync("downloadFile", "subject.csv", Convert.ToBase64String(bytes));
+    }
+
+    async Task UploadCsv(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            var file = e.File;
+
+            using var stream = file.OpenReadStream(maxAllowedSize: 5 * 1024 * 1024); // 5MB
+            using var ms = new MemoryStream();
+
+            // ✅ ASYNC READ (FIXES YOUR ERROR)
+            await stream.CopyToAsync(ms);
+
+            var content = Encoding.UTF8.GetString(ms.ToArray());
+
+            var lines = content.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+
+            var rows = new List<string[]>();
+
+            foreach (var line in lines)
+            {
+                var values = line.Contains(",")
+                    ? line.Split(',')
+                    : line.Contains(";")
+                        ? line.Split(';')
+                        : line.Split('\t');
+
+                rows.Add(values);
+            }
+
+            // ✅ HEADER CHECK
+            if (rows.Count == 0 || rows[0].Length < 6)
+            {
+                ShowToast("Invalid CSV format", true);
+                return;
+            }
+
+            var result = SubjectCsvValidator.Validate(rows.Skip(1).ToList());
+
+            csvErrors = result.errors;
+            uploadedSubjects = result.validData;
+
+            ShowToast(result.isValid ? "CSV is valid" : "CSV contains errors", !result.isValid);
+        }
+        catch (Exception ex)
+        {
+            ShowToast("CSV Failed: " + ex.Message, true);
+        }
+    }
+
+    async Task SaveCsv()
+    {
+        if (selectedCourseId == 0)
+        {
+            ShowToast("Select course first");
+            return;
+        }
+        var res = await Service.BulkUpload(uploadedSubjects, selectedCourseId);
+        ShowToast(res.Item2, !res.Item1);
+       
+    }
+
+    async void ShowToast(string msg, bool error = false)
+    {
+        toastMessage = msg;
+        isError = error;
+        showToast = true;
+
+        await Task.Delay(3000);
+        showToast = false;
+        StateHasChanged();
+    }
+    async Task ResetFilters()
+    {
+        try
+        {
+            selectedDept = 0;
+            selectedCourse = 0;
+            searchText = "";
+
+            courses.Clear();
+
+            // 🔥 reload all data
+            allSubjects = await Service.GetAllSubjects();
+
+            ApplyFilter();
+
+            ShowToast("Filters reset");
+        }
+        catch
+        {
+            ShowToast("Refresh failed", true);
+        }
+    }
+
+    void OnSearch()
+    {
+        selectedDept = 0;
+        selectedCourse = 0;
+        courses.Clear();
+
+        ApplyFilter();
+    }
+    void Edit(Subject s)
+    {
+        try
+        {
+            editModel = new Subject
+                {
+                    SubjectId = s.SubjectId,
+                    SubjectName = s.SubjectName,
+                    SubjectCode = s.SubjectCode,
+                    CourseId = s.CourseId,
+                    SubjectCategory = s.SubjectCategory,
+                    TheoryCredits = s.TheoryCredits,
+                    PracticalCredits = s.PracticalCredits,
+                    IsElective = s.IsElective,
+                    IsActive = s.IsActive
+                };
+
+            selectedDept = s.Course.DepartmentId;
+
+            LoadCoursesForEdit(selectedDept, s.CourseId);
+
+            showEdit = true;
+            showManual = false;
+            showCsv = false;
+        }
+        catch
+        {
+            ShowToast("Edit load failed", true);
+        }
+    }
+    async void LoadCoursesForEdit(int deptId, int courseId)
+    {
+        courses = await Service.GetCourses(deptId);
+        editModel.CourseId = courseId;
+    }
+    async Task UpdateSubject()
+    {
+        try
+        {
+            if (selectedDept == 0)
+            {
+                ShowToast("Select department", true);
+                return;
+            }
+
+            if (editModel.CourseId == 0)
+            {
+                ShowToast("Select course", true);
+                return;
+            }
+
+            if ((int)editModel.SubjectCategory == 0)
+            {
+                ShowToast("Select category", true);
+                return;
+            }
+
+            var res = await Service.Update(editModel);
+
+            ShowToast(res.message, !res.success);
+
+            if (res.success)
+            {
+                showEdit = false;
+
+                allSubjects = await Service.GetAllSubjects();
+                ApplyFilter();
+            }
+        }
+        catch
+        {
+            ShowToast("Update failed", true);
+        }
+    }
+}
