@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Components.Authorization;
 using ScheduleX.Core.Interfaces;
 using ScheduleX.Infrastructure.Repositories;
 using ScheduleX.Web.Services.Admin;
+using Timetable.Infrastructure.Repositories;
+using ScheduleX.Core.Interfaces.TTCoordinator;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -54,6 +56,8 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.AccessDeniedPath = "/login";
     options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
     options.SlidingExpiration = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    options.Cookie.SameSite = SameSiteMode.Lax;
 });
 
 // ================= API =================
@@ -73,10 +77,19 @@ builder.Services.AddScoped(sp =>
 builder.Services.AddHttpContextAccessor();
 
 
+// ================= SERVICES =================
+builder.Services.AddScoped<EmailService>();
+
+
 builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
 builder.Services.AddScoped<DepartmentApiService>();
 builder.Services.AddScoped<IAcademicYearRepository, AcademicYearRepository>();
 builder.Services.AddScoped<AcademicYearApiService>();
+builder.Services.AddScoped<ICourseRepository, CourseRepository>();
+builder.Services.AddScoped<CourseApiService>();
+
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession();
 builder.Services.AddScoped<ISubjectRepository, SubjectRepository>();
 builder.Services.AddScoped<SubjectApiService>();
 
@@ -92,14 +105,20 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
+
+app.UseRouting();
+
+app.UseExceptionHandler("/error");
+app.UseStatusCodePagesWithRedirects("/404");
+
+app.UseSession();
 
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseAntiforgery();
 
-app.UseExceptionHandler("/error");
-app.UseStatusCodePagesWithRedirects("/404");
 
 // 🔥 IMPORTANT
 app.MapControllers();
