@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 using ScheduleX.Core.Interfaces;
 using ScheduleX.Infrastructure.Repositories;
 using ScheduleX.Web.Services.Admin;
+using Timetable.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -77,6 +78,8 @@ builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
 builder.Services.AddScoped<DepartmentApiService>();
 builder.Services.AddScoped<IAcademicYearRepository, AcademicYearRepository>();
 builder.Services.AddScoped<AcademicYearApiService>();
+builder.Services.AddScoped<ICourseRepository, CourseRepository>();
+builder.Services.AddScoped<CourseApiService>();
 
 
 var app = builder.Build();
