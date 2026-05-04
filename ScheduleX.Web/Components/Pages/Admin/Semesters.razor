@@ -1,0 +1,267 @@
+﻿@using ScheduleX.Web.Components.Layout.Admin
+@layout AdminLayout
+@page "/admin/semesters"
+@rendermode InteractiveServer
+@attribute [Authorize(Roles = "Admin")]
+
+@using ScheduleX.Core.Entities
+@using ScheduleX.Web.Services.Admin
+@inject SemesterApiService Service
+
+<link href="/css/admin/Semesters.css" rel="stylesheet" />
+
+<h3>Semester Management</h3>
+
+<div class="semester-page">
+
+    <!-- HEADER -->
+    <div class="semester-header">
+        <div>
+            <h2>Semester Management</h2>
+            <p>Manage semesters for selected course</p>
+        </div>
+    </div>
+
+    <!-- FORM CARD -->
+    <div class="semester-card">
+
+        <h4>@(isEdit ? "Edit Semester" : "Add Semester")</h4>
+
+        <div class="semester-form-grid">
+
+            <!-- COURSE -->
+            <div class="form-field">
+                <label>Course</label>
+                <select class="form-input"
+                        @bind="selectedCourseId"
+                        @bind:after="OnCourseChanged">
+
+                    <option value="0">-- Select Course --</option>
+
+                    @foreach (var c in courses)
+                    {
+                        <option value="@c.CourseId">@c.CourseName</option>
+                    }
+                </select>
+            </div>
+
+            <!-- SEM -->
+            <div class="form-field">
+                <label>Semester No</label>
+                <input type="number"
+                       class="form-input"
+                       @bind="semesterNo"
+                       min="1"
+                       max="@MaxSem"
+                       step="1"  />
+            </div>
+
+            <!-- ACTIONS -->
+            <div class="form-actions">
+                <button class="btn-save" @onclick="Save">
+                    @(isEdit ? "Update" : "Add")
+                </button>
+
+                @if (isEdit)
+                {
+                    <button class="btn-cancel" @onclick="Reset">Cancel</button>
+                }
+
+                <button class="btn-save" @onclick="GenerateAll">
+                    Generate All
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- TABLE CARD -->
+    <div class="semester-card">
+
+        <h4>Semester List</h4>
+
+        <div class="table-wrap">
+            <table class="semester-table">
+                <thead>
+                    <tr>
+                        <th>Course</th>
+                        <th>Semester</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @foreach (var s in semesters)
+                    {
+                        <tr>
+                            <td>@s.Course.CourseName</td>
+                            <td>Sem @s.SemesterNo</td>
+
+                            <td>
+                                <span class="status-badge @(s.IsActive ? "active" : "inactive")">
+                                    @(s.IsActive ? "Active" : "Inactive")
+                                </span>
+                            </td>
+
+                            <td>
+                                <div class="action-group">
+                                    <button class="btn-edit" @onclick="() => Edit(s)">
+                                        Edit
+                                    </button>
+
+                                    @if (s.IsActive)
+                                    {
+                                        <button class="btn-danger" @onclick="() => Toggle(s.SemesterId)">
+                                            Deactivate
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn-success" @onclick="() => Toggle(s.SemesterId)">
+                                            Activate
+                                        </button>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>
+
+<!-- TOAST -->
+@if (showToast)
+{
+    <div class="toast-container">
+        <div class="toast-message success">
+            @toastMessage
+            <div class="toast-progress"></div>
+        </div>
+    </div>
+}
+
+@code {
+
+    List<Semester> semesters = new();
+    List<Course> courses = new();
+
+    int selectedCourseId;
+    int semesterNo = 1;
+
+    bool isEdit = false;
+    int editId;
+
+    bool showToast;
+    string toastMessage = "";
+
+    int MaxSem => courses.FirstOrDefault(x => x.CourseId == selectedCourseId)?.MaxSem ?? 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        courses = await Service.GetCourses();
+        semesters = await Service.GetAll();
+    }
+
+    async Task OnCourseChanged()
+    {
+        if (selectedCourseId > 0)
+        {
+            semesters = await Service.GetByCourse(selectedCourseId);
+
+            var existing = semesters.Select(x => x.SemesterNo).ToList();
+
+            semesterNo = Enumerable.Range(1, MaxSem)
+                .FirstOrDefault(x => !existing.Contains(x));
+
+            if (semesterNo == 0) semesterNo = MaxSem; // fallback
+        }
+    }
+
+    async Task Save()
+    {
+        if (selectedCourseId == 0)
+        {
+            ShowToast("Select course");
+            return;
+        }
+
+        if (semesterNo <= 0 || semesterNo > MaxSem)
+        {
+            ShowToast($"Semester must be between 1 and {MaxSem}");
+            return;
+        }
+
+        var model = new Semester
+            {
+                SemesterId = editId,
+                CourseId = selectedCourseId,
+                SemesterNo = semesterNo,
+                IsActive = true
+            };
+
+        (bool ok, string msg) result;
+
+        if (isEdit)
+            result = await Service.Update(model);
+        else
+            result = await Service.Create(model);
+
+        ShowToast(result.msg);
+
+        await OnCourseChanged();
+        Reset();
+    }
+
+    async Task GenerateAll()
+    {
+        if (selectedCourseId == 0)
+        {
+            ShowToast("Select course");
+            return;
+        }
+
+        var result = await Service.GenerateAll(selectedCourseId, MaxSem);
+
+        ShowToast(result.Item2);
+
+        await OnCourseChanged();
+    }
+
+    async Task Toggle(int id)
+    {
+        var res = await Service.Toggle(id);
+        ShowToast(res.Item2);
+        await OnCourseChanged();
+    }
+    
+
+    void Edit(Semester s)
+    {
+        isEdit = true;
+        editId = s.SemesterId;
+        selectedCourseId = s.CourseId;
+        semesterNo = s.SemesterNo;
+    }
+
+    void Reset()
+    {
+        isEdit = false;
+        editId = 0;
+        semesterNo = 1;
+    }
+
+    async void ShowToast(string msg)
+    {
+        toastMessage = msg;
+        showToast = true;
+
+        await Task.Delay(2000);
+
+        showToast = false;
+        StateHasChanged();
+    }
+}

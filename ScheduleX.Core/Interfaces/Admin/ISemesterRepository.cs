@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ScheduleX.Core.Entities;
 
-namespace ScheduleX.Core.Interfaces.TTCoordinator;
+namespace ScheduleX.Core.Interfaces.Admin;
 //{
 //    internal class ISemesterRepository
 //    {
@@ -20,4 +20,8 @@ public interface ISemesterRepository
     Task AddAsync(Semester semester);
     Task UpdateAsync(Semester semester);
     Task ToggleStatusAsync(int id);
+
+    Task<List<Course>> GetAllCoursesAsync();
+
+    Task<Semester?> GetByIdAsync(int id);
 }

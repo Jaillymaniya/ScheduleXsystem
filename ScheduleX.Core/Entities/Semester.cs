@@ -20,7 +20,7 @@ namespace ScheduleX.Core.Entities
         public Course Course { get; set; } = null!;
 
         [Required]
-        public byte SemesterNo { get; set; } // 1..8
+        public int SemesterNo { get; set; } // 1..8
 
         public bool IsActive { get; set; } = true;
 

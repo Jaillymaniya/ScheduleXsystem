@@ -10,6 +10,8 @@ using ScheduleX.Infrastructure.Repositories;
 using ScheduleX.Web.Services.Admin;
 using Timetable.Infrastructure.Repositories;
 using ScheduleX.Core.Interfaces.TTCoordinator;
+using ScheduleX.Infrastructure.Repositories.Admin;
+using ScheduleX.Core.Interfaces.Admin;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -73,6 +75,8 @@ builder.Services.AddScoped(sp =>
     };
 });
 
+
+
 // ================= SERVICES =================
 builder.Services.AddHttpContextAccessor();
 
@@ -87,6 +91,10 @@ builder.Services.AddScoped<IAcademicYearRepository, AcademicYearRepository>();
 builder.Services.AddScoped<AcademicYearApiService>();
 builder.Services.AddScoped<ICourseRepository, CourseRepository>();
 builder.Services.AddScoped<CourseApiService>();
+builder.Services.AddScoped<ISemesterRepository, SemesterRepository>();
+builder.Services.AddScoped<SemesterApiService>();
+
+
 
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession();

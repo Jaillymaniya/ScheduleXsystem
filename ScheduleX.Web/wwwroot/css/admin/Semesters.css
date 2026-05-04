@@ -1,0 +1,311 @@
+﻿/* =========================================
+   SEMESTER PAGE (DEPARTMENT STYLE MATCH)
+========================================= */
+.semester-page {
+    padding: 20px;
+    background: #f8fafc;
+}
+
+    /* =========================================
+   HEADER
+========================================= */
+    .semester-page .semester-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+        .semester-page .semester-header h2 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .semester-page .semester-header p {
+            margin: 6px 0 0;
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+    /* =========================================
+   CARD
+========================================= */
+    .semester-page .semester-card {
+        background: #ffffff;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.05);
+        margin-bottom: 20px;
+    }
+
+        .semester-page .semester-card h4 {
+            margin-bottom: 12px;
+            font-weight: 600;
+            color: #111827;
+        }
+
+    /* =========================================
+   FORM GRID
+========================================= */
+    .semester-page .semester-form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr auto;
+        gap: 18px;
+        align-items: start;
+    }
+
+    .semester-page .form-field {
+        display: flex;
+        flex-direction: column;
+    }
+
+        .semester-page .form-field label {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #374151;
+        }
+
+    /* =========================================
+   INPUT
+========================================= */
+    .semester-page .form-input {
+        padding: 10px 12px;
+        border-radius: 8px;
+        border: 1px solid #d1d5db;
+        font-size: 14px;
+        background: #fff;
+        transition: 0.2s;
+    }
+
+        .semester-page .form-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59,130,246,0.15);
+        }
+
+    /* =========================================
+   ACTIONS
+========================================= */
+    .semester-page .form-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 25px;
+    }
+
+    /* =========================================
+   BUTTONS (MATCH DEPARTMENT STYLE)
+========================================= */
+    .semester-page button {
+        cursor: pointer;
+        border: none;
+        transition: all 0.2s ease;
+    }
+
+    .semester-page .btn-save {
+        background: #16a34a;
+        color: white;
+        padding: 8px 14px;
+        border-radius: 6px;
+        font-size: 14px;
+    }
+
+        .semester-page .btn-save:hover {
+            background: #15803d;
+        }
+
+    .semester-page .btn-cancel {
+        background: #6b7280;
+        color: white;
+        padding: 8px 14px;
+        border-radius: 6px;
+    }
+
+        .semester-page .btn-cancel:hover {
+            background: #4b5563;
+        }
+
+    .semester-page .btn-edit {
+        background: #3b82f6;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 6px;
+    }
+
+        .semester-page .btn-edit:hover {
+            background: #2563eb;
+        }
+
+    .semester-page .btn-toggle {
+        background: #f59e0b;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 6px;
+    }
+
+        .semester-page .btn-toggle:hover {
+            background: #d97706;
+        }
+
+    /* =========================================
+   TABLE (MATCH DEPARTMENT STYLE)
+========================================= */
+    .semester-page .table-wrap {
+        overflow-x: auto;
+    }
+
+    .semester-page .semester-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+        font-size: 14px;
+    }
+
+        /* HEADER */
+        .semester-page .semester-table thead {
+            background: #f1f5f9;
+        }
+
+        .semester-page .semester-table th {
+            padding: 12px;
+            text-align: center;
+            font-weight: 600;
+            color: #374151;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        /* BODY */
+        .semester-page .semester-table td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+        }
+
+        /* HOVER */
+        .semester-page .semester-table tbody tr:hover {
+            background: #f9fafb;
+        }
+
+    /* =========================================
+   STATUS BADGE
+========================================= */
+    .semester-page .status-badge {
+        padding: 5px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+        .semester-page .status-badge.active {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .semester-page .status-badge.inactive {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+    /* =========================================
+   ACTION GROUP
+========================================= */
+    .semester-page .action-group {
+        display: flex;
+        gap: 6px;
+        justify-content: center;
+    }
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+@media (max-width: 900px) {
+    .semester-page .semester-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .semester-page .form-actions {
+        flex-direction: column;
+    }
+
+    .semester-page .btn-save,
+    .semester-page .btn-cancel {
+        width: 100%;
+    }
+}
+
+/* =========================================
+   TOAST (same as department)
+========================================= */
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+}
+
+.toast-message {
+    min-width: 260px;
+    padding: 12px 18px;
+    border-radius: 6px;
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+    .toast-message.success {
+        background: #16a34a;
+    }
+
+    .toast-message.danger {
+        background: #ef4444;
+    }
+
+    .toast-message.info {
+        background: #3b82f6;
+    }
+
+.toast-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 4px;
+    width: 100%;
+    background: rgba(255,255,255,0.8);
+    animation: progress 3s linear forwards;
+}
+
+@keyframes progress {
+    from {
+        width: 100%;
+    }
+
+    to {
+        width: 0%;
+    }
+}
+
+.semester-page .btn-success {
+    background: #16a34a;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: none;
+}
+
+    .semester-page .btn-success:hover {
+        background: #15803d;
+    }
+
+.semester-page .btn-danger {
+    background: #ef4444;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: none;
+}
+
+    .semester-page .btn-danger:hover {
+        background: #dc2626;
+    }
