@@ -1,0 +1,286 @@
+﻿
+
+@rendermode InteractiveServer
+@page "/admin/ttcoordinator"
+
+@using ScheduleX.Core.Entities
+@using ScheduleX.Core.Interfaces.Admin
+@using ScheduleX.Core.Interfaces
+
+<link href="css/admin/tt.css" rel="stylesheet" />
+
+@inject ITTCoordinatorService Service
+@inject IDepartmentRepository DeptRepo
+
+@using ScheduleX.Web.Components.Layout.Admin
+@layout AdminLayout
+
+<h3>TT Coordinator Management</h3>
+
+<button class="btn btn-success mb-3" @onclick="ShowForm">+ Add</button>
+
+@if (showForm)
+{
+    <div class="card p-3 mb-3">
+        <EditForm Model="model" OnValidSubmit="HandleSubmit">
+            <DataAnnotationsValidator />
+
+            <div class="mb-2">
+                <InputText class="form-control" @bind-Value="model.FullName" placeholder="Full Name" />
+            </div>
+
+            <div class="mb-2">
+                <InputText class="form-control" @bind-Value="model.UserName" placeholder="Username" />
+            </div>
+
+            <div class="mb-2">
+                <InputText class="form-control" @bind-Value="model.Email" placeholder="Email" />
+            </div>
+
+            <div class="mb-2">
+                <InputText class="form-control" @bind-Value="model.PhoneNumber" placeholder="Phone" />
+            </div>
+
+            <div class="mb-2">
+                <InputSelect class="form-control" @bind-Value="model.DepartmentId">
+                    <option value="">Select Department</option>
+                    @foreach (var d in departments)
+                    {
+                        <option value="@d.DepartmentId">@d.DepartmentName</option>
+                    }
+                </InputSelect>
+            </div>
+
+            @if (isNew)
+            {
+                <div class="mb-2">
+                    <InputText class="form-control" @bind-Value="password" type="password" placeholder="Password" />
+                </div>
+            }
+
+            <button type="submit" class="btn btn-primary me-2">Save</button>
+            <button type="button" class="btn btn-secondary" @onclick="Cancel">Cancel</button>
+        </EditForm>
+    </div>
+}
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Department</th>
+            <th>Status</th>
+            <th width="220">Actions</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @if (users.Count == 0)
+        {
+            <tr>
+                <td colspan="6">No data found</td>
+            </tr>
+        }
+        else
+        {
+            @foreach (var u in users)
+            {
+                <tr>
+                    <td>@u.FullName</td>
+                    <td>@u.Email</td>
+                    <td>@u.PhoneNumber</td>
+                    <td>@u.Department?.DepartmentName</td>
+
+                    <td>
+                        @if (u.IsActive)
+                        {
+                            <span style="color:green;">Active</span>
+                        }
+                        else
+                        {
+                            <span style="color:red;">Inactive</span>
+                        }
+                    </td>
+
+                    <td>
+                        <button class="btn btn-sm btn-warning me-2" @onclick="() => Edit(u)">Edit</button>
+
+                        @if (u.IsActive)
+                        {
+                            <button class="btn btn-sm btn-danger" @onclick="() => Deactivate(u.Id)">
+                                Deactivate
+                            </button>
+                        }
+                        else
+                        {
+                            <button class="btn btn-sm btn-success" @onclick="() => Activate(u.Id)">
+                                Activate
+                            </button>
+                        }
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+<!-- 🔥 TOAST -->
+@if (showToast)
+{
+    <div class="toast-container">
+        <div class="toast-message">
+            @toastMessage
+            <div class="toast-progress"></div>
+        </div>
+    </div>
+}
+
+@code {
+    List<User> users = new();
+    List<Department> departments = new();
+
+    User model = new();
+    string password = "";
+
+    bool showForm = false;
+    bool isNew = true;
+
+    bool showToast;
+    string toastMessage = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+        departments = await DeptRepo.GetAllAsync();
+    }
+
+    async Task LoadData()
+    {
+        users = await Service.GetAllAsync();
+    }
+
+    void ShowForm()
+    {
+        model = new User();
+        password = "";
+        isNew = true;
+        showForm = true;
+    }
+
+    void Edit(User u)
+    {
+        model = new User
+            {
+                Id = u.Id,
+                FullName = u.FullName,
+                UserName = u.UserName,
+                Email = u.Email,
+                PhoneNumber = u.PhoneNumber,
+                DepartmentId = u.DepartmentId
+            };
+
+        isNew = false;
+        showForm = true;
+    }
+
+    async Task HandleSubmit()
+    {
+        if (string.IsNullOrWhiteSpace(model.FullName))
+        {
+            await ShowToast("Full Name is required");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(model.UserName))
+        {
+            await ShowToast("Username is required");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(model.Email))
+        {
+            await ShowToast("Email is required");
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(model.PhoneNumber))
+        {
+            await ShowToast("Phone is required");
+            return;
+        }
+
+        if (model.DepartmentId == null)
+        {
+            await ShowToast("Department is required");
+            return;
+        }
+
+        if (isNew && string.IsNullOrWhiteSpace(password))
+        {
+            await ShowToast("Password is required");
+            return;
+        }
+
+        await Save();
+    }
+
+    async Task Save()
+    {
+        if (isNew)
+        {
+            var (success, message) = await Service.CreateAsync(model, password);
+
+            await ShowToast(message);
+
+            if (success)
+            {
+                await LoadData();
+                showForm = false;
+            }
+        }
+        else
+        {
+            await Service.UpdateAsync(model);
+
+            await ShowToast("Updated successfully");
+
+            await LoadData();
+            showForm = false;
+        }
+    }
+
+    async Task Deactivate(int id)
+    {
+        await Service.SoftDeleteAsync(id);
+        await ShowToast("Deactivated successfully");
+        await LoadData();
+    }
+
+    async Task Activate(int id)
+    {
+        await Service.ActivateAsync(id);
+        await ShowToast("Activated successfully");
+        await LoadData();
+    }
+
+    void Cancel()
+    {
+        showForm = false;
+    }
+
+    async Task ShowToast(string msg)
+    {
+        toastMessage = msg;
+        showToast = true;
+
+        StateHasChanged();
+
+        await Task.Delay(2000);
+
+        showToast = false;
+
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,90 @@
+﻿.profile-page {
+    padding: 20px;
+    background: #f8fafc;
+}
+
+    .profile-page .page-header {
+        margin-bottom: 20px;
+    }
+
+    .profile-page .card {
+        background: #fff;
+        padding: 25px;
+        border-radius: 12px;
+        max-width: 500px;
+        margin: auto;
+        box-shadow: 0 6px 18px rgba(0,0,0,0.05);
+    }
+
+.avatar {
+    width: 80px;
+    height: 80px;
+    background: #3b82f6;
+    color: white;
+    font-size: 28px;
+    font-weight: bold;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto 20px;
+}
+
+.form-group {
+    margin-bottom: 12px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+
+.readonly {
+    background: #f1f5f9;
+}
+
+.btn-primary {
+    width: 100%;
+    padding: 10px;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 6px;
+}
+
+/* TOAST */
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+}
+
+.toast-message {
+    background: #16a34a;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 6px;
+    position: relative;
+}
+
+.toast-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 4px;
+    background: rgba(255,255,255,0.8);
+    animation: progress 3s linear forwards;
+    width: 100%;
+}
+
+@keyframes progress {
+    from {
+        width: 100%;
+    }
+
+    to {
+        width: 0%;
+    }
+}
