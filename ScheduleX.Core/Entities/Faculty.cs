@@ -30,9 +30,10 @@ namespace ScheduleX.Core.Entities
         public string? Email { get; set; }
 
         [MaxLength(20)]
+
         public string? Phone { get; set; }
         public bool IsExternal { get; set; } = false;
-        public byte? MaxLecturesPerDay { get; set; }
+        public int? MaxLecturesPerDay { get; set; }
 
         public bool IsActive { get; set; } = true;
 
