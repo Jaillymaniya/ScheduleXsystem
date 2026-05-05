@@ -52,6 +52,15 @@ builder.Services.AddCascadingAuthenticationState();
 
 
 // ================= COOKIE =================
+//builder.Services.ConfigureApplicationCookie(options =>
+//{
+//    options.LoginPath = "/login";
+//    options.AccessDeniedPath = "/login";
+//    options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
+//    options.SlidingExpiration = true;
+//    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+//    options.Cookie.SameSite = SameSiteMode.Lax;
+//});
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/login";
@@ -60,8 +69,21 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.SlidingExpiration = true;
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
     options.Cookie.SameSite = SameSiteMode.Lax;
-});
 
+    //  MOST IMPORTANT FIX
+    options.Events.OnRedirectToLogin = context =>
+    {
+        //  If API call → DON'T redirect
+        if (context.Request.Path.StartsWithSegments("/api"))
+        {
+            context.Response.StatusCode = 401;
+            return Task.CompletedTask;
+        }
+
+        context.Response.Redirect(context.RedirectUri);
+        return Task.CompletedTask;
+    };
+});
 // ================= API =================
 builder.Services.AddControllers();
 
@@ -94,7 +116,7 @@ builder.Services.AddScoped<CourseApiService>();
 builder.Services.AddScoped<ISemesterRepository, SemesterRepository>();
 builder.Services.AddScoped<SemesterApiService>();
 
-
+builder.Services.AddScoped<ProfileService>();
 
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession();
