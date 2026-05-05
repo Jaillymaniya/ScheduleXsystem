@@ -94,6 +94,8 @@ builder.Services.AddScoped<CourseApiService>();
 builder.Services.AddScoped<ISemesterRepository, SemesterRepository>();
 builder.Services.AddScoped<SemesterApiService>();
 
+builder.Services.AddScoped<ChangePasswordService>();
+
 
 
 builder.Services.AddDistributedMemoryCache();

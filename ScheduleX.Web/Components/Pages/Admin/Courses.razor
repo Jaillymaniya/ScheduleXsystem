@@ -5,10 +5,23 @@
 @using ScheduleX.Web.DTOs
 @inject ScheduleX.Web.Services.Admin.CourseApiService CourseService
 @inject ScheduleX.Web.Services.Admin.DepartmentApiService DepartmentService
+@inject NavigationManager Nav
 
 <link href="/css/admin/course.css" rel="stylesheet" />
 
 <div class="cm-wrap">
+
+    <div class="page-header">
+        <div class="header-actions">
+            <button class="nav-btn-back" @onclick="GoBack">
+                ← Back
+            </button>
+
+            <button class="nav-btn-next" @onclick="GoNext">
+                Next →
+            </button>
+        </div>
+    </div>
 
     <div class="cm-header">
         <div>
@@ -290,5 +303,15 @@
         await Task.Delay(2500);
         showToast = false;
         StateHasChanged();
+    }
+
+    void GoBack()
+    {
+        Nav.NavigateTo("/admin/departments");
+    }
+
+    void GoNext()
+    {
+        Nav.NavigateTo("/admin/semesters");
     }
 }

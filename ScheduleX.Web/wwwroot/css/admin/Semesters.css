@@ -309,3 +309,46 @@
     .semester-page .btn-danger:hover {
         background: #dc2626;
     }
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.header-actions {
+    display: flex;
+    gap: 10px;
+}
+
+/* Back Button */
+.btn-primary {
+    background: #f3f4f6;
+    color: #111827;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+    .btn-primary:hover {
+        background: #e5e7eb;
+    }
+
+/* Next Button */
+.btn-success {
+    background: #22c55e;
+    color: #fff;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+    .btn-success:hover {
+        background: #16a34a;
+    }
