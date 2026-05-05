@@ -1,0 +1,120 @@
+﻿@page "/admin/edit-profile"
+@rendermode InteractiveServer
+
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Admin")]
+
+@using ScheduleX.Web.Components.Layout.Admin
+@layout AdminLayout
+
+@using ScheduleX.Web.DTOs.Account
+
+@inject ProfileService ProfileService
+
+<link href="/css/admin/edit-profile.css" rel="stylesheet" />
+
+<div class="profile-page">
+
+    <div class="page-header">
+        <h3>Edit Profile</h3>
+    </div>
+
+    <div class="card">
+
+        <div class="avatar">
+            @UserInitial
+        </div>
+
+        @if (model != null)
+        {
+            <EditForm Model="model" OnValidSubmit="UpdateProfile">
+                <DataAnnotationsValidator />
+
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <InputText class="form-control" @bind-Value="model.FullName" />
+                    <ValidationMessage For="@(() => model.FullName)" />
+                </div>
+
+                <div class="form-group">
+                    <label>Username</label>
+                    <InputText class="form-control" @bind-Value="model.UserName" />
+                    <ValidationMessage For="@(() => model.UserName)" />
+                </div>
+
+                <div class="form-group">
+                    <label>Email</label>
+                    <input class="form-control readonly" value="@model.Email" readonly />
+                </div>
+
+                <div class="form-group">
+                    <label>Phone</label>
+                    <InputText class="form-control" @bind-Value="model.PhoneNumber" />
+                    <ValidationMessage For="@(() => model.PhoneNumber)" />
+                </div>
+
+                <button type="submit" class="btn-primary">Update Profile</button>
+            </EditForm>
+        }
+
+    </div>
+
+</div>
+
+@if (showToast)
+{
+    <div class="toast-container">
+        <div class="toast-message">
+            @toastMessage
+            <div class="toast-progress"></div>
+        </div>
+    </div>
+}
+
+@code {
+
+    private EditProfileDto model = new();
+    private string UserInitial = "A";
+
+    bool showToast = false;
+    string toastMessage = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProfile();
+    }
+
+    private async Task LoadProfile()
+    {
+        var result = await ProfileService.GetProfileAsync();
+
+        if (!result.Success)
+        {
+            ShowToast(result.Message);
+            return;
+        }
+
+        model = result.Data;
+
+        if (!string.IsNullOrEmpty(model?.UserName))
+            UserInitial = model.UserName.Substring(0, 1).ToUpper();
+    }
+
+    private async Task UpdateProfile()
+    {
+        var result = await ProfileService.UpdateProfileAsync(model);
+
+        ShowToast(result.Message);
+    }
+
+    async void ShowToast(string message)
+    {
+        toastMessage = message;
+        showToast = true;
+
+        await Task.Delay(3000);
+
+        showToast = false;
+        StateHasChanged();
+    }
+}
