@@ -12,7 +12,9 @@ using Timetable.Infrastructure.Repositories;
 using ScheduleX.Core.Interfaces.TTCoordinator;
 using ScheduleX.Infrastructure.Repositories.Admin;
 using ScheduleX.Core.Interfaces.Admin;
-
+using ScheduleX.Core.Interfaces.Admin;
+using ScheduleX.Infrastructure.Repositories.Admin;
+using ScheduleX.Web.Services.Admin;
 var builder = WebApplication.CreateBuilder(args);
 
 // ================= DB =================
@@ -93,7 +95,12 @@ builder.Services.AddScoped<ICourseRepository, CourseRepository>();
 builder.Services.AddScoped<CourseApiService>();
 builder.Services.AddScoped<ISemesterRepository, SemesterRepository>();
 builder.Services.AddScoped<SemesterApiService>();
+//builder.Services.AddScoped<ITTCoordinatorRepository, TTCoordinatorRepository>();
+//builder.Services.AddScoped<ITTCoordinatorService, TTCoordinatorService>();
 
+builder.Services.AddScoped<EmailService>();
+builder.Services.AddScoped<ITTCoordinatorRepository, TTCoordinatorRepository>();
+builder.Services.AddScoped<ITTCoordinatorService, TTCoordinatorService>();
 
 
 builder.Services.AddDistributedMemoryCache();

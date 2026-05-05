@@ -28,7 +28,7 @@
 
   <ItemGroup>
     <Folder Include="Components\Pages\tt\View\" />
-    <Folder Include="DTOs\" />
+    <Folder Include="DTOs\Admin\" />
     <Folder Include="Models\" />
     <Folder Include="Services\Auth\" />
   </ItemGroup>
