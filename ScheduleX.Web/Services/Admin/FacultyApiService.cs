@@ -53,24 +53,35 @@ namespace ScheduleX.Web.Services.Admin
         {
             try
             {
-                await _repo.UpdateAsync(faculty);
-
-                var existing = await _context.ExternalFacultyPermissions
+                var existingFaculty = await _context.Faculties
                     .FirstOrDefaultAsync(x => x.FacultyId == faculty.FacultyId);
 
-                // ✅ If NOT external → DELETE from table
+                if (existingFaculty == null)
+                    return (false, "Faculty not found");
+
+                // ✅ Update fields manually
+                existingFaculty.FacultyName = faculty.FacultyName;
+                existingFaculty.FacultyCode = faculty.FacultyCode;
+                existingFaculty.Email = faculty.Email;
+                existingFaculty.Phone = faculty.Phone;
+                existingFaculty.DepartmentId = faculty.DepartmentId;
+                existingFaculty.IsExternal = faculty.IsExternal;
+                existingFaculty.MaxLecturesPerDay = faculty.MaxLecturesPerDay;
+
+                var existingPermission = await _context.ExternalFacultyPermissions
+                    .FirstOrDefaultAsync(x => x.FacultyId == faculty.FacultyId);
+
+                // ✅ Handle external logic
                 if (!faculty.IsExternal)
                 {
-                    if (existing != null)
+                    if (existingPermission != null)
                     {
-                        _context.ExternalFacultyPermissions.Remove(existing);
-                        await _context.SaveChangesAsync();
+                        _context.ExternalFacultyPermissions.Remove(existingPermission);
                     }
                 }
                 else
                 {
-                    // If external → ensure exists
-                    if (existing == null)
+                    if (existingPermission == null)
                     {
                         _context.ExternalFacultyPermissions.Add(new ExternalFacultyPermission
                         {
@@ -78,16 +89,17 @@ namespace ScheduleX.Web.Services.Admin
                             DepartmentId = faculty.DepartmentId,
                             IsActive = true
                         });
-
-                        await _context.SaveChangesAsync();
                     }
                 }
+
+                // ✅ SINGLE SAVE
+                await _context.SaveChangesAsync();
 
                 return (true, "Faculty updated successfully");
             }
             catch (Exception ex)
             {
-                return (false, ex.Message);
+                return (false, ex.InnerException?.Message ?? ex.Message);
             }
         }
 
@@ -110,6 +122,18 @@ namespace ScheduleX.Web.Services.Admin
             {
                 await _repo.ToggleStatusAsync(id);
                 return (true, "Status updated");
+            }
+            catch (Exception ex)
+            {
+                return (false, ex.Message);
+            }
+        }
+
+        public async Task<(bool, string)> BulkUpload(List<Faculty> list)
+        {
+            try
+            {
+                return await _repo.BulkInsertAsync(list);
             }
             catch (Exception ex)
             {

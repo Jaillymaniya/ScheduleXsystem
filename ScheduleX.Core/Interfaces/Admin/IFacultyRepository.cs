@@ -15,5 +15,7 @@ namespace ScheduleX.Core.Interfaces.Admin
         Task DeleteAsync(int id);
 
         Task ToggleStatusAsync(int id);
+
+        Task<(bool, string)> BulkInsertAsync(List<Faculty> list);
     }
 }

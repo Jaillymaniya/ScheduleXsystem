@@ -74,6 +74,50 @@ namespace ScheduleX.Infrastructure.Repositories.Admin
 
             await _context.SaveChangesAsync();
         }
+
+        public async Task<(bool, string)> BulkInsertAsync(List<Faculty> list)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
+            try
+            {
+                var validList = new List<Faculty>();
+
+                foreach (var item in list)
+                {
+                    // 🔥 basic validation
+                    if (string.IsNullOrWhiteSpace(item.FacultyName))
+                        continue;
+
+                    if (item.DepartmentId == 0)
+                        continue;
+
+                    // 🔥 duplicate check
+                    bool exists = await _context.Faculties
+                        .AnyAsync(x => x.Email == item.Email || x.FacultyCode == item.FacultyCode);
+
+                    if (exists)
+                        continue;
+
+                    validList.Add(item);
+                }
+
+                if (!validList.Any())
+                    return (false, "No valid faculty records found");
+
+                _context.Faculties.AddRange(validList);
+                await _context.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+
+                return (true, $"{validList.Count} faculty inserted successfully");
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                return (false, ex.Message);
+            }
+        }
     }
 }
 
