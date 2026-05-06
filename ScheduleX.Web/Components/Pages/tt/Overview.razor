@@ -46,7 +46,7 @@
             <div class="tt-card-title">Faculty</div>
             <div class="tt-pill">FR8</div>
         </div>
-        <div class="tt-metric">@totalFaculty</div>
+        @* <div class="tt-metric">@totalFaculty</div> *@
         <div class="tt-muted">Available: @availableFaculty</div>
     </div>
 
@@ -56,7 +56,7 @@
             <div class="tt-card-title">Subjects</div>
             <div class="tt-pill">FR9</div>
         </div>
-        <div class="tt-metric">@totalSubjects</div>
+        @* <div class="tt-metric">@totalSubjects</div> *@
         @* <div class="tt-muted">Assigned: @assignedSubjects</div> *@
     </div>
 
@@ -66,8 +66,8 @@
             <div class="tt-card-title">Rooms / Labs</div>
             <div class="tt-pill">FR10</div>
         </div>
-        <div class="tt-metric">@totalRooms</div>
-        <div class="tt-muted">Labs: @totalLabs</div>
+        @* <div class="tt-metric">@totalRooms</div> *@
+        @* <div class="tt-muted">Labs: @totalLabs</div> *@
     </div>
 
 </div>
@@ -88,40 +88,40 @@
     int totalRooms;
     int totalLabs;
 
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadData();
-    }
+    // protected override async Task OnInitializedAsync()
+    // {
+    //     await LoadData();
+    // }
 
-    private async Task LoadData()
-    {
-        // Semesters
-        var semesters = await _context.Semesters.ToListAsync();
-        totalSemesters = semesters.Count;
+    //  private async Task LoadData()
+    // {
+    //     Semesters
+    //     var semesters = await _context.Semesters.ToListAsync();
+    //     totalSemesters = semesters.Count;
 
-        var active = semesters.FirstOrDefault(s => s.IsActive);
-        // activeSemester = active?.SemesterNo ?? 0;
+    //     var active = semesters.FirstOrDefault(s => s.IsActive);
+    //     activeSemester = active?.SemesterNo ?? 0;
 
-        // Faculty (NO IsAvailable unless you add it)
-        var faculty = await _context.Faculties.ToListAsync();
-        totalFaculty = faculty.Count;
+    //     Faculty (NO IsAvailable unless you add it)
+    //     var faculty = await _context.Faculties.ToListAsync();
+    //     totalFaculty = faculty.Count;
 
-        // If you don't have IsAvailable, keep same
-        availableFaculty = faculty.Count;
+    //     If you don't have IsAvailable, keep same
+    //     availableFaculty = faculty.Count;
 
-        // Subjects
-        var subjects = await _context.Subjects.ToListAsync();
-        totalSubjects = subjects.Count;
+    //     Subjects
+    //     var subjects = await _context.Subjects.ToListAsync();
+    //     totalSubjects = subjects.Count;
 
-        // FIX: based on mapping table instead of FacultyId
-        var subjectFacultyMap = await _context.SubjectFaculties.ToListAsync();
-        // assignedSubjects = subjectFacultyMap.Select(x => x.SubjectId).Distinct().Count();
-        // assignedSubjects = subjects.Count(s => s.SubjectFaculties.Any());
+    //     FIX: based on mapping table instead of FacultyId
+    //     var subjectFacultyMap = await _context.SubjectFaculties.ToListAsync();
+    //     assignedSubjects = subjectFacultyMap.Select(x => x.SubjectId).Distinct().Count();
+    //     assignedSubjects = subjects.Count(s => s.SubjectFaculties.Any());
 
-        // Rooms
-        var rooms = await _context.Rooms.ToListAsync();
-        totalRooms = rooms.Count;
+    //     Rooms
+    //     var rooms = await _context.Rooms.ToListAsync();
+    //     totalRooms = rooms.Count;
 
-        totalLabs = rooms.Count(r => r.RoomType == RoomTypeEnum.Lab);
-    }
+    //     totalLabs = rooms.Count(r => r.RoomType == RoomTypeEnum.Lab);
+    // }
 }

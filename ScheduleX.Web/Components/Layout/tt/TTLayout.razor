@@ -59,47 +59,75 @@
 @*         </main> *@
 @*     </div> *@
 @* </div> *@
+@* ======================new================ *@
 
+@* @using ScheduleX.Core.Entities *@
+@* @inherits LayoutComponentBase  *@
+@* @inject NavigationManager Nav  *@
+@* @using Microsoft.AspNetCore.Components.Authorization *@
+@* @using Microsoft.AspNetCore.Authorization *@
+@* @inject AuthenticationStateProvider AuthProvider *@
+@* <link rel="stylesheet" href="css/tt.css" /> *@
+@* @if (isAuthorized) *@
+@* { *@
+@*     <div class="tt-shell"> *@
+@*         <div class="tt-sidebar"> *@
+@*             <TTSidebar /> *@
+@*         </div> *@
 
-@using ScheduleX.Core.Entities
-@inherits LayoutComponentBase 
-@inject NavigationManager Nav 
-@using Microsoft.AspNetCore.Components.Authorization
-@using Microsoft.AspNetCore.Authorization
-@inject AuthenticationStateProvider AuthProvider
+@*         <div class="tt-main"> *@
+@*             <div class="tt-topbar"> *@
+@*                 <TTTopbar /> *@
+@*             </div> *@
 
-@if (isAuthorized)
-{
-    <div class="tt-shell">
-        <div class="tt-sidebar">
-            <TTSidebar />
-        </div>
+@*             <main class="tt-content"> *@
+@*                 @Body *@
+@*             </main> *@
+@*         </div> *@
+@*     </div> *@
+@* } *@
+@* else *@
+@* { *@
+@*     <RedirectToLogin /> *@
+@* } *@
 
-        <div class="tt-main">
-            <div class="tt-topbar">
-                <TTTopbar />
-            </div>
+@* @code { *@
+@*     private bool isAuthorized; *@
 
-            <main class="tt-content">
-                @Body
-            </main>
-        </div>
+@*     protected override async Task OnInitializedAsync() *@
+@*     { *@
+@*         var authState = await AuthProvider.GetAuthenticationStateAsync(); *@
+@*         var user = authState.User; *@
+
+@*         isAuthorized = user.Identity?.IsAuthenticated == true && *@
+@*                        user.IsInRole("TTCoordinator"); *@
+@*     } *@
+@* } *@
+
+@inherits LayoutComponentBase
+
+<link rel="stylesheet" href="css/tt.css" />
+
+<div class="tt-shell">
+
+    <!-- SIDEBAR -->
+    <div class="tt-sidebar">
+        <TTSidebar />
     </div>
-}
-else
-{
-    <RedirectToLogin />
-}
 
-@code {
-    private bool isAuthorized;
+    <!-- MAIN -->
+    <div class="tt-main">
 
-    protected override async Task OnInitializedAsync()
-    {
-        var authState = await AuthProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
+        <!-- TOPBAR -->
+        <div class="tt-topbar">
+            <TTTopbar />
+        </div>
 
-        isAuthorized = user.Identity?.IsAuthenticated == true &&
-                       user.IsInRole("TTCoordinator");
-    }
-}
+        <!-- CONTENT -->
+        <main class="tt-content">
+            @Body
+        </main>
+
+    </div>
+
+</div>

@@ -22,6 +22,7 @@ using ScheduleX.Web.Services.Admin;
 
 using Timetable.Infrastructure.Repositories;
 
+using ScheduleX.Web.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // ================= DB =================
@@ -124,6 +125,12 @@ builder.Services.AddScoped<SubjectApiService>();
 builder.Services.AddScoped<
     ITTCoordinatorRepository,
     TTCoordinatorRepository>();
+builder.Services.AddScoped<IFacultyRepository, FacultyRepository>();
+builder.Services.AddScoped<FacultyApiService>();
+
+builder.Services.AddScoped<ChangePasswordService>();
+//builder.Services.AddScoped<ITTCoordinatorRepository, TTCoordinatorRepository>();
+//builder.Services.AddScoped<ITTCoordinatorService, TTCoordinatorService>();
 
 builder.Services.AddScoped<
     ITTCoordinatorService,
@@ -134,7 +141,9 @@ builder.Services.AddScoped<ProfileService>();
 builder.Services.AddDistributedMemoryCache();
 
 builder.Services.AddSession();
-
+builder.Services.AddScoped<ISubjectRepository, SubjectRepository>();
+builder.Services.AddScoped<SubjectApiService>();
+builder.Services.AddScoped<TTSessionState>();
 var app = builder.Build();
 
 // ================= SEED =================

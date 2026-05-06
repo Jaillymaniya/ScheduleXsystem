@@ -3,6 +3,7 @@
 @page "/admin/semesters"
 @rendermode InteractiveServer
 @attribute [Authorize(Roles = "Admin")]
+@inject NavigationManager Nav
 
 @using ScheduleX.Core.Entities
 @using ScheduleX.Web.Services.Admin
@@ -10,14 +11,29 @@
 
 <link href="/css/admin/Semesters.css" rel="stylesheet" />
 
-<h3>Semester Management</h3>
+@* <h3>Semester Management</h3> *@
 
 <div class="semester-page">
+    
+    @* button back and next *@
+    <div class="page-header">
+        <div class="header-actions">
+
+            <button class="btn-primary" @onclick="GoBack">
+                ← Back
+            </button>
+
+            <button class="btn-success" @onclick="GoNext">
+                Next →
+            </button>
+
+        </div>
+    </div>
 
     <!-- HEADER -->
     <div class="semester-header">
         <div>
-            <h2>Semester Management</h2>
+            @* <h2>Semester Management</h2> *@
             <p>Manage semesters for selected course</p>
         </div>
     </div>
@@ -263,5 +279,15 @@
 
         showToast = false;
         StateHasChanged();
+    }
+
+    void GoBack()
+    {
+        Nav.NavigateTo("/admin/courses");
+    }
+
+    void GoNext()
+    {
+        Nav.NavigateTo("/admin/subjects");
     }
 }
