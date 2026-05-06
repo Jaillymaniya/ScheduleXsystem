@@ -15,6 +15,7 @@ using ScheduleX.Core.Interfaces.Admin;
 using ScheduleX.Core.Interfaces.Admin;
 using ScheduleX.Infrastructure.Repositories.Admin;
 using ScheduleX.Web.Services.Admin;
+using ScheduleX.Web.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 // ================= DB =================
@@ -134,7 +135,7 @@ builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession();
 builder.Services.AddScoped<ISubjectRepository, SubjectRepository>();
 builder.Services.AddScoped<SubjectApiService>();
-
+builder.Services.AddScoped<TTSessionState>();
 var app = builder.Build();
 
 await SeedData(app);
