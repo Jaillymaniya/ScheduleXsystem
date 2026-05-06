@@ -1,0 +1,149 @@
+﻿@page "/tt/academic/subject-mapping"
+
+
+@using Microsoft.AspNetCore.Authorization
+@using ScheduleX.Web.Components.Layout.tt
+
+@layout TTLayout
+
+@inject NavigationManager Nav
+
+@attribute [Authorize(Roles = "TTCoordinator")]
+
+<link href="/css/tt/subject-mapping.css" rel="stylesheet" />
+
+<div class="subject-mapping-page">
+
+    <h3 class="page-title">
+        Academic Setup Flow
+    </h3>
+
+    <p class="page-subtitle">
+        Complete each step in sequence to configure timetable
+    </p>
+
+    <div class="flow-wrapper">
+
+        <!-- PROGRESS LINE -->
+        <div class="progress-line"></div>
+
+        <div class="flow-container">
+
+            <!-- STEP 2 -->
+            <button type="button"
+                    class="flow-card completed"
+                    @onclick="@(()=>GoSemester())">
+
+                <div class="step-badge">2</div>
+
+                <i class="fas fa-layer-group flow-icon"></i>
+
+                <h5>Subject → Semester</h5>
+
+                <p>Assign subjects to semesters</p>
+
+            </button>
+
+            <div class="flow-arrow">→</div>
+
+            <!-- STEP 3 -->
+            <button type="button"
+                    class="flow-card"
+                    @onclick="@(()=>GoFaculty())">
+
+                <div class="step-badge">3</div>
+
+                <i class="fas fa-user flow-icon"></i>
+
+                <h5>Subject → Faculty</h5>
+
+                <p>Assign faculty to subjects</p>
+
+            </button>
+
+            <div class="flow-arrow">→</div>
+
+            <!-- STEP 4 -->
+            <button type="button"
+                    class="flow-card secondary"
+                    @onclick="@(()=>GoLecture())">
+
+                <div class="step-badge">4</div>
+
+                <i class="fas fa-clock flow-icon"></i>
+
+                <h5>Lecture Config</h5>
+
+                <p>Set lecture hours</p>
+
+            </button>
+
+            <div class="flow-arrow">→</div>
+
+            <!-- STEP 5 -->
+            <button type="button"
+                    class="flow-card secondary"
+                    @onclick="@(()=>GoRoom())">
+
+                <div class="step-badge">5</div>
+
+                <i class="fas fa-door-open flow-icon"></i>
+
+                <h5>Room Config</h5>
+
+                <p>Assign rooms & labs</p>
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+@code {
+
+    void GoSemester()
+    {
+        try
+        {
+            Nav.NavigateTo("/tt/subject-semester");
+        }
+        catch
+        {
+        }
+    }
+
+    void GoFaculty()
+    {
+        try
+        {
+            Nav.NavigateTo("/tt/subject-faculty");
+        }
+        catch
+        {
+        }
+    }
+
+    void GoLecture()
+    {
+        try
+        {
+            Nav.NavigateTo("/tt/lecture-config");
+        }
+        catch
+        {
+        }
+    }
+
+    void GoRoom()
+    {
+        try
+        {
+            Nav.NavigateTo("/tt/academic/division-room-allocation");
+        }
+        catch
+        {
+        }
+    }
+}

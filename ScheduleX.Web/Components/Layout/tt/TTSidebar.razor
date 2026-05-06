@@ -1,51 +1,215 @@
-﻿@* <h3>TTSidebar</h3> *@
+﻿
 
-@* @code { *@
+@* @inject NavigationManager Nav *@
 
-@* } *@
+@* <div class="tt-nav"> *@
+@*     <div class="tt-brand" @onclick="@(()=>Nav.NavigateTo("/tt/overview"))"> *@
+@*         @* <div class="tt-brand-logo">SX</div> *@ 
+@*         @* <div class="tt-brand-text"> *@ 
+@*         @*     <div class="tt-brand-name">ScheduleX</div> *@ 
+@*         @*     <div class="tt-brand-role">TT Coordinator</div> *@ 
+@*         @* </div> *@ 
+@*         <div class="logo"> *@
+@*             <img src="images/logo.png" alt="ScheduleX Logo" /> *@
+@*         </div> *@
+@*     </div> *@
+
+@*     <div class="tt-nav-section">Dashboard</div> *@
+@*     <button class="tt-nav-item active" @onclick="@(()=>Nav.NavigateTo("/tt/overview"))"> *@
+@*         Overview *@
+@*     </button> *@
+
+@*     <div class="tt-nav-section">Academic Setup</div> *@
+
+@*     @* <button class="tt-nav-item" @onclick="@(()=>Nav.NavigateTo("/tt/semesters"))">Semesters</button> *@ 
+@*     <button class="tt-nav-item" @onclick="@(()=>Nav.NavigateTo("/tt/academic/faculty"))">Faculty</button> *@
+   
+@*     <button class="tt-nav-item" @onclick="@(()=>Nav.NavigateTo("/tt/room-management"))">Rooms/Labs</button> *@
+@*     <button class="tt-nav-item" @onclick="@(()=>Nav.NavigateTo("/tt/division-management"))">Divisions</button> *@
+@*     <button class="tt-nav-item active" @onclick="@(()=>Nav.NavigateTo("/tt/academic/subject-mapping"))"> *@
+@*         Subject-Mapping Settings *@
+@*     </button> *@
+
+@*     <div class="tt-nav-section">Configuration</div> *@
+@*     <button class="tt-nav-item" @onclick="@(()=>Nav.NavigateTo("/tt/schedule-configuration"))">Timetable Settings</button> *@
+@*     <button class="tt-nav-item" @onclick="@(()=>Nav.NavigateTo("/tt/templates"))">Template Configuration</button> *@
+
+@*     <div class="tt-nav-section">Generation</div> *@
+@*     <button class="tt-nav-item" @onclick="@(()=>Nav.NavigateTo("/tt/generate"))">Generate Timetable</button> *@
+@*     @* <button class="tt-nav-item" @onclick="@(()=>Nav.NavigateTo("/tt/validation"))">Conflicts / Validation</button> *@ 
+
+@*     <div class="tt-nav-section">View & Export</div> *@
+@*     <button class="tt-nav-item" @onclick="@(()=>Nav.NavigateTo("/tt/view"))">View Timetable</button> *@
+@*     @* <button class="tt-nav-item" @onclick="@(()=>Nav.NavigateTo("/tt/export"))">Export (PDF/Excel)</button> *@ 
+
+@*     @* <div class="tt-nav-section">Account</div> *@ 
+@*     @* <button class="tt-nav-item" @onclick="@(()=>Nav.NavigateTo("/tt/profile"))">Profile</button> *@ 
+@*     @* <button class="tt-nav-item" @onclick="@(()=>Nav.NavigateTo("/tt/change-password"))">Change Password</button> *@ 
+@* </div> *@
 
 
 @inject NavigationManager Nav
 
 <div class="tt-nav">
-    <div class="tt-brand" @onclick="@(()=>Nav.NavigateTo("/tt/overview"))">
-        @* <div class="tt-brand-logo">SX</div> *@
-        @* <div class="tt-brand-text"> *@
-        @*     <div class="tt-brand-name">ScheduleX</div> *@
-        @*     <div class="tt-brand-role">TT Coordinator</div> *@
-        @* </div> *@
+
+    <!-- BRAND -->
+    <div class="tt-brand"
+         @onclick='@(()=>Navigate("/tt/overview"))'>
+
         <div class="logo">
-            <img src="images/logo.png" alt="ScheduleX Logo" />
+            <img src="images/logo.png"
+                 alt="ScheduleX Logo" />
         </div>
+
     </div>
 
-    <div class="tt-nav-section">Dashboard</div>
-    <button class="tt-nav-item active" @onclick="@(()=>Nav.NavigateTo("/tt/overview"))">
+    <!-- DASHBOARD -->
+    <div class="tt-nav-section">
+        Dashboard
+    </div>
+
+    <button type="button"
+            class="@GetNavClass("/tt/overview")"
+            @onclick='@(()=>Navigate("/tt/overview"))'>
+
         Overview
+
     </button>
 
-    <div class="tt-nav-section">Academic Setup</div>
+    <!-- ACADEMIC SETUP -->
+    <div class="tt-nav-section">
+        Academic Setup
+    </div>
 
-    @* <button class="tt-nav-item" @onclick="@(()=>Nav.NavigateTo("/tt/semesters"))">Semesters</button> *@
-    <button class="tt-nav-item" @onclick="@(()=>Nav.NavigateTo("/tt/academic/faculty"))">Faculty</button>
-    @* <button class="tt-nav-item" @onclick="@(()=>Nav.NavigateTo("/tt/academic/subject"))">Subjects & Assign</button> *@
-    <button class="tt-nav-item" @onclick="@(()=>Nav.NavigateTo("/tt/room-management"))">Rooms/Labs</button>
-    <button class="tt-nav-item" @onclick="@(()=>Nav.NavigateTo("/tt/division-management"))">Divisions</button>
-    <button class="tt-nav-item" @onclick="@(()=>Nav.NavigateTo("/tt/academic/subject-mapping"))">Subject-Mapping Settings</button>
+    @* <button type="button"
+            class="@GetNavClass("/tt/semesters")"
+            @onclick='@(()=>Navigate("/tt/semesters"))'>
 
-    <div class="tt-nav-section">Configuration</div>
-    <button class="tt-nav-item" @onclick="@(()=>Nav.NavigateTo("/tt/schedule-configuration"))">Timetable Settings</button>
-    <button class="tt-nav-item" @onclick="@(()=>Nav.NavigateTo("/tt/templates"))">Template Configuration</button>
+        Semesters
 
-    <div class="tt-nav-section">Generation</div>
-    <button class="tt-nav-item" @onclick="@(()=>Nav.NavigateTo("/tt/generate"))">Generate Timetable</button>
-    @* <button class="tt-nav-item" @onclick="@(()=>Nav.NavigateTo("/tt/validation"))">Conflicts / Validation</button> *@
+    </button> *@
 
-    <div class="tt-nav-section">View & Export</div>
-    <button class="tt-nav-item" @onclick="@(()=>Nav.NavigateTo("/tt/view"))">View Timetable</button>
-    @* <button class="tt-nav-item" @onclick="@(()=>Nav.NavigateTo("/tt/export"))">Export (PDF/Excel)</button> *@
+    <button type="button"
+            class="@GetNavClass("/tt/academic/faculty")"
+            @onclick='@(()=>Navigate("/tt/academic/faculty"))'>
 
-    @* <div class="tt-nav-section">Account</div> *@
-    @* <button class="tt-nav-item" @onclick="@(()=>Nav.NavigateTo("/tt/profile"))">Profile</button> *@
-    @* <button class="tt-nav-item" @onclick="@(()=>Nav.NavigateTo("/tt/change-password"))">Change Password</button> *@
+        Faculty
+
+    </button>
+
+    @* <button type="button"
+            class="@GetNavClass("/tt/academic/subject")"
+            @onclick='@(()=>Navigate("/tt/academic/subject"))'>
+
+        Subjects & Assign
+
+    </button> *@
+
+    <button type="button"
+            class="@GetNavClass("/tt/room-management")"
+            @onclick='@(()=>Navigate("/tt/room-management"))'>
+
+        Rooms/Labs
+
+    </button>
+
+    <button type="button"
+            class="@GetNavClass("/tt/division-management")"
+            @onclick='@(()=>Navigate("/tt/division-management"))'>
+
+        Divisions
+
+    </button>
+
+    <button type="button"
+            class="@GetNavClass("/tt/academic/subject-mapping")"
+            @onclick='@(()=>Navigate("/tt/academic/subject-mapping"))'>
+
+        Subject-Mapping Settings
+
+    </button>
+
+    <!-- CONFIGURATION -->
+    <div class="tt-nav-section">
+        Configuration
+    </div>
+
+    <button type="button"
+            class="@GetNavClass("/tt/schedule-configuration")"
+            @onclick='@(()=>Navigate("/tt/schedule-configuration"))'>
+
+        Timetable Settings
+
+    </button>
+
+    <button type="button"
+            class="@GetNavClass("/tt/templates")"
+            @onclick='@(()=>Navigate("/tt/templates"))'>
+
+        Template Configuration
+
+    </button>
+
+    <!-- GENERATION -->
+    <div class="tt-nav-section">
+        Generation
+    </div>
+
+    <button type="button"
+            class="@GetNavClass("/tt/generate")"
+            @onclick='@(()=>Navigate("/tt/generate"))'>
+
+        Generate Timetable
+
+    </button>
+
+    @* <button type="button"
+            class="@GetNavClass("/tt/validation")"
+            @onclick='@(()=>Navigate("/tt/validation"))'>
+
+        Conflicts / Validation
+
+    </button> *@
+
+    <!-- VIEW & EXPORT -->
+    <div class="tt-nav-section">
+        View & Export
+    </div>
+
+    <button type="button"
+            class="@GetNavClass("/tt/view")"
+            @onclick='@(()=>Navigate("/tt/view"))'>
+
+        View Timetable
+
+    </button>
+
+    @* <button type="button"
+            class="@GetNavClass("/tt/export")"
+            @onclick='@(()=>Navigate("/tt/export"))'>
+
+        Export (PDF/Excel)
+
+    </button> *@
+
 </div>
+
+@code {
+
+    void Navigate(string url)
+    {
+        Nav.NavigateTo(url);
+    }
+
+    string GetNavClass(string url)
+    {
+        var currentUrl =
+            "/" + Nav.ToBaseRelativePath(Nav.Uri);
+
+        return currentUrl.Equals(
+            url,
+            StringComparison.OrdinalIgnoreCase)
+            ? "tt-nav-item active"
+            : "tt-nav-item";
+    }
+}

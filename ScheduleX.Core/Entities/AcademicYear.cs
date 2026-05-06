@@ -30,6 +30,7 @@ namespace ScheduleX.Core.Entities
 
         // Year-wise divisions
         public ICollection<Division> Divisions { get; set; } = new List<Division>();
+        public ICollection<SubjectSemester> SubjectSemesters { get; set; } = new List<SubjectSemester>();
 
         // Faculty assignments per year
         public ICollection<SubjectFaculty> SubjectFaculties { get; set; } = new List<SubjectFaculty>();

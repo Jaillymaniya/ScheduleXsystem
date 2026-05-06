@@ -1,0 +1,819 @@
+﻿@page "/tt/subject-semester"
+
+
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "TTCoordinator")]
+@using System.Text
+@using Microsoft.AspNetCore.Components.Forms
+@using ScheduleX.Core.Entities
+@using ScheduleX.Web.Services
+@using ScheduleX.Web.Services.TT
+@using ScheduleX.Web.Components.Layout.tt
+
+@layout TTLayout
+
+@inject SubjectSemesterApiService Service
+@inject TTSessionState SessionState
+@inject IJSRuntime JS
+
+<link href="/css/tt/subject-semester.css" rel="stylesheet" />
+
+<div class="subject-semester-page">
+
+    <!-- HEADER -->
+    <!-- HEADER -->
+    <div class="page-header">
+
+        <div>
+
+            <h3>Subject Semester Mapping</h3>
+
+            <div class="selected-info">
+
+                <span>
+                    Academic Year :
+                    <b>
+                        @(string.IsNullOrWhiteSpace(SessionState.AcademicYearName)
+                            ? "Not Selected"
+                            : SessionState.AcademicYearName)
+                    </b>
+                </span>
+
+                <span>
+                    Course :
+                    <b>
+                        @(string.IsNullOrWhiteSpace(SessionState.CourseName)
+                            ? "Not Selected"
+                            : SessionState.CourseName)
+                    </b>
+                </span>
+
+            </div>
+
+            @if (!IsSelectionValid)
+            {
+                <div class="selection-warning">
+                    Please select Academic Year and Course first
+                </div>
+            }
+
+        </div>
+
+        <div class="btn-section">
+
+            <button class="btn btn-success"
+                    @onclick="OpenManual"
+                    disabled="@(!IsSelectionValid)">
+                + Add Manual
+            </button>
+
+            <button class="btn btn-warning"
+                    @onclick="OpenCsv"
+                    disabled="@(!IsSelectionValid)">
+                Upload CSV
+            </button>
+
+        </div>
+
+    </div>
+
+    <!-- ================= MANUAL FORM ================= -->
+    @if (showManual)
+    {
+        <div class="tt-card">
+
+            <div class="form-header">
+                <h5>
+                    @(isEdit ? "Edit Mapping" : "Add Mapping")
+                </h5>
+
+                <button class="btn btn-secondary"
+                        @onclick="CloseAll">
+                    ×
+                </button>
+            </div>
+
+            <EditForm Model="model"
+                      OnValidSubmit="Save">
+
+                <DataAnnotationsValidator />
+
+                <ValidationSummary />
+
+                <div class="subject-grid">
+
+                    <!-- SEMESTER -->
+                    <div class="form-field">
+
+                        <label>Semester</label>
+
+                        <select class="tt-select"
+                                @bind="model.SemesterId">
+
+                            <option value="0">
+                                Select Semester
+                            </option>
+
+                            @foreach (var sem in semesters)
+                            {
+                                <option value="@sem.SemesterId">
+                                    Semester @sem.SemesterNo
+                                </option>
+                            }
+
+                        </select>
+
+                        @if (!string.IsNullOrWhiteSpace(semesterError))
+                        {
+                            <div class="validation-message">
+                                @semesterError
+                            </div>
+                        }
+
+                    </div>
+
+                    <!-- SUBJECT -->
+                    <div class="form-field">
+
+                        <label>Subject</label>
+
+                        <select class="tt-select"
+                                @bind="model.SubjectId">
+
+                            <option value="0">
+                                Select Subject
+                            </option>
+
+                            @foreach (var sub in subjects)
+                            {
+                                <option value="@sub.SubjectId">
+                                    @sub.SubjectName
+                                </option>
+                            }
+
+                        </select>
+
+                        @if (!string.IsNullOrWhiteSpace(subjectError))
+                        {
+                            <div class="validation-message">
+                                @subjectError
+                            </div>
+                        }
+
+                    </div>
+
+                </div>
+
+                <div class="btn-section">
+
+                    <button class="btn btn-success">
+                        @(isEdit ? "Update" : "Save")
+                    </button>
+
+                    <button type="button"
+                            class="btn btn-secondary"
+                            @onclick="CloseAll">
+                        Cancel
+                    </button>
+
+                </div>
+
+            </EditForm>
+
+        </div>
+    }
+
+    <!-- ================= CSV ================= -->
+    @if (showCsv)
+    {
+        <div class="tt-card">
+
+            <div class="form-header">
+
+                <h5>CSV Upload</h5>
+
+                <button class="btn btn-secondary"
+                        @onclick="CloseAll">
+                    ×
+                </button>
+
+            </div>
+
+            <div class="btn-section">
+
+                <button class="btn btn-info"
+                        @onclick="DownloadTemplate">
+                    Download Template
+                </button>
+
+            </div>
+
+            <InputFile OnChange="UploadCsv" />
+
+            @if (csvErrors.Any())
+            {
+                <div class="csv-error-box">
+
+                    @foreach (var err in csvErrors)
+                    {
+                        <div class="csv-error-item">
+                            @err
+                        </div>
+                    }
+
+                </div>
+            }
+
+            <div class="btn-section">
+
+                <button class="btn btn-success"
+                        @onclick="SaveCsv"
+                        disabled="@(uploadedList.Count == 0)">
+                    Save CSV
+                </button>
+
+                <button class="btn btn-secondary"
+                        @onclick="CloseAll">
+                    Cancel
+                </button>
+
+            </div>
+
+        </div>
+    }
+
+    <!-- ================= TABLE ================= -->
+
+    <div class="tt-card">
+
+        <table class="table-dark">
+
+            <thead>
+                <tr>
+                    <th>Semester</th>
+                    <th>Subject</th>
+                    <th>Status</th>
+                    <th width="180">Action</th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                @if (!list.Any())
+                {
+                    <tr>
+                        <td colspan="4" class="text-center">
+                            No records found
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var item in list)
+                    {
+                        <tr>
+
+                            <td>
+                                Semester @item.Semester.SemesterNo
+                            </td>
+
+                            <td>
+                                @item.Subject.SubjectName
+                            </td>
+
+                            <td>
+
+                                @if (item.IsActive)
+                                {
+                                    <span class="status-active">
+                                        Active
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="status-inactive">
+                                        Inactive
+                                    </span>
+                                }
+
+                            </td>
+
+                            <td>
+
+                                <div class="action-group">
+
+                                    @if (item.IsActive)
+                                    {
+                                        <button class="btn btn-info btn-sm"
+                                                @onclick="()=>Edit(item)">
+                                            Edit
+                                        </button>
+
+                                        <button class="btn btn-danger btn-sm"
+                                                @onclick="()=>Deactivate(item.SubjectSemesterId)">
+                                            Deactivate
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-success btn-sm"
+                                                @onclick="()=>Activate(item.SubjectSemesterId)">
+                                            Activate
+                                        </button>
+                                    }
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+                    }
+                }
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+@if (showToast)
+{
+    <div class="toast-container">
+
+        <div class="toast-message @(isError ? "danger" : "success")">
+            @toastMessage
+            <div class="toast-progress"></div>
+        </div>
+
+    </div>
+}
+
+@code {
+
+    List<Semester> semesters = new();
+
+    List<Subject> subjects = new();
+
+    List<SubjectSemester> list = new();
+
+    List<SubjectSemester> uploadedList = new();
+
+    List<string> csvErrors = new();
+
+    SubjectSemester model = new();
+
+    bool showManual;
+    bool showCsv;
+    bool isEdit;
+
+    bool showToast;
+    bool isError;
+
+    string toastMessage = "";
+
+    string semesterError = "";
+    string subjectError = "";
+    bool IsSelectionValid =>
+    SessionState.AcademicYearId.HasValue &&
+    SessionState.AcademicYearId.Value > 0 &&
+    SessionState.CourseId.HasValue &&
+    SessionState.CourseId.Value > 0;
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            SessionState.OnChange += ReloadData;
+
+            await LoadPageData();
+        }
+        catch
+        {
+            ShowToast("Page load failed", true);
+        }
+    }
+
+    async Task LoadPageData()
+    {
+        try
+        {
+            if (SessionState.CourseId == null ||
+                SessionState.AcademicYearId == null)
+                return;
+
+            semesters = await Service.GetSemesters(
+                SessionState.CourseId.Value);
+
+            subjects = await Service.GetSubjects(
+                SessionState.CourseId.Value);
+
+            list = await Service.GetAll(
+                SessionState.AcademicYearId.Value,
+                SessionState.CourseId.Value);
+
+            StateHasChanged();
+        }
+        catch
+        {
+            ShowToast("Data loading failed", true);
+        }
+    }
+
+    async void ReloadData()
+    {
+        await LoadPageData();
+    }
+
+    void OpenManual()
+    {
+        try
+        {
+            model = new();
+
+            showManual = true;
+            showCsv = false;
+            isEdit = false;
+
+            ClearValidation();
+        }
+        catch
+        {
+            ShowToast("Form open failed", true);
+        }
+    }
+
+    void OpenCsv()
+    {
+        try
+        {
+            showCsv = true;
+            showManual = false;
+        }
+        catch
+        {
+            ShowToast("CSV open failed", true);
+        }
+    }
+
+    void CloseAll()
+    {
+        showManual = false;
+        showCsv = false;
+    }
+
+    void ClearValidation()
+    {
+        semesterError = "";
+        subjectError = "";
+    }
+
+    bool ValidateForm()
+    {
+        ClearValidation();
+
+        bool valid = true;
+
+        if (model.SemesterId == 0)
+        {
+            semesterError = "Please select semester";
+            valid = false;
+        }
+
+        if (model.SubjectId == 0)
+        {
+            subjectError = "Please select subject";
+            valid = false;
+        }
+
+        return valid;
+    }
+
+    async Task Save()
+    {
+        try
+        {
+            if (!IsSelectionValid)
+            {
+                ShowToast(
+                    "Please select Academic Year and Course first",
+                    true);
+
+                return;
+            }
+
+            if (!ValidateForm())
+                return;
+
+            model.AcademicYearId =
+                SessionState.AcademicYearId ?? 0;
+
+            if (model.AcademicYearId == 0)
+            {
+                ShowToast("Academic year missing", true);
+                return;
+            }
+
+            (bool success, string message) result;
+
+            if (isEdit)
+            {
+                result = await Service.Update(model);
+            }
+            else
+            {
+                result = await Service.Create(model);
+            }
+
+            ShowToast(result.message, !result.success);
+
+            if (!result.success)
+                return;
+
+            await LoadPageData();
+
+            CloseAll();
+        }
+        catch
+        {
+            ShowToast("Save failed", true);
+        }
+    }
+
+    void Edit(SubjectSemester item)
+    {
+        try
+        {
+            model = new SubjectSemester
+                {
+                    SubjectSemesterId = item.SubjectSemesterId,
+                    AcademicYearId = item.AcademicYearId,
+                    SemesterId = item.SemesterId,
+                    SubjectId = item.SubjectId,
+                    IsActive = item.IsActive
+                };
+
+            showManual = true;
+            showCsv = false;
+            isEdit = true;
+        }
+        catch
+        {
+            ShowToast("Edit load failed", true);
+        }
+    }
+
+    async Task Deactivate(int id)
+    {
+        try
+        {
+            var result = await Service.Delete(id);
+
+            ShowToast(result.Item2, !result.Item1);
+
+            await LoadPageData();
+        }
+        catch
+        {
+            ShowToast("Deactivate failed", true);
+        }
+    }
+
+    async Task Activate(int id)
+    {
+        try
+        {
+            var result = await Service.Activate(id);
+
+            ShowToast(result.Item2, !result.Item1);
+
+            await LoadPageData();
+        }
+        catch
+        {
+            ShowToast("Activate failed", true);
+        }
+    }
+
+    async Task DownloadTemplate()
+    {
+        try
+        {
+            var csv =
+                "SemesterNo,SubjectName\n" +
+                "1,Mathematics\n" +
+                "1,Physics";
+
+            var bytes = Encoding.UTF8.GetBytes(csv);
+
+            await JS.InvokeVoidAsync(
+                "downloadFile",
+                "SubjectSemester.csv",
+                Convert.ToBase64String(bytes));
+        }
+        catch
+        {
+            ShowToast("Download failed", true);
+        }
+    }
+
+    async Task UploadCsv(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            if (!IsSelectionValid)
+            {
+                ShowToast(
+                    "Please select Academic Year and Course first",
+                    true);
+
+                return;
+            }
+
+            csvErrors.Clear();
+
+            uploadedList.Clear();
+
+            var file = e.File;
+
+            using var stream =
+                file.OpenReadStream(5 * 1024 * 1024);
+
+            using var reader =
+                new StreamReader(stream);
+
+            var content =
+                await reader.ReadToEndAsync();
+
+            var lines = content.Split(
+                new[] { "\r\n", "\n" },
+                StringSplitOptions.RemoveEmptyEntries);
+
+            if (lines.Length <= 1)
+            {
+                csvErrors.Add("CSV is empty");
+                return;
+            }
+
+            var duplicateSet = new HashSet<string>();
+
+            for (int i = 1; i < lines.Length; i++)
+            {
+                try
+                {
+                    var row = lines[i].Split(',');
+
+                    if (row.Length < 2)
+                    {
+                        csvErrors.Add(
+                            $"Row {i + 1}: Invalid column count");
+                        continue;
+                    }
+
+                    string semText = row[0].Trim();
+
+                    string subjectName = row[1].Trim();
+
+                    if (!int.TryParse(semText, out int semNo))
+                    {
+                        csvErrors.Add(
+                            $"Row {i + 1}: Invalid semester");
+                        continue;
+                    }
+
+                    var semester =
+                        semesters.FirstOrDefault(x =>
+                            x.SemesterNo == semNo);
+
+                    if (semester == null)
+                    {
+                        csvErrors.Add(
+                            $"Row {i + 1}: Semester not found");
+                        continue;
+                    }
+
+                    var subject =
+                        subjects.FirstOrDefault(x =>
+                            x.SubjectName.Trim()
+                            .Equals(
+                                subjectName,
+                                StringComparison.OrdinalIgnoreCase));
+
+                    if (subject == null)
+                    {
+                        csvErrors.Add(
+                            $"Row {i + 1}: Subject not found");
+                        continue;
+                    }
+
+                    string key =
+                        $"{semester.SemesterId}_{subject.SubjectId}";
+
+                    if (duplicateSet.Contains(key))
+                    {
+                        csvErrors.Add(
+                            $"Row {i + 1}: Duplicate entry");
+                        continue;
+                    }
+
+                    duplicateSet.Add(key);
+
+                    uploadedList.Add(new SubjectSemester
+                        {
+                            AcademicYearId =
+                                SessionState.AcademicYearId ?? 0,
+
+                            SemesterId =
+                                semester.SemesterId,
+
+                            SubjectId =
+                                subject.SubjectId
+                        });
+                }
+                catch
+                {
+                    csvErrors.Add(
+                        $"Row {i + 1}: Invalid data");
+                }
+            }
+
+            if (csvErrors.Any())
+            {
+                ShowToast(
+                    "CSV contains validation errors",
+                    true);
+            }
+            else
+            {
+                ShowToast(
+                    "CSV validated successfully",
+                    false);
+            }
+        }
+        catch
+        {
+            ShowToast("CSV upload failed", true);
+        }
+    }
+
+    async Task SaveCsv()
+    {
+        try
+        {
+            if (!IsSelectionValid)
+            {
+                ShowToast(
+                    "Please select Academic Year and Course first",
+                    true);
+
+                return;
+            }
+
+            if (!uploadedList.Any())
+            {
+                ShowToast("No valid records", true);
+                return;
+            }
+
+            var result =
+                await Service.BulkUpload(uploadedList);
+
+            ShowToast(result.Item2, !result.Item1);
+
+            if (!result.Item1)
+            {
+                uploadedList.Clear();
+
+                await LoadPageData();
+
+                CloseAll();
+            }
+        }
+        catch
+        {
+            ShowToast("CSV save failed", true);
+        }
+    }
+
+    async void ShowToast(
+        string msg,
+        bool error = false)
+    {
+        toastMessage = msg;
+
+        isError = error;
+
+        showToast = true;
+
+        await Task.Delay(3000);
+
+        showToast = false;
+
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        SessionState.OnChange -= ReloadData;
+    }
+}

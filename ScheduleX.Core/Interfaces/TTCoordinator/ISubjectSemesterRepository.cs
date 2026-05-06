@@ -1,20 +1,30 @@
-﻿using ScheduleX.Core.Entities;
+﻿
+using ScheduleX.Core.Entities;
 
-namespace ScheduleX.Core.Interfaces.TTCoordinator;
-
-public interface ISubjectSemesterRepository
+namespace ScheduleX.Core.Interfaces.TTCoordinator
 {
-    Task<List<Course>> GetCoursesAsync(int departmentId);
-    Task<List<Semester>> GetSemestersByCourse(int courseId);
-    Task<List<Subject>> GetSubjectsByCourse(int courseId);
-    Task<List<Semester>> GetAllSemestersAsync();
-    Task<List<Subject>> GetAllSubjectsAsync();
-    Task<List<SubjectSemester>> GetAllAsync();
-    Task<List<SubjectSemester>> GetByCoordinatorAsync(int userId);
-    Task<List<Course>> GetCoursesForCoordinatorAsync(int userId);
-    Task<(bool, string)> AddAsync(SubjectSemester model);
-    Task<(bool, string)> BulkInsertAsync(List<SubjectSemester> list);
-    Task UpdateAsync(SubjectSemester model);
-    Task SoftDeleteAsync(int id);
-    Task ActivateAsync(int id);
+   
+    public interface ISubjectSemesterRepository
+    {
+        Task<List<SubjectSemester>> GetAllAsync(
+            int academicYearId,
+            int courseId);
+
+        Task<List<Semester>> GetSemestersAsync(int courseId);
+
+        Task<List<Subject>> GetSubjectsAsync(int courseId);
+
+        Task<(bool, string)> AddAsync(SubjectSemester model);
+
+        Task<(bool, string)> UpdateAsync(SubjectSemester model);
+
+        Task<(bool, string)> SoftDeleteAsync(int id);
+
+        Task<(bool, string)> ActivateAsync(int id);
+
+        Task<(bool, string)> BulkInsertAsync(
+            List<SubjectSemester> list);
+
+        Task<List<Course>> GetCoursesForCoordinatorAsync(int userId);
+    }
 }

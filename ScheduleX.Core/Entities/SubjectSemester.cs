@@ -14,6 +14,12 @@ namespace ScheduleX.Core.Entities
         public int SubjectSemesterId { get; set; }
 
         [Required]
+        public int AcademicYearId { get; set; }
+
+        [ForeignKey(nameof(AcademicYearId))]
+        public AcademicYear AcademicYear { get; set; } = null!;
+
+        [Required]
         public int SubjectId { get; set; }
 
         [ForeignKey(nameof(SubjectId))]
