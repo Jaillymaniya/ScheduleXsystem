@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ScheduleX.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using ScheduleX.Infrastructure.Data;
 namespace ScheduleX.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260506065941_AddIsActiveInTTCoordinatorCourse")]
+    partial class AddIsActiveInTTCoordinatorCourse
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -431,8 +434,8 @@ namespace ScheduleX.Infrastructure.Migrations
                     b.Property<bool>("IsExternal")
                         .HasColumnType("bit");
 
-                    b.Property<int?>("MaxLecturesPerDay")
-                        .HasColumnType("int");
+                    b.Property<byte?>("MaxLecturesPerDay")
+                        .HasColumnType("tinyint");
 
                     b.Property<string>("Phone")
                         .HasMaxLength(20)
@@ -808,9 +811,6 @@ namespace ScheduleX.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SubjectSemesterId"));
 
-                    b.Property<int>("AcademicYearId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -824,8 +824,6 @@ namespace ScheduleX.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("SubjectSemesterId");
-
-                    b.HasIndex("AcademicYearId");
 
                     b.HasIndex("SemesterId");
 
@@ -1519,12 +1517,6 @@ namespace ScheduleX.Infrastructure.Migrations
 
             modelBuilder.Entity("ScheduleX.Core.Entities.SubjectSemester", b =>
                 {
-                    b.HasOne("ScheduleX.Core.Entities.AcademicYear", "AcademicYear")
-                        .WithMany("SubjectSemesters")
-                        .HasForeignKey("AcademicYearId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("ScheduleX.Core.Entities.Semester", "Semester")
                         .WithMany("SubjectSemesters")
                         .HasForeignKey("SemesterId")
@@ -1536,8 +1528,6 @@ namespace ScheduleX.Infrastructure.Migrations
                         .HasForeignKey("SubjectId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.Navigation("AcademicYear");
 
                     b.Navigation("Semester");
 
@@ -1726,8 +1716,6 @@ namespace ScheduleX.Infrastructure.Migrations
                     b.Navigation("SubjectFaculties");
 
                     b.Navigation("SubjectLectureConfigs");
-
-                    b.Navigation("SubjectSemesters");
 
                     b.Navigation("TimeTableBatches");
                 });

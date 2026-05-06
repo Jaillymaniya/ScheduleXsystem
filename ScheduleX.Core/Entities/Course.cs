@@ -34,6 +34,8 @@ namespace ScheduleX.Core.Entities
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
+        [NotMapped]
+        public bool IsSelected { get; set; }
         // Nav
         public ICollection<Semester> Semesters { get; set; } = new List<Semester>();
         public ICollection<Subject> Subjects { get; set; } = new List<Subject>();
