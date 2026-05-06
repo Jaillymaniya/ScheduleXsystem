@@ -15,7 +15,7 @@
 @inject SubjectSemesterApiService Service
 @inject TTSessionState SessionState
 @inject IJSRuntime JS
-
+@inject NavigationManager Nav
 <link href="/css/tt/subject-semester.css" rel="stylesheet" />
 
 <div class="subject-semester-page">
@@ -59,6 +59,8 @@
 
         </div>
 
+       
+
         <div class="btn-section">
 
             <button class="btn btn-success"
@@ -71,6 +73,17 @@
                     @onclick="OpenCsv"
                     disabled="@(!IsSelectionValid)">
                 Upload CSV
+            </button>
+
+            <!-- BACK BUTTON -->
+            <button type="button"
+                    class="back-btn"
+                    @onclick="GoBack">
+
+                <i class="fas fa-arrow-left"></i>
+
+                Back
+
             </button>
 
         </div>
@@ -242,6 +255,93 @@
         </div>
     }
 
+
+    <!-- ================= FILTER SECTION ================= -->
+
+    <div class="semester-filter-wrapper">
+
+        <!-- LEFT -->
+        <div class="semester-filter-container">
+
+            <!-- ALL -->
+            <button type="button"
+                    class="@(selectedSemesterNo == 0
+                    ? "semester-pill active"
+                    : "semester-pill")"
+                    @onclick="()=>SelectSemester(0)">
+
+                <span>All</span>
+
+                <div class="pill-count">
+
+                    <span class="count-active">
+                        @list.Count(x => x.IsActive)
+                    </span>
+
+                    <span class="count-divider">/</span>
+
+                    <span class="count-inactive">
+                        @list.Count(x => !x.IsActive)
+                    </span>
+
+                </div>
+
+            </button>
+
+            <!-- SEMESTERS -->
+            @foreach (var sem in semesters
+            .OrderByDescending(x => x.SemesterNo))
+            {
+                var activeCount = list.Count(x =>
+                x.Semester.SemesterNo == sem.SemesterNo &&
+                x.IsActive);
+
+                var inactiveCount = list.Count(x =>
+                x.Semester.SemesterNo == sem.SemesterNo &&
+                !x.IsActive);
+
+                <button type="button"
+                        class="@(selectedSemesterNo == sem.SemesterNo
+                        ? "semester-pill active"
+                        : "semester-pill")"
+                        @onclick="()=>SelectSemester(sem.SemesterNo)">
+
+                    <span>
+                        Sem @sem.SemesterNo
+                    </span>
+
+                    <div class="pill-count">
+
+                        <span class="count-active">
+                            @activeCount
+                        </span>
+
+                        <span class="count-divider">/</span>
+
+                        <span class="count-inactive">
+                            @inactiveCount
+                        </span>
+
+                    </div>
+
+                </button>
+            }
+
+        </div>
+
+        <!-- RIGHT -->
+        <button type="button"
+                class="refresh-btn"
+                @onclick="RefreshFilter">
+
+            <i class="fas fa-rotate-right"></i>
+
+            Refresh
+
+        </button>
+
+    </div>
+
     <!-- ================= TABLE ================= -->
 
     <div class="tt-card">
@@ -269,7 +369,7 @@
                 }
                 else
                 {
-                    @foreach (var item in list)
+                    @foreach (var item in FilteredList)
                     {
                         <tr>
 
@@ -423,6 +523,44 @@
     async void ReloadData()
     {
         await LoadPageData();
+    }
+    void GoBack()
+    {
+        Nav.NavigateTo("/tt/academic/subject-mapping");
+    }
+
+    // ================= FILTER =================
+
+    int selectedSemesterNo = 0;
+
+    // FILTERED LIST
+    List<SubjectSemester> FilteredList =>
+        selectedSemesterNo == 0
+
+        // ALL
+        ? list
+            .OrderByDescending(x => x.Semester.SemesterNo)
+            .ThenBy(x => x.IsActive ? 0 : 1)
+            .ToList()
+
+        // SINGLE SEMESTER
+        : list
+            .Where(x =>
+                x.Semester.SemesterNo ==
+                selectedSemesterNo)
+            .OrderBy(x => x.IsActive ? 0 : 1)
+            .ToList();
+
+    // SELECT SEMESTER
+    void SelectSemester(int semNo)
+    {
+        selectedSemesterNo = semNo;
+    }
+
+    // REFRESH
+    void RefreshFilter()
+    {
+        selectedSemesterNo = 0;
     }
 
     void OpenManual()

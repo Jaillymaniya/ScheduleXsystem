@@ -247,4 +247,156 @@
         width: 0%;
     }
 }
+/* ============================================
+   SEMESTER FILTER
+   ============================================ */
 
+.subject-semester-page .semester-filter-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.subject-semester-page .semester-filter-container {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+/* PILL */
+.subject-semester-page .semester-pill {
+    border: 1px solid #29476f;
+    background: linear-gradient(145deg, #10203a, #152b48);
+    color: #dbeafe;
+    border-radius: 12px;
+    padding: 8px 12px;
+    min-width: 82px;
+    min-height: 70px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 3px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+    .subject-semester-page .semester-pill:hover {
+        transform: translateY(-2px);
+        border-color: #00d4ff;
+        box-shadow: 0 0 10px rgba(0,212,255,0.35);
+    }
+
+    /* ACTIVE */
+    .subject-semester-page .semester-pill.active {
+        background: linear-gradient(145deg, #13352a, #174235);
+        border-color: #6ee7b7;
+        color: #ecfdf5;
+       
+        box-shadow: 0 0 14px rgba(110,231,183,0.35);
+    }
+
+/* COUNT */
+.subject-semester-page .pill-count {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.subject-semester-page .count-active {
+    color: #86efac;
+}
+
+.subject-semester-page .semester-pill.active .count-active {
+    color: #065f46;
+}
+
+.subject-semester-page .count-inactive {
+    color: #fca5a5;
+}
+
+.subject-semester-page .semester-pill.active .count-inactive {
+    color: #7f1d1d;
+}
+
+.subject-semester-page .count-divider {
+    opacity: 0.7;
+}
+
+/* REFRESH */
+.subject-semester-page .refresh-btn {
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #06b6d4, #0891b2);
+    color: white;
+    padding: 9px 16px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+    .subject-semester-page .refresh-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0 12px rgba(6,182,212,0.35);
+    }
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+
+    .subject-semester-page .semester-filter-wrapper {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .subject-semester-page .semester-filter-container {
+        justify-content: center;
+    }
+
+    .subject-semester-page .refresh-btn {
+        justify-content: center;
+    }
+}
+
+
+/* ============================================
+   BACK BUTTON
+   ============================================ */
+
+.subject-semester-page .back-btn {
+    border: 1px solid #334155;
+    background: linear-gradient(145deg, #17263d, #1f3554);
+    color: #e2e8f0;
+    border-radius: 12px;
+    padding: 10px 18px;
+    min-width: 110px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+    .subject-semester-page .back-btn:hover {
+        transform: translateY(-2px);
+        border-color: #60a5fa;
+        box-shadow: 0 0 14px rgba(96,165,250,0.28);
+        background: linear-gradient(145deg, #1d3557, #27476f);
+    }
+
+    .subject-semester-page .back-btn i {
+        font-size: 13px;
+    }
