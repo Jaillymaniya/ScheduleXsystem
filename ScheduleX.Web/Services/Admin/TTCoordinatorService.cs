@@ -42,9 +42,30 @@ namespace ScheduleX.Web.Services.Admin
         //    return true;
         //}
 
-        public async Task<(bool, string)> CreateAsync(User user, string password)
+        //public async Task<(bool, string)> CreateAsync(User user, string password)
+        //{
+        //    var (result, message) = await _repo.CreateAsync(user, password);
+
+        //    if (!result)
+        //        return (false, message);
+
+        //    await _emailService.SendEmailAsync(
+        //        user.Email!,
+        //        "TT Coordinator Account Created",
+        //        $"Hello {user.FullName}, you are now a TT Coordinator."
+        //    );
+
+        //    return (true, message);
+        //}
+
+
+        public async Task<(bool, string)> CreateAsync(
+    User user,
+    string password,
+    List<int> courseIds)
         {
-            var (result, message) = await _repo.CreateAsync(user, password);
+            var (result, message) =
+                await _repo.CreateAsync(user, password, courseIds);
 
             if (!result)
                 return (false, message);
@@ -58,8 +79,8 @@ namespace ScheduleX.Web.Services.Admin
             return (true, message);
         }
 
-        public Task<bool> UpdateAsync(User user)
-            => _repo.UpdateAsync(user);
+        public Task<bool> UpdateAsync(User user, List<int> courseIds)
+           => _repo.UpdateAsync(user, courseIds);
 
         public Task<bool> SoftDeleteAsync(int id)
             => _repo.SoftDeleteAsync(id);

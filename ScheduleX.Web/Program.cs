@@ -1,23 +1,31 @@
-﻿using ScheduleX.Web.Components;
+﻿
+
+
+// ================= USING =================
+
+using ScheduleX.Web.Components;
 using Microsoft.EntityFrameworkCore;
 using ScheduleX.Infrastructure.Data;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Identity;
 using ScheduleX.Core.Entities;
 using Microsoft.AspNetCore.Components.Authorization;
+
 using ScheduleX.Core.Interfaces;
-using ScheduleX.Infrastructure.Repositories;
-using ScheduleX.Web.Services.Admin;
-using Timetable.Infrastructure.Repositories;
+using ScheduleX.Core.Interfaces.Admin;
 using ScheduleX.Core.Interfaces.TTCoordinator;
+
+using ScheduleX.Infrastructure.Repositories;
 using ScheduleX.Infrastructure.Repositories.Admin;
-using ScheduleX.Core.Interfaces.Admin;
-using ScheduleX.Core.Interfaces.Admin;
-using ScheduleX.Infrastructure.Repositories.Admin;
+
 using ScheduleX.Web.Services.Admin;
+
+using Timetable.Infrastructure.Repositories;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // ================= DB =================
+
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection")
@@ -25,6 +33,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 );
 
 // ================= BLAZOR =================
+
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
@@ -35,6 +44,7 @@ builder.Services.AddServerSideBlazor()
     });
 
 // ================= IDENTITY =================
+
 builder.Services.AddIdentity<User, IdentityRole<int>>(options =>
 {
     options.Password.RequireDigit = true;
@@ -45,24 +55,13 @@ builder.Services.AddIdentity<User, IdentityRole<int>>(options =>
 
 // ================= AUTH =================
 
-
 builder.Services.AddAuthorization();
 builder.Services.AddAuthorizationCore();
 
-// 🔥 REQUIRED FOR BLAZOR
 builder.Services.AddCascadingAuthenticationState();
 
-
 // ================= COOKIE =================
-//builder.Services.ConfigureApplicationCookie(options =>
-//{
-//    options.LoginPath = "/login";
-//    options.AccessDeniedPath = "/login";
-//    options.ExpireTimeSpan = TimeSpan.FromMinutes(60);
-//    options.SlidingExpiration = true;
-//    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-//    options.Cookie.SameSite = SameSiteMode.Lax;
-//});
+
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/login";
@@ -72,10 +71,8 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
     options.Cookie.SameSite = SameSiteMode.Lax;
 
-    //  MOST IMPORTANT FIX
     options.Events.OnRedirectToLogin = context =>
     {
-        //  If API call → DON'T redirect
         if (context.Request.Path.StartsWithSegments("/api"))
         {
             context.Response.StatusCode = 401;
@@ -86,79 +83,93 @@ builder.Services.ConfigureApplicationCookie(options =>
         return Task.CompletedTask;
     };
 });
+
 // ================= API =================
+
 builder.Services.AddControllers();
 
 // ================= HTTP CLIENT =================
+
 builder.Services.AddScoped(sp =>
 {
     var nav = sp.GetRequiredService<NavigationManager>();
+
     return new HttpClient
     {
         BaseAddress = new Uri(nav.BaseUri)
     };
 });
 
-
-
 // ================= SERVICES =================
+
 builder.Services.AddHttpContextAccessor();
 
-
-// ================= SERVICES =================
 builder.Services.AddScoped<EmailService>();
-
 
 builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
 builder.Services.AddScoped<DepartmentApiService>();
+
 builder.Services.AddScoped<IAcademicYearRepository, AcademicYearRepository>();
 builder.Services.AddScoped<AcademicYearApiService>();
+
 builder.Services.AddScoped<ICourseRepository, CourseRepository>();
 builder.Services.AddScoped<CourseApiService>();
+
 builder.Services.AddScoped<ISemesterRepository, SemesterRepository>();
 builder.Services.AddScoped<SemesterApiService>();
-//builder.Services.AddScoped<ITTCoordinatorRepository, TTCoordinatorRepository>();
-//builder.Services.AddScoped<ITTCoordinatorService, TTCoordinatorService>();
 
-builder.Services.AddScoped<EmailService>();
-builder.Services.AddScoped<ITTCoordinatorRepository, TTCoordinatorRepository>();
-builder.Services.AddScoped<ITTCoordinatorService, TTCoordinatorService>();
+builder.Services.AddScoped<ISubjectRepository, SubjectRepository>();
+builder.Services.AddScoped<SubjectApiService>();
+
+builder.Services.AddScoped<
+    ITTCoordinatorRepository,
+    TTCoordinatorRepository>();
+
+builder.Services.AddScoped<
+    ITTCoordinatorService,
+    TTCoordinatorService>();
 
 builder.Services.AddScoped<ProfileService>();
 
 builder.Services.AddDistributedMemoryCache();
+
 builder.Services.AddSession();
-builder.Services.AddScoped<ISubjectRepository, SubjectRepository>();
-builder.Services.AddScoped<SubjectApiService>();
 
 var app = builder.Build();
+
+// ================= SEED =================
 
 await SeedData(app);
 
 // ================= MIDDLEWARE =================
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
+
     app.UseHsts();
 }
 
 app.UseHttpsRedirection();
+
 app.UseStaticFiles();
 
 app.UseRouting();
 
 app.UseExceptionHandler("/error");
+
 app.UseStatusCodePagesWithRedirects("/404");
 
 app.UseSession();
 
 app.UseAuthentication();
+
 app.UseAuthorization();
 
 app.UseAntiforgery();
 
+// ================= MAP =================
 
-// 🔥 IMPORTANT
 app.MapControllers();
 
 app.MapStaticAssets();
@@ -168,7 +179,8 @@ app.MapRazorComponents<App>()
 
 app.Run();
 
-// ================= SEED =================
+// ================= SEEDER =================
+
 async Task SeedData(WebApplication app)
 {
     using var scope = app.Services.CreateScope();
@@ -177,17 +189,27 @@ async Task SeedData(WebApplication app)
 
     try
     {
-        var userManager = services.GetRequiredService<UserManager<User>>();
-        var roleManager = services.GetRequiredService<RoleManager<IdentityRole<int>>>();
+        var userManager =
+            services.GetRequiredService<UserManager<User>>();
 
-        // ROLES
+        var roleManager =
+            services.GetRequiredService<RoleManager<IdentityRole<int>>>();
+
+        // ADMIN ROLE
         if (!await roleManager.RoleExistsAsync("Admin"))
-            await roleManager.CreateAsync(new IdentityRole<int>("Admin"));
+        {
+            await roleManager.CreateAsync(
+                new IdentityRole<int>("Admin"));
+        }
 
+        // TT ROLE
         if (!await roleManager.RoleExistsAsync("TTCoordinator"))
-            await roleManager.CreateAsync(new IdentityRole<int>("TTCoordinator"));
+        {
+            await roleManager.CreateAsync(
+                new IdentityRole<int>("TTCoordinator"));
+        }
 
-        // ADMIN
+        // ADMIN USER
         var admin = await userManager.FindByNameAsync("admin");
 
         if (admin == null)
@@ -203,17 +225,23 @@ async Task SeedData(WebApplication app)
                 PhoneNumber = "9999999999"
             };
 
-            var result = await userManager.CreateAsync(newAdmin, "Admin@123");
+            var result =
+                await userManager.CreateAsync(
+                    newAdmin,
+                    "Admin@123");
 
             if (result.Succeeded)
             {
-                await userManager.AddToRoleAsync(newAdmin, "Admin");
-                Console.WriteLine("✅ Admin created");
+                await userManager.AddToRoleAsync(
+                    newAdmin,
+                    "Admin");
+
+                Console.WriteLine("Admin created");
             }
         }
     }
     catch (Exception ex)
     {
-        Console.WriteLine("❌ Seeder error: " + ex.Message);
+        Console.WriteLine(ex.Message);
     }
 }

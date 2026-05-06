@@ -1,4 +1,38 @@
-﻿using System;
+﻿//using System;
+//using System.Collections.Generic;
+//using System.ComponentModel.DataAnnotations.Schema;
+//using System.ComponentModel.DataAnnotations;
+//using System.Linq;
+//using System.Text;
+//using System.Threading.Tasks;
+
+//namespace ScheduleX.Core.Entities
+//{
+//    public class TTCoordinatorCourse
+//    {
+//        [Key]
+//        public int Id { get; set; }
+
+//        [Required]
+//        public int UserId { get; set; }
+
+//        [ForeignKey(nameof(UserId))]
+//        public User User { get; set; } = null!;
+
+
+
+//        [Required]
+//        public int CourseId { get; set; }
+
+//        [ForeignKey(nameof(CourseId))]
+//        public Course Course { get; set; } = null!;
+
+//        public DateTime CreatedAt { get; set; } = DateTime.Now;
+//    }
+//}
+
+
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
@@ -19,13 +53,14 @@ namespace ScheduleX.Core.Entities
         [ForeignKey(nameof(UserId))]
         public User User { get; set; } = null!;
 
-
-
         [Required]
         public int CourseId { get; set; }
 
         [ForeignKey(nameof(CourseId))]
         public Course Course { get; set; } = null!;
+
+        // 🔥 NEW FIELD
+        public bool IsActive { get; set; } = true;
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
     }
