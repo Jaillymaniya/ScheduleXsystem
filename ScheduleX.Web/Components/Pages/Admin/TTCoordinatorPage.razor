@@ -74,26 +74,60 @@
             </div>
 
             <!-- Courses -->
-            <div class="mb-2">
+            @* <div class="mb-2"> *@
 
-                <label>Select Courses</label>
+            @*     <label>Select Courses</label> *@
 
-                <p>Total Courses: @courses.Count</p>
+            @*     <p>Total Courses: @courses.Count</p> *@
 
-                @foreach (var c in courses)
-                {
-                    <div class="form-check">
+            @*     @foreach (var c in courses) *@
+            @*     { *@
+            @*         <div class="form-check"> *@
 
-                        <input class="form-check-input"
-                               type="checkbox"
-                               @bind="c.IsSelected" />
+            @*             <input class="form-check-input" *@
+            @*                    type="checkbox" *@
+            @*                    @bind="c.IsSelected" /> *@
 
-                        <label class="form-check-label">
-                            @c.CourseName
-                        </label>
+            @*             <label class="form-check-label"> *@
+            @*                 @c.CourseName *@
+            @*             </label> *@
 
-                    </div>
-                }
+            @*         </div> *@
+            @*     } *@
+
+            @* </div> *@
+
+            <div class="mb-3">
+
+                <label class="form-label fw-bold">
+                    Select Courses
+                </label>
+
+                <div class="course-box">
+
+                    @if (courses.Count == 0)
+                    {
+                        <div class="text-muted">
+                            No courses available for selected department
+                        </div>
+                    }
+                    else
+                    {
+                        @foreach (var c in courses)
+                        {
+                            <div class="course-item">
+
+                                <input type="checkbox"
+                                       class="form-check-input"
+                                       @bind="c.IsSelected" />
+
+                                <span>@c.CourseName</span>
+
+                            </div>
+                        }
+                    }
+
+                </div>
 
             </div>
 
