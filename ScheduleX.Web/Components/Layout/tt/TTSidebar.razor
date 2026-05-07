@@ -113,14 +113,22 @@
 
     </button>
 
+    @* <button type="button" *@
+    @*         class="@GetNavClass("/tt/division-management")" *@
+    @*         @onclick='@(()=>Navigate("/tt/division-management"))'> *@
+
+    @*     Divisions *@
+
+    @* </button> *@
+
+
     <button type="button"
-            class="@GetNavClass("/tt/division-management")"
-            @onclick='@(()=>Navigate("/tt/division-management"))'>
+            class="@GetNavClass("/tt/academic/divisions")"
+            @onclick='@(()=>Navigate("/tt/academic/divisions"))'>
 
         Divisions
 
     </button>
-
     <button type="button"
             class="@GetNavClass("/tt/academic/subject-mapping")"
             @onclick='@(()=>Navigate("/tt/academic/subject-mapping"))'>

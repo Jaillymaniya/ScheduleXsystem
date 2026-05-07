@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ScheduleX.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using ScheduleX.Infrastructure.Data;
 namespace ScheduleX.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260507074744_UpdateDivisionUniqueIndex")]
+    partial class UpdateDivisionUniqueIndex
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -303,9 +306,6 @@ namespace ScheduleX.Infrastructure.Migrations
                     b.Property<int>("AcademicYearId")
                         .HasColumnType("int");
 
-                    b.Property<int>("CourseId")
-                        .HasColumnType("int");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -328,14 +328,12 @@ namespace ScheduleX.Infrastructure.Migrations
 
                     b.HasKey("DivisionId");
 
-                    b.HasIndex("CourseId");
-
                     b.HasIndex("TTCoordinatorId");
 
                     b.HasIndex("SemesterId", "DivisionName")
                         .IsUnique();
 
-                    b.HasIndex("AcademicYearId", "CourseId", "SemesterId", "DivisionName", "TTCoordinatorId")
+                    b.HasIndex("AcademicYearId", "SemesterId", "DivisionName", "TTCoordinatorId")
                         .IsUnique()
                         .HasFilter("[TTCoordinatorId] IS NOT NULL");
 
@@ -1293,12 +1291,6 @@ namespace ScheduleX.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("ScheduleX.Core.Entities.Course", "Course")
-                        .WithMany()
-                        .HasForeignKey("CourseId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("ScheduleX.Core.Entities.Semester", "Semester")
                         .WithMany("Divisions")
                         .HasForeignKey("SemesterId")
@@ -1311,8 +1303,6 @@ namespace ScheduleX.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("AcademicYear");
-
-                    b.Navigation("Course");
 
                     b.Navigation("Semester");
 

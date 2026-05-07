@@ -21,6 +21,8 @@ using ScheduleX.Infrastructure.Repositories.Admin;
 using ScheduleX.Web.Services.Admin;
 
 using Timetable.Infrastructure.Repositories;
+//using ScheduleX.Core.Interfaces.TTCoordinator;
+//using ScheduleX.Infrastructure.Repositories.TT;
 
 using ScheduleX.Web.Services;
 using ScheduleX.Infrastructure.Repositories.TT;
@@ -129,6 +131,8 @@ builder.Services.AddScoped<
     TTCoordinatorRepository>();
 builder.Services.AddScoped<IFacultyRepository, FacultyRepository>();
 builder.Services.AddScoped<FacultyApiService>();
+builder.Services.AddScoped<IDivisionRepository, DivisionRepository>();
+
 
 builder.Services.AddScoped<ChangePasswordService>();
 //builder.Services.AddScoped<ITTCoordinatorRepository, TTCoordinatorRepository>();
