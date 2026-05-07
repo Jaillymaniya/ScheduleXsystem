@@ -2,6 +2,7 @@
 using ScheduleX.Core.Entities;
 using ScheduleX.Web.DTOs.Account;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 
 public class ProfileService
 {
@@ -15,26 +16,60 @@ public class ProfileService
         _httpContext = httpContext;
     }
 
+
     public async Task<(bool Success, string Message, EditProfileDto Data)> GetProfileAsync()
     {
-        var username = _httpContext.HttpContext?.User?.Identity?.Name;
-
-        if (string.IsNullOrEmpty(username))
-            return (false, "User not logged in", null);
-
-        var user = await _userManager.FindByNameAsync(username);
-
-        if (user == null)
-            return (false, "User not found", null);
-
-        return (true, "Success", new EditProfileDto
+        try
         {
-            FullName = user.FullName,
-            UserName = user.UserName,
-            PhoneNumber = user.PhoneNumber,
-            Email = user.Email
-        });
+            var username = _httpContext.HttpContext?.User?.Identity?.Name;
+
+            if (string.IsNullOrEmpty(username))
+                return (false, "User not logged in", null);
+
+            var user = await _userManager.Users
+                .Include(x => x.Department)
+                .FirstOrDefaultAsync(x => x.UserName == username);
+
+            if (user == null)
+                return (false, "User not found", null);
+
+            return (true, "Success", new EditProfileDto
+            {
+                FullName = user.FullName,
+                UserName = user.UserName,
+                PhoneNumber = user.PhoneNumber,
+                Email = user.Email,
+
+                // 🔥 NEW
+                DepartmentName = user.Department?.DepartmentName ?? "N/A"
+            });
+        }
+        catch (Exception ex)
+        {
+            return (false, ex.Message, null);
+        }
     }
+
+    //public async Task<(bool Success, string Message, EditProfileDto Data)> GetProfileAsync()
+    //{
+    //    var username = _httpContext.HttpContext?.User?.Identity?.Name;
+
+    //    if (string.IsNullOrEmpty(username))
+    //        return (false, "User not logged in", null);
+
+    //    var user = await _userManager.FindByNameAsync(username);
+
+    //    if (user == null)
+    //        return (false, "User not found", null);
+
+    //    return (true, "Success", new EditProfileDto
+    //    {
+    //        FullName = user.FullName,
+    //        UserName = user.UserName,
+    //        PhoneNumber = user.PhoneNumber,
+    //        Email = user.Email
+    //    });
+    //}
 
     public async Task<(bool Success, string Message)> UpdateProfileAsync(EditProfileDto model)
     {

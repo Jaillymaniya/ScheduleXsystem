@@ -153,7 +153,13 @@ builder.Services.AddScoped<
 builder.Services.AddScoped<
     SubjectSemesterApiService>();
 
+// SUBJECT FACULTY
+builder.Services.AddScoped<
+    ISubjectFacultyRepository,
+    SubjectFacultyRepository>();
 
+builder.Services.AddScoped<
+    SubjectFacultyApiService>();
 
 var app = builder.Build();
 
