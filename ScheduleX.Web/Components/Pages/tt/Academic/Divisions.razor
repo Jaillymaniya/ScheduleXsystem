@@ -1,0 +1,426 @@
+﻿
+
+
+
+
+@page "/tt/academic/divisions"
+
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
+@using ScheduleX.Core.Entities
+@using ScheduleX.Core.Interfaces.TTCoordinator
+@using ScheduleX.Web.Services
+
+@inject IDivisionRepository DivisionRepo
+@inject AuthenticationStateProvider AuthStateProvider
+@inject TTSessionState SessionState
+@using ScheduleX.Web.Components.Layout.tt
+
+@layout TTLayout
+
+<link href="css/tt/divisions.css" rel="stylesheet" />
+
+<div class="division-page">
+
+    <h3 class="division-title">
+        Division Management
+    </h3>
+
+    @if (!string.IsNullOrEmpty(toastMessage))
+    {
+        <div class="toast-box @(isError ? "toast-error" : "")">
+            @toastMessage
+        </div>
+    }
+
+    <!-- FORM -->
+
+    <div class="division-card">
+
+        <div class="division-grid">
+
+            <!-- Semester -->
+
+            <div>
+
+                <label>Semester</label>
+
+                <select class="division-input"
+                        @bind="division.SemesterId">
+
+                    <option value="0">
+                        Select Semester
+                    </option>
+
+                    @foreach (var item in semesters)
+                    {
+                        <option value="@item.SemesterId">
+                            Semester @item.SemesterNo
+                        </option>
+                    }
+
+                </select>
+
+            </div>
+
+            <!-- Division -->
+
+            <div>
+
+                <label>Division Name</label>
+
+                <input class="division-input"
+                       @bind="division.DivisionName" />
+
+            </div>
+
+            <!-- Strength -->
+
+            <div>
+
+                <label>Student Strength</label>
+
+                <input type="number"
+                       class="division-input"
+                       @bind="division.StudentStrength" />
+
+            </div>
+
+        </div>
+
+        @if (!isEditMode)
+        {
+            <button class="division-btn"
+                    @onclick="AddDivision">
+
+                Add Division
+
+            </button>
+        }
+        else
+        {
+            <button class="division-btn"
+                    @onclick="UpdateDivision">
+
+                Update Division
+
+            </button>
+        }
+
+    </div>
+
+    <!-- TABLE -->
+
+    <div class="division-card">
+
+        <table class="division-table">
+
+            <thead>
+
+                <tr>
+
+                    @* <th>Academic Year</th> *@
+
+                    @* <th>Semester</th> *@
+
+                    @* <th>Division</th> *@
+
+                    @* <th>Strength</th> *@
+
+                    @* <th>Actions</th> *@
+
+                    <th>Academic Year</th>
+                    <th>Course</th>
+                    <th>Semester</th>
+                    <th>Division</th>
+                    <th>Strength</th>
+                    <th>Actions</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                @if (divisions.Any())
+                {
+                    @foreach (var item in divisions)
+                    {
+                        <tr>
+
+                            @* <td> *@
+                            @*     @item.AcademicYear?.YearName *@
+                            @* </td> *@
+
+                            @* <td> *@
+                            @*     Semester @item.Semester?.SemesterNo *@
+                            @* </td> *@
+
+                            @* <td> *@
+                            @*     @item.DivisionName *@
+                            @* </td> *@
+
+                            @* <td> *@
+                            @*     @item.StudentStrength *@
+                            @* </td> *@
+                            <td>@item.AcademicYear?.YearName</td>
+
+                            <td>
+                                @item.Course?.CourseName
+                            </td>
+
+                            <td>
+                                Semester @item.Semester?.SemesterNo
+                            </td>
+
+                            <td>
+                                @item.DivisionName
+                            </td>
+
+                            <td>
+                                @item.StudentStrength
+                            </td>
+                            <td>
+
+                                <button class="action-btn edit-btn"
+                                        @onclick="() => EditDivision(item)">
+
+                                    Edit
+
+                                </button>
+
+                                <button class="action-btn delete-btn"
+                                        @onclick="() => DeleteDivision(item.DivisionId)">
+
+                                    Delete
+
+                                </button>
+
+                            </td>
+
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+
+                        <td colspan="5"
+                            style="text-align:center;">
+
+                            No divisions found
+
+                        </td>
+
+                    </tr>
+                }
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+@code {
+
+    private List<Division> divisions = new();
+
+    private List<Semester> semesters = new();
+
+    private Division division = new();
+
+    private string toastMessage = "";
+
+    private bool isError = false;
+
+    private bool isEditMode = false;
+
+    private int loggedInUserId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState =
+            await AuthStateProvider
+            .GetAuthenticationStateAsync();
+
+        var user = authState.User;
+
+        loggedInUserId = int.Parse(
+            user.FindFirst(ClaimTypes.NameIdentifier)!
+            .Value);
+
+        await LoadDropdowns();
+
+        await LoadData();
+    }
+
+    // LOAD DROPDOWN
+
+    private async Task LoadDropdowns()
+    {
+        semesters =
+            await DivisionRepo.GetSemestersAsync();
+    }
+
+    // LOAD TABLE
+
+    private async Task LoadData()
+    {
+        divisions =
+           await DivisionRepo.GetAllAsync(
+    loggedInUserId);
+    }
+
+    // ADD
+
+    private async Task AddDivision()
+    {
+        if (division.SemesterId == 0)
+        {
+            await ShowToast(
+                "Select semester",
+                true);
+
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(
+            division.DivisionName))
+        {
+            await ShowToast(
+                "Division name required",
+                true);
+
+            return;
+        }
+
+        division.AcademicYearId =
+       SessionState.AcademicYearId ?? 0;
+
+        division.CourseId =
+            SessionState.CourseId ?? 0;
+
+        division.TTCoordinatorId =
+            loggedInUserId;
+        bool exists =
+          await DivisionRepo.ExistsAsync(
+    division.AcademicYearId,
+    division.CourseId ?? 0,
+    division.SemesterId,
+    division.DivisionName,
+    loggedInUserId,
+    division.DivisionId);
+
+        if (exists)
+        {
+            await ShowToast(
+                "Division already exists",
+                true);
+
+            return;
+        }
+
+        await DivisionRepo.AddAsync(division);
+
+        await DivisionRepo.SaveAsync();
+
+        await ShowToast(
+            "Division added successfully");
+
+        division = new Division();
+
+        await LoadData();
+    }
+
+    // EDIT
+
+    private void EditDivision(Division item)
+    {
+        division = new Division
+            {
+                DivisionId = item.DivisionId,
+
+                AcademicYearId = item.AcademicYearId,
+
+                SemesterId = item.SemesterId,
+
+                DivisionName = item.DivisionName,
+
+                StudentStrength = item.StudentStrength,
+
+                TTCoordinatorId = item.TTCoordinatorId
+            };
+
+        isEditMode = true;
+    }
+
+    // UPDATE
+
+    private async Task UpdateDivision()
+    {
+        bool exists =
+           await DivisionRepo.ExistsAsync(
+    division.AcademicYearId,
+    division.CourseId ?? 0,
+    division.SemesterId,
+    division.DivisionName,
+    loggedInUserId);
+
+        if (exists)
+        {
+            await ShowToast(
+                "Division already exists",
+                true);
+
+            return;
+        }
+
+        await DivisionRepo.UpdateAsync(division);
+
+        await DivisionRepo.SaveAsync();
+
+        await ShowToast(
+            "Division updated successfully");
+
+        division = new Division();
+
+        isEditMode = false;
+
+        await LoadData();
+    }
+
+    // DELETE
+
+    private async Task DeleteDivision(int id)
+    {
+        await DivisionRepo.DeleteAsync(id);
+
+        await DivisionRepo.SaveAsync();
+
+        await ShowToast(
+            "Division deleted successfully");
+
+        await LoadData();
+    }
+
+    // TOAST
+
+    private async Task ShowToast(
+        string message,
+        bool error = false)
+    {
+        toastMessage = message;
+
+        isError = error;
+
+        StateHasChanged();
+
+        await Task.Delay(3000);
+
+        toastMessage = "";
+
+        StateHasChanged();
+    }
+}
