@@ -1,0 +1,155 @@
+﻿@page "/tt/account/profile"
+@rendermode InteractiveServer
+
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "TTCoordinator")]
+
+@using ScheduleX.Web.Components.Layout.tt
+@layout TTLayout
+
+@using ScheduleX.Web.DTOs.Account
+
+@inject ProfileService ProfileService
+
+<link href="/css/tt/tt-edit-profile.css" rel="stylesheet" />
+
+<div class="tt-content">
+
+    <div class="tt-page-head">
+        <div>
+            <h2 class="tt-h2">Edit Profile</h2>
+            <p class="tt-muted">Manage your account information</p>
+        </div>
+    </div>
+
+    <div class="tt-profile-wrapper">
+
+        <div class="tt-card">
+
+            <div class="tt-profile-avatar">
+                @UserInitial
+            </div>
+
+            <EditForm Model="model" OnValidSubmit="UpdateProfile">
+                <DataAnnotationsValidator />
+
+                <div class="tt-form-grid">
+
+                    <div class="tt-field">
+                        <label class="tt-label">Full Name</label>
+
+                        <InputText class="tt-input"
+                                   @bind-Value="model.FullName" />
+
+                        <ValidationMessage For="@(() => model.FullName)" />
+                    </div>
+
+                    <div class="tt-field">
+                        <label class="tt-label">Username</label>
+
+                        <InputText class="tt-input"
+                                   @bind-Value="model.UserName" />
+
+                        <ValidationMessage For="@(() => model.UserName)" />
+                    </div>
+
+                    <div class="tt-field">
+                        <label class="tt-label">Email</label>
+
+                        <input class="tt-input"
+                               value="@model.Email"
+                               readonly />
+                    </div>
+
+                    <div class="tt-field">
+                        <label class="tt-label">Phone Number</label>
+
+                        <InputText class="tt-input"
+                                   @bind-Value="model.PhoneNumber" />
+
+                        <ValidationMessage For="@(() => model.PhoneNumber)" />
+                    </div>
+                    <div class="tt-field">
+
+                        <label class="tt-label">
+                            Department
+                        </label>
+
+                        <input class="tt-input"
+                               value="@model.DepartmentName"
+                               readonly />
+
+                    </div>
+                </div>
+
+                <div class="tt-actions-row">
+                    <button type="submit" class="tt-btn primary">
+                        Update Profile
+                    </button>
+                </div>
+
+            </EditForm>
+
+        </div>
+
+    </div>
+
+</div>
+
+@if (showToast)
+{
+    <div class="toast-container">
+        <div class="toast-message">
+            @toastMessage
+            <div class="toast-progress"></div>
+        </div>
+    </div>
+}
+
+@code {
+
+    private EditProfileDto model = new();
+    private string UserInitial = "T";
+
+    bool showToast = false;
+    string toastMessage = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadProfile();
+    }
+
+    private async Task LoadProfile()
+    {
+        var result = await ProfileService.GetProfileAsync();
+
+        if (!result.Success)
+        {
+            ShowToast(result.Message);
+            return;
+        }
+
+        model = result.Data;
+
+        if (!string.IsNullOrEmpty(model?.UserName))
+            UserInitial = model.UserName.Substring(0, 1).ToUpper();
+    }
+
+    private async Task UpdateProfile()
+    {
+        var result = await ProfileService.UpdateProfileAsync(model);
+
+        ShowToast(result.Message);
+    }
+
+    async void ShowToast(string message)
+    {
+        toastMessage = message;
+        showToast = true;
+
+        await Task.Delay(3000);
+
+        showToast = false;
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,154 @@
+﻿/* =========================================
+   TT PROFILE PAGE
+========================================= */
+
+.tt-profile-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+    .tt-profile-wrapper .tt-card {
+        width: 100%;
+        max-width: 520px;
+        background: linear-gradient(145deg,#0f1b46,#09142f);
+        border: 1px solid rgba(59,130,246,.18);
+        border-radius: 22px;
+        padding: 25px;
+        box-shadow: 0 10px 30px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.03);
+    }
+
+/* AVATAR */
+.tt-profile-avatar {
+    width: 95px;
+    height: 95px;
+    border-radius: 50%;
+    background: rgba(34,197,94,0.12);
+    border: 1px solid rgba(34,197,94,0.4);
+    color: #86efac;
+    font-size: 38px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 25px;
+    box-shadow: 0 0 30px rgba(34,197,94,.15);
+}
+
+/* FORM LAYOUT */
+.tt-form-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* FIELD */
+.tt-field {
+    width: 100%;
+}
+
+/* LABEL */
+.tt-label {
+    display: block;
+    margin-bottom: 8px;
+    color: #b6c2e1;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+/* INPUT */
+.tt-input {
+    width: 100%;
+    height: 50px;
+    background: rgba(255,255,255,.05);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 16px;
+    padding: 0 16px;
+    color: #fff;
+    font-size: 16px;
+    transition: .25s;
+}
+
+    .tt-input:focus {
+        outline: none;
+        border-color: rgba(34,197,94,.45);
+        box-shadow: 0 0 0 4px rgba(34,197,94,.08);
+    }
+
+    /* READONLY */
+    .tt-input[readonly] {
+        opacity: .75;
+        cursor: not-allowed;
+    }
+
+/* BUTTON AREA */
+.tt-actions-row {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+}
+
+/* BUTTON */
+.tt-btn.primary {
+    min-width: 220px;
+    height: 54px;
+    border: none;
+    border-radius: 16px;
+    background: linear-gradient(135deg,#059669,#10b981);
+    color: #fff;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: .25s;
+}
+
+    .tt-btn.primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 24px rgba(16,185,129,.25);
+    }
+
+/* VALIDATION */
+.validation-message {
+    color: #fca5a5;
+    font-size: 12px;
+    margin-top: 6px;
+}
+
+/* =========================================
+   TOAST
+========================================= */
+
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+}
+
+.toast-message {
+    background: #16a34a;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 6px;
+    position: relative;
+}
+
+.toast-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 4px;
+    background: rgba(255,255,255,0.8);
+    animation: progress 3s linear forwards;
+    width: 100%;
+}
+
+@keyframes progress {
+    from {
+        width: 100%;
+    }
+
+    to {
+        width: 0%;
+    }
+}

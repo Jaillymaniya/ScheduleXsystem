@@ -21,6 +21,8 @@ using ScheduleX.Infrastructure.Repositories.Admin;
 using ScheduleX.Web.Services.Admin;
 
 using Timetable.Infrastructure.Repositories;
+//using ScheduleX.Core.Interfaces.TTCoordinator;
+//using ScheduleX.Infrastructure.Repositories.TT;
 
 using ScheduleX.Web.Services;
 using ScheduleX.Infrastructure.Repositories.TT;
@@ -130,6 +132,8 @@ builder.Services.AddScoped<
 
 builder.Services.AddScoped<IFacultyRepository, FacultyRepository>();
 builder.Services.AddScoped<FacultyApiService>();
+builder.Services.AddScoped<IDivisionRepository, DivisionRepository>();
+
 
 builder.Services.AddScoped<ILectureConfigRepository, LectureConfigRepository>();
 builder.Services.AddScoped<LectureConfigService>();
@@ -157,7 +161,13 @@ builder.Services.AddScoped<
 builder.Services.AddScoped<
     SubjectSemesterApiService>();
 
+// SUBJECT FACULTY
+builder.Services.AddScoped<
+    ISubjectFacultyRepository,
+    SubjectFacultyRepository>();
 
+builder.Services.AddScoped<
+    SubjectFacultyApiService>();
 
 var app = builder.Build();
 
