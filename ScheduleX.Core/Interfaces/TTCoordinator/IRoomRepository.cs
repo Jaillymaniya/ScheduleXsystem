@@ -4,7 +4,8 @@ namespace ScheduleX.Core.Interfaces.TTCoordinator
 {
     public interface IRoomRepository
     {
-        Task<List<Room>> GetAllAsync();
+        //Task<List<Room>> GetAllAsync();
+        Task<List<Room>> GetAllAsync(int ttCoordinatorId);
 
         Task<List<Department>> GetDepartmentsAsync();
 

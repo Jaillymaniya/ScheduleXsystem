@@ -14,14 +14,23 @@ namespace ScheduleX.Infrastructure.Repositories.TT
             _context = context;
         }
 
-        public async Task<List<Room>> GetAllAsync()
+        //public async Task<List<Room>> GetAllAsync()
+        //{
+        //    return await _context.Rooms
+
+        //        .Include(x => x.Department)
+
+        //        .OrderBy(x => x.RoomName)
+
+        //        .ToListAsync();
+        //}
+
+        public async Task<List<Room>> GetAllAsync(int ttCoordinatorId)
         {
             return await _context.Rooms
-
                 .Include(x => x.Department)
-
+                .Where(x => x.TTCoordinatorId == ttCoordinatorId)
                 .OrderBy(x => x.RoomName)
-
                 .ToListAsync();
         }
 

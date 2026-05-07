@@ -1,13 +1,21 @@
-﻿@page "/tt/academic/rooms"
+﻿
+
+
+@page "/tt/academic/rooms"
 
 @using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+
 @using ScheduleX.Core.Entities
 @using ScheduleX.Infrastructure.Data
 
 @using ScheduleX.Web.Components.Layout.tt
 
 @layout TTLayout
+
 @inject AppDbContext _context
+@inject AuthenticationStateProvider AuthStateProvider
 
 <link href="css/tt/rooms.css" rel="stylesheet" />
 
@@ -72,8 +80,9 @@
 
                 <select class="form-control"
                         @bind="room.RoomType">
-                    <option value="0">
-                        Select Department
+
+                    <option value="">
+                        Select Room Type
                     </option>
 
                     <option value="@RoomTypeEnum.Classroom">
@@ -145,11 +154,17 @@
             <thead>
 
                 <tr>
+
                     <th>Department</th>
+
                     <th>Room Name</th>
+
                     <th>Room Type</th>
+
                     <th>Capacity</th>
+
                     <th>Actions</th>
+
                 </tr>
 
             </thead>
@@ -243,18 +258,32 @@
 
     private int editId;
 
+    private int LoggedInUserId;
+
     private string toastMessage = "";
 
     private bool showToast = false;
 
     private bool isErrorToast = false;
 
+
+
     protected override async Task OnInitializedAsync()
     {
+        var authState =
+            await AuthStateProvider.GetAuthenticationStateAsync();
+
+        var user = authState.User;
+
+        LoggedInUserId = Convert.ToInt32(
+            user.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+
         await LoadDepartments();
 
         await LoadRooms();
     }
+
+
 
     // LOAD DEPARTMENTS
 
@@ -266,15 +295,25 @@
             .ToListAsync();
     }
 
+
+
     // LOAD ROOMS
 
     private async Task LoadRooms()
     {
         rooms = await _context.Rooms
+
             .Include(x => x.Department)
+
+            .Where(x =>
+                x.TTCoordinatorId == LoggedInUserId)
+
             .OrderBy(x => x.RoomName)
+
             .ToListAsync();
     }
+
+
 
     // ADD ROOM
 
@@ -298,17 +337,42 @@
             return;
         }
 
+        // bool exists = await _context.Rooms.AnyAsync(x =>
+
+        //     x.DepartmentId == room.DepartmentId
+
+        //     &&
+
+        //     x.RoomName.ToLower() ==
+        //     room.RoomName.ToLower());
         bool exists = await _context.Rooms.AnyAsync(x =>
-            x.RoomName.ToLower() == room.RoomName.ToLower());
+
+      x.DepartmentId == room.DepartmentId
+
+      &&
+
+      x.RoomName.Trim().ToLower() ==
+      room.RoomName.Trim().ToLower()
+
+      &&
+
+      x.IsActive
+      );
 
         if (exists)
         {
             ShowToast(
-                "Room already exists",
+                "Room already exists in this department",
                 true);
 
             return;
         }
+
+        room.TTCoordinatorId = LoggedInUserId;
+
+        room.CreatedAt = DateTime.Now;
+
+        room.IsActive = true;
 
         await _context.Rooms.AddAsync(room);
 
@@ -323,12 +387,16 @@
         await LoadRooms();
     }
 
+
+
     // EDIT ROOM
 
     private async Task EditRoom(int id)
     {
         var existingRoom = await _context.Rooms
-            .FirstOrDefaultAsync(x => x.RoomId == id);
+            .FirstOrDefaultAsync(x =>
+                x.RoomId == id &&
+                x.TTCoordinatorId == LoggedInUserId);
 
         if (existingRoom != null)
         {
@@ -347,25 +415,56 @@
         }
     }
 
+
+
     // UPDATE ROOM
 
     private async Task UpdateRoom()
     {
+        // bool exists = await _context.Rooms.AnyAsync(x =>
+
+        //     x.DepartmentId == room.DepartmentId
+
+        //     &&
+
+        //     x.RoomName.ToLower() ==
+        //     room.RoomName.ToLower()
+
+        //     &&
+
+        //     x.RoomId != editId);
+
         bool exists = await _context.Rooms.AnyAsync(x =>
-            x.RoomName.ToLower() == room.RoomName.ToLower()
-            && x.RoomId != editId);
+
+    x.DepartmentId == room.DepartmentId
+
+    &&
+
+    x.RoomName.Trim().ToLower() ==
+    room.RoomName.Trim().ToLower()
+
+    &&
+
+    x.RoomId != editId
+
+    &&
+
+    x.IsActive
+    );
 
         if (exists)
         {
             ShowToast(
-                "Room already exists",
+                "Room already exists in this department",
                 true);
 
             return;
         }
 
         var existingRoom = await _context.Rooms
-            .FirstOrDefaultAsync(x => x.RoomId == editId);
+            .FirstOrDefaultAsync(x =>
+                x.RoomId == editId &&
+                x.TTCoordinatorId == LoggedInUserId);
 
         if (existingRoom != null)
         {
@@ -391,12 +490,16 @@
         }
     }
 
+
+
     // DELETE ROOM
 
     private async Task DeleteRoom(int id)
     {
         var existingRoom = await _context.Rooms
-            .FirstOrDefaultAsync(x => x.RoomId == id);
+            .FirstOrDefaultAsync(x =>
+                x.RoomId == id &&
+                x.TTCoordinatorId == LoggedInUserId);
 
         if (existingRoom != null)
         {
@@ -412,7 +515,9 @@
         }
     }
 
-    // CANCEL
+
+
+    // CANCEL EDIT
 
     private void CancelEdit()
     {
@@ -420,6 +525,8 @@
 
         isEditMode = false;
     }
+
+
 
     // TOAST
 
