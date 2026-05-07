@@ -1,0 +1,2008 @@
+﻿@page "/tt/subject-faculty"
+
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Components.Forms
+@using ScheduleX.Core.Entities
+@using ScheduleX.Web.Services
+@using ScheduleX.Web.Services.TT
+@using ScheduleX.Web.Components.Layout.tt
+@using System.Text
+@using System.IO
+@layout TTLayout
+
+@attribute [Authorize(Roles = "TTCoordinator")]
+
+@inject SubjectFacultyApiService Service
+@inject TTSessionState SessionState
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+
+<link href="/css/tt/subject-faculty.css" rel="stylesheet" />
+
+<div class="subject-faculty-page">
+
+    <!-- ========================================= -->
+    <!-- HEADER -->
+    <!-- ========================================= -->
+
+    <div class="page-header">
+
+        <div>
+
+            <h3>Subject Faculty Management</h3>
+
+            <div class="selected-info">
+
+                <span>
+                    Academic Year :
+                    <b>
+                        @(string.IsNullOrWhiteSpace(SessionState.AcademicYearName)
+                            ? "Not Selected"
+                            : SessionState.AcademicYearName)
+                    </b>
+                </span>
+
+                <span>
+                    Course :
+                    <b>
+                        @(string.IsNullOrWhiteSpace(SessionState.CourseName)
+                            ? "Not Selected"
+                            : SessionState.CourseName)
+                    </b>
+                </span>
+
+            </div>
+
+            @if (!IsSelectionValid)
+            {
+                <div class="selection-warning">
+                    Please select Academic Year and Course first
+                </div>
+            }
+
+        </div>
+
+        <div class="btn-section">
+
+            <button type="button"
+                    class="btn btn-success"
+                    @onclick="OpenManual"
+                    disabled="@(!IsSelectionValid)">
+
+                + Add Manual
+
+            </button>
+
+            <button type="button"
+                    class="btn btn-warning"
+                    @onclick="OpenCsv"
+                    disabled="@(!IsSelectionValid)">
+
+                Upload CSV
+
+            </button>
+
+            <button type="button"
+                    class="btn btn-info"
+                    @onclick="DownloadCsv"
+                    disabled="@(!CanDownloadCsv)">
+
+                Download CSV
+
+            </button>
+
+            <button type="button"
+                    class="back-btn"
+                    @onclick="GoBack">
+
+                <i class="fas fa-arrow-left"></i>
+
+                Back
+
+            </button>
+
+        </div>
+
+    </div>
+
+    <!-- ========================================= -->
+    <!-- MANUAL POPUP -->
+    <!-- ========================================= -->
+    @if (showManual)
+    {
+        <div class="popup-overlay">
+
+            <div class="popup-box">
+
+                <div class="popup-header">
+
+                    <h4>
+                        @(isEdit
+                            ? "Edit Faculty Assignment"
+                            : "Add Faculty Assignment")
+                    </h4>
+
+                    <button type="button"
+                            class="close-btn"
+                            @onclick="CloseAll">
+
+                        ✕
+
+                    </button>
+
+                </div>
+
+                <div class="subject-grid">
+
+                    <!-- SEMESTER -->
+                    <div class="form-field">
+
+                        <label>Semester</label>
+
+                        <select class="tt-select"
+                                @bind="selectedSemesterId"
+                                @bind:after="OnSemesterChanged">
+
+                            <option value="0">
+                                Select Semester
+                            </option>
+
+                            @foreach (var sem in semesters
+                           .OrderByDescending(x => x.SemesterNo))
+                            {
+                                <option value="@sem.SemesterId">
+
+                                    Semester @sem.SemesterNo
+
+                                </option>
+                            }
+
+                        </select>
+
+                        @if (!string.IsNullOrWhiteSpace(
+                       semesterError))
+                        {
+                            <span class="validation-text">
+                                @semesterError
+                            </span>
+                        }
+
+                    </div>
+
+                    <!-- DIVISION -->
+                    <div class="form-field">
+
+                        <label>Division</label>
+
+                        <select class="tt-select"
+                                @bind="model.DivisionId">
+
+                            <option value="0">
+                                Select Division
+                            </option>
+
+                            @foreach (var div in formDivisions)
+                            {
+                                <option value="@div.DivisionId">
+
+                                    @div.DivisionName
+
+                                </option>
+                            }
+
+                        </select>
+
+                        @if (!string.IsNullOrWhiteSpace(
+                       divisionError))
+                        {
+                            <span class="validation-text">
+                                @divisionError
+                            </span>
+                        }
+
+                    </div>
+
+                    <!-- SUBJECT -->
+                    <div class="form-field">
+
+                        <label>Subject</label>
+
+                        <select class="tt-select"
+                                @bind="model.SubjectSemesterId">
+
+                            <option value="0">
+                                Select Subject
+                            </option>
+
+                            @foreach (var item in formSubjects)
+                            {
+                                <option value="@item.SubjectSemesterId">
+
+                                    @item.Subject.SubjectName
+                                    (@item.Subject.SubjectCategory)
+
+                                </option>
+                            }
+
+                        </select>
+
+                        @if (!string.IsNullOrWhiteSpace(
+                       subjectError))
+                        {
+                            <span class="validation-text">
+                                @subjectError
+                            </span>
+                        }
+
+                    </div>
+
+                    <!-- FACULTY -->
+                    <div class="form-field">
+
+                        <label>Faculty</label>
+
+                        <select class="tt-select"
+                                @bind="model.FacultyId">
+
+                            <option value="0">
+                                Select Faculty
+                            </option>
+
+                            @foreach (var faculty in faculties)
+                            {
+                                <option value="@faculty.FacultyId">
+
+                                    @faculty.FacultyName
+
+                                    @if (faculty.IsExternal)
+                                    {
+                                        <text>
+                                            (External)
+                                        </text>
+                                    }
+
+                                </option>
+                            }
+
+                        </select>
+
+                        @if (!string.IsNullOrWhiteSpace(
+                       facultyError))
+                        {
+                            <span class="validation-text">
+                                @facultyError
+                            </span>
+                        }
+
+                    </div>
+
+                    <!-- TEACHING TYPE -->
+                    <div class="form-field">
+
+                        <label>Teaching Type</label>
+
+                        <select class="tt-select"
+                                @bind="model.TeachingType">
+
+                            <option value="">
+                                Select Type
+                            </option>
+
+                            <option value="@SubjectCategoryEnum.Theory">
+                                Theory
+                            </option>
+
+                            <option value="@SubjectCategoryEnum.Practical">
+                                Practical
+                            </option>
+
+                        </select>
+
+                        @if (!string.IsNullOrWhiteSpace(
+                       teachingError))
+                        {
+                            <span class="validation-text">
+                                @teachingError
+                            </span>
+                        }
+
+                    </div>
+
+                </div>
+
+                <!-- BUTTON -->
+                <div class="btn-section">
+
+                    <button type="button"
+                            class="btn btn-success"
+                            @onclick="Save">
+
+                        @(isEdit
+                            ? "Update"
+                            : "Save")
+
+                    </button>
+
+                    <button type="button"
+                            class="btn btn-secondary"
+                            @onclick="CloseAll">
+
+                        Cancel
+
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+    }
+
+    <!-- ========================================= -->
+    <!-- CSV POPUP -->
+    <!-- ========================================= -->
+    @if (showCsv)
+    {
+        <div class="popup-overlay">
+
+            <div class="popup-box csv-popup">
+
+                <div class="popup-header">
+
+                    <h4>CSV Upload</h4>
+
+                    <button type="button"
+                            class="close-btn"
+                            @onclick="CloseAll">
+
+                        ✕
+
+                    </button>
+
+                </div>
+
+                <div class="csv-form">
+
+                    <!-- SEMESTER -->
+                    <div class="form-field">
+
+                        <label>Semester</label>
+
+                        <select class="tt-select"
+                                @bind="csvSemesterId"
+                                @bind:after="OnCsvSemesterChanged">
+
+                            <option value="0">
+                                Select Semester
+                            </option>
+
+                            @foreach (var sem in semesters
+                           .OrderByDescending(x => x.SemesterNo))
+                            {
+                                <option value="@sem.SemesterId">
+
+                                    Semester @sem.SemesterNo
+
+                                </option>
+                            }
+
+                        </select>
+
+                    </div>
+
+                    <!-- DIVISION -->
+                    <div class="form-field">
+
+                        <label>Division</label>
+
+                        <select class="tt-select"
+                                @bind="csvDivisionId">
+
+                            <option value="0">
+                                Select Division
+                            </option>
+
+                            @foreach (var div in csvDivisions)
+                            {
+                                <option value="@div.DivisionId">
+
+                                    @div.DivisionName
+
+                                </option>
+                            }
+
+                        </select>
+
+                    </div>
+
+                    <!-- DOWNLOAD -->
+                    <button type="button"
+                            class="btn btn-info"
+                            @onclick="DownloadCsv"
+                            disabled="@(!CanDownloadCsv)">
+
+                        Download CSV Template
+
+                    </button>
+
+                    <!-- FILE -->
+                    <InputFile OnChange="UploadCsv"
+                               accept=".csv" />
+
+                    <!-- ERRORS -->
+                    @if (csvErrors.Any())
+                    {
+                        <div class="csv-error-box">
+
+                            @foreach (var err in csvErrors)
+                            {
+                                <div>
+                                    • @err
+                                </div>
+                            }
+
+                        </div>
+                    }
+
+                    <!-- BUTTONS -->
+                    <div class="btn-group">
+
+                        <button type="button"
+                                class="btn btn-success"
+                                @onclick="SaveCsv">
+
+                            Save CSV
+
+                        </button>
+
+                        <button type="button"
+                                class="btn btn-secondary"
+                                @onclick="CloseAll">
+
+                            Cancel
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    }
+
+    <!-- ========================================= -->
+    <!-- SEMESTER FILTER -->
+    <!-- ========================================= -->
+
+    <div class="semester-filter-wrapper">
+
+        <div class="semester-filter-container">
+
+            <!-- ALL -->
+            <button type="button"
+                    class="@(selectedSemesterNo == 0
+                        ? "semester-pill active"
+                        : "semester-pill")"
+                    @onclick="()=>SelectSemester(0)">
+
+                <span>All</span>
+
+                <div class="pill-count">
+
+                    <span class="count-active">
+                        @list.Count(x => x.IsActive)
+                    </span>
+
+                    <span>/</span>
+
+                    <span class="count-inactive">
+                        @list.Count(x => !x.IsActive)
+                    </span>
+
+                </div>
+
+            </button>
+
+            @foreach (var sem in semesters
+            .OrderByDescending(x => x.SemesterNo))
+            {
+                var activeCount =
+                list.Count(x =>
+                x.SubjectSemester.Semester.SemesterNo ==
+                sem.SemesterNo &&
+                x.IsActive);
+
+                var inactiveCount =
+                list.Count(x =>
+                x.SubjectSemester.Semester.SemesterNo ==
+                sem.SemesterNo &&
+                !x.IsActive);
+
+                <button type="button"
+                        class="@(selectedSemesterNo == sem.SemesterNo
+                            ? "semester-pill active"
+                            : "semester-pill")"
+                        @onclick="()=>SelectSemester(sem.SemesterNo)">
+
+                    <span>
+                        Sem @sem.SemesterNo
+                    </span>
+
+                    <div class="pill-count">
+
+                        <span class="count-active">
+                            @activeCount
+                        </span>
+
+                        <span>/</span>
+
+                        <span class="count-inactive">
+                            @inactiveCount
+                        </span>
+
+                    </div>
+
+                </button>
+            }
+
+        </div>
+
+        <button type="button"
+                class="refresh-btn"
+                @onclick="RefreshFilter">
+
+            <i class="fas fa-rotate-right"></i>
+
+            Refresh
+
+        </button>
+
+    </div>
+
+    <!-- ========================================= -->
+    <!-- DIVISION FILTER -->
+    <!-- ========================================= -->
+
+    <div class="division-filter-container">
+
+        <button type="button"
+                class="@(selectedDivisionId == 0
+                    ? "division-pill active"
+                    : "division-pill")"
+                @onclick="()=>SelectDivision(0)">
+
+            All
+
+        </button>
+
+        @foreach (var div in divisions
+        .OrderBy(x => x.DivisionName))
+        {
+            <button type="button"
+                    class="@(selectedDivisionId == div.DivisionId
+                        ? "division-pill active"
+                        : "division-pill")"
+                    @onclick="()=>SelectDivision(div.DivisionId)">
+
+                @div.DivisionName
+
+            </button>
+        }
+
+    </div>
+
+    <!-- ========================================= -->
+    <!-- TABLE -->
+    <!-- ========================================= -->
+
+    <div class="tt-card">
+
+        <table class="table-dark">
+
+            <thead>
+
+                <tr>
+
+                    <th>Semester</th>
+
+                    <th>Division</th>
+
+                    <th>Subject</th>
+
+                    <th>Faculty</th>
+
+                    <th>Teaching Type</th>
+
+                    <th>Status</th>
+
+                    <th>Action</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                @if (FilteredList.Any())
+                {
+                    @foreach (var item in FilteredList)
+                    {
+                        <tr>
+
+                            <td>
+                                Sem
+                                @item.SubjectSemester
+                                .Semester.SemesterNo
+                            </td>
+
+                            <td>
+                                @item.Division.DivisionName
+                            </td>
+
+                            <td>
+                                @item.SubjectSemester
+                                .Subject.SubjectName
+                            </td>
+
+                            <td>
+                                @item.Faculty.FacultyName
+                            </td>
+
+                            <td>
+                                @item.TeachingType
+                            </td>
+
+                            <td>
+
+                                @if (item.IsActive)
+                                {
+                                    <span class="status-active">
+                                        Active
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="status-inactive">
+                                        Inactive
+                                    </span>
+                                }
+
+                            </td>
+
+                            <td>
+
+                                <div class="action-group">
+
+                                    <button type="button"
+                                            class="btn btn-warning"
+                                            @onclick="()=>Edit(item)">
+
+                                        Edit
+
+                                    </button>
+
+                                    <button type="button"
+                                            class="btn btn-secondary"
+                                            @onclick="()=>Toggle(item.SubjectFacultyId)">
+
+                                        @(item.IsActive
+                                            ? "Deactivate"
+                                            : "Activate")
+
+                                    </button>
+
+                                </div>
+
+                            </td>
+
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+
+                        <td colspan="7">
+
+                            No records found
+
+                        </td>
+
+                    </tr>
+                }
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+<!-- ========================================= -->
+<!-- TOAST -->
+<!-- ========================================= -->
+@if (showToast)
+{
+    <div class="toast-box @(isError ? "toast-error" : "toast-success")">
+
+        @toastMessage
+
+    </div>
+}
+
+@code {
+
+    // =====================================================
+    // LISTS
+    // =====================================================
+
+    List<SubjectFaculty> list = new();
+
+    List<Semester> semesters = new();
+
+    List<Division> divisions = new();
+
+    List<Division> formDivisions = new();
+
+    List<Division> csvDivisions = new();
+
+    List<SubjectSemester> formSubjects = new();
+
+    List<Faculty> faculties = new();
+
+    List<SubjectFaculty> uploadedList = new();
+
+    List<string> csvErrors = new();
+
+    // =====================================================
+    // MODEL
+    // =====================================================
+
+    SubjectFaculty model = new();
+
+    // =====================================================
+    // FLAGS
+    // =====================================================
+
+    bool showManual;
+
+    bool showCsv;
+
+    bool isEdit;
+
+    bool showToast;
+
+    bool isError;
+
+    string toastMessage = "";
+
+    // FILTERS
+
+    int selectedSemesterNo = 0;
+
+    int selectedDivisionId = 0;
+
+    // CSV
+
+    int csvSemesterId;
+
+    int csvDivisionId;
+
+    // FORM
+    int selectedSemesterId;
+
+    // VALIDATION
+
+    string semesterError = "";
+
+    string divisionError = "";
+
+    string subjectError = "";
+
+    string facultyError = "";
+
+    string teachingError = "";
+
+    async void ReloadData()
+    {
+        await LoadPageData();
+    }
+    // =====================================================
+    // INIT
+    // =====================================================
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            SessionState.OnChange += ReloadData;
+
+            await LoadPageData();
+        }
+        catch
+        {
+            ShowToast(
+                "Page load failed",
+                true);
+        }
+    }
+
+    // =====================================================
+    // LOAD
+    // =====================================================
+
+    async Task LoadPageData()
+    {
+        try
+        {
+            if (!IsSelectionValid)
+                return;
+
+            semesters =
+                await Service.GetSemesters(
+                    SessionState.CourseId ?? 0);
+
+            list =
+                await Service.GetAll(
+                    SessionState.AcademicYearId ?? 0,
+                    SessionState.CourseId ?? 0);
+
+            divisions =
+                list.Select(x => x.Division)
+                .DistinctBy(x => x.DivisionId)
+                .OrderBy(x => x.DivisionName)
+                .ToList();
+
+            faculties =
+                await Service.GetFaculties(
+                    SessionState.CourseId ?? 0);
+
+            StateHasChanged();
+        }
+        catch
+        {
+        }
+    }
+
+    // =====================================================
+    // FILTERED LIST
+    // =====================================================
+
+    List<SubjectFaculty> FilteredList
+    {
+        get
+        {
+            var query = list.AsQueryable();
+
+            // SEMESTER
+            if (selectedSemesterNo > 0)
+            {
+                query = query.Where(x =>
+                    x.SubjectSemester.Semester
+                    .SemesterNo ==
+                    selectedSemesterNo);
+            }
+
+            // DIVISION
+            if (selectedDivisionId > 0)
+            {
+                query = query.Where(x =>
+                    x.DivisionId ==
+                    selectedDivisionId);
+            }
+
+            return query
+
+                .OrderByDescending(x =>
+                    x.SubjectSemester.Semester
+                    .SemesterNo)
+
+                .ThenBy(x =>
+                    x.IsActive ? 0 : 1)
+
+                .ToList();
+        }
+    }
+
+    // =====================================================
+    // VALIDATION
+    // =====================================================
+
+    bool IsSelectionValid =>
+        SessionState.AcademicYearId.HasValue &&
+        SessionState.CourseId.HasValue;
+
+    bool CanDownloadCsv =>
+        csvSemesterId > 0 &&
+        csvDivisionId > 0;
+    bool ValidateForm()
+    {
+        semesterError = "";
+        divisionError = "";
+        subjectError = "";
+        facultyError = "";
+        teachingError = "";
+
+        bool valid = true;
+
+        if (selectedSemesterId == 0)
+        {
+            semesterError =
+                "Semester required";
+
+            valid = false;
+        }
+
+        if (model.DivisionId == 0)
+        {
+            divisionError =
+                "Division required";
+
+            valid = false;
+        }
+
+        if (model.SubjectSemesterId == 0)
+        {
+            subjectError =
+                "Subject required";
+
+            valid = false;
+        }
+
+        if (model.FacultyId == 0)
+        {
+            facultyError =
+                "Faculty required";
+
+            valid = false;
+        }
+
+        if (model.TeachingType !=
+            SubjectCategoryEnum.Theory &&
+
+            model.TeachingType !=
+            SubjectCategoryEnum.Practical)
+        {
+            teachingError =
+                "Teaching type required";
+
+            valid = false;
+        }
+
+        return valid;
+    }
+
+    // =====================================================
+    // FILTERS
+    // =====================================================
+
+    void SelectSemester(int semNo)
+    {
+        try
+        {
+            selectedSemesterNo = semNo;
+        }
+        catch
+        {
+        }
+    }
+
+    void SelectDivision(int divisionId)
+    {
+        try
+        {
+            selectedDivisionId = divisionId;
+        }
+        catch
+        {
+        }
+    }
+
+    void RefreshFilter()
+    {
+        try
+        {
+            selectedSemesterNo = 0;
+            selectedDivisionId = 0;
+        }
+        catch
+        {
+        }
+    }
+
+    // =====================================================
+    // POPUPS
+    // =====================================================
+
+    void OpenManual()
+    {
+        try
+        {
+            ResetForm();
+
+            showManual = true;
+        }
+        catch
+        {
+        }
+    }
+
+    void OpenCsv()
+    {
+        try
+        {
+            csvSemesterId = 0;
+            csvDivisionId = 0;
+
+            csvErrors.Clear();
+
+            uploadedList.Clear();
+
+            showCsv = true;
+        }
+        catch
+        {
+        }
+    }
+
+    void CloseAll()
+    {
+        try
+        {
+            showManual = false;
+            showCsv = false;
+
+            ResetForm();
+        }
+        catch
+        {
+        }
+    }
+
+    // =====================================================
+    // RESET
+    // =====================================================
+
+    void ResetForm()
+    {
+        try
+        {
+            model = new SubjectFaculty();
+
+            model.AcademicYearId =
+                SessionState.AcademicYearId ?? 0;
+
+            selectedSemesterId = 0;
+
+            formSubjects.Clear();
+
+            formDivisions.Clear();
+
+            semesterError = "";
+            divisionError = "";
+            subjectError = "";
+            facultyError = "";
+            teachingError = "";
+
+            isEdit = false;
+        }
+        catch
+        {
+        }
+    }
+
+    // =====================================================
+    // SEMESTER CHANGED
+    // =====================================================
+
+    async Task OnSemesterChanged()
+    {
+        try
+        {
+            formDivisions =
+                await Service.GetDivisions(
+                    selectedSemesterId);
+
+            formSubjects =
+                await Service.GetSubjectSemesters(
+                    SessionState.AcademicYearId ?? 0,
+                    selectedSemesterId);
+
+            StateHasChanged();
+        }
+        catch
+        {
+        }
+    }
+
+    // =====================================================
+    // CSV SEMESTER
+    // =====================================================
+
+    async Task OnCsvSemesterChanged()
+    {
+        try
+        {
+            csvDivisions =
+                await Service.GetDivisions(
+                    csvSemesterId);
+
+            StateHasChanged();
+        }
+        catch
+        {
+        }
+    }
+
+    // =====================================================
+    // SAVE
+    // =====================================================
+
+    async Task Save()
+    {
+        try
+        {
+            if (!ValidateForm())
+                return;
+
+            // VALIDATE EXTERNAL FACULTY
+
+            var faculty =
+                faculties.FirstOrDefault(x =>
+                    x.FacultyId ==
+                    model.FacultyId);
+
+            if (faculty == null)
+            {
+                ShowToast(
+                    "Faculty not found",
+                    true);
+
+                return;
+            }
+
+            // GET DEPARTMENT
+            int departmentId =
+                faculties.First()
+                .DepartmentId;
+
+            bool allowed =
+                await Service.IsFacultyAllowed(
+                    model.FacultyId,
+                    departmentId);
+
+            if (!allowed)
+            {
+                ShowToast(
+                    "Faculty not allowed for this department",
+                    true);
+
+                return;
+            }
+
+            (bool, string) result;
+
+            if (isEdit)
+            {
+                result =
+                    await Service.Update(model);
+            }
+            else
+            {
+                result =
+                    await Service.Create(model);
+            }
+
+            if (result.Item1)
+            {
+                await LoadPageData();
+
+                CloseAll();
+
+                ShowToast(
+                    result.Item2,
+                    false);
+            }
+            else
+            {
+                ShowToast(
+                    result.Item2,
+                    true);
+            }
+        }
+        catch (Exception ex)
+        {
+            ShowToast(
+                ex.Message,
+                true);
+        }
+    }
+
+    // =====================================================
+    // EDIT
+    // =====================================================
+
+    async Task Edit(SubjectFaculty item)
+    {
+        try
+        {
+            ResetForm();
+
+            isEdit = true;
+
+            model = new SubjectFaculty
+                {
+                    SubjectFacultyId =
+                        item.SubjectFacultyId,
+
+                    AcademicYearId =
+                        item.AcademicYearId,
+
+                    SubjectSemesterId =
+                        item.SubjectSemesterId,
+
+                    DivisionId =
+                        item.DivisionId,
+
+                    FacultyId =
+                        item.FacultyId,
+
+                    TeachingType =
+                        item.TeachingType,
+
+                    IsActive =
+                        item.IsActive
+                };
+
+            selectedSemesterId =
+                item.SubjectSemester.SemesterId;
+
+            formDivisions =
+                await Service.GetDivisions(
+                    selectedSemesterId);
+
+            formSubjects =
+                await Service.GetSubjectSemesters(
+                    SessionState.AcademicYearId ?? 0,
+                    selectedSemesterId);
+
+            showManual = true;
+        }
+        catch
+        {
+        }
+    }
+
+    // =====================================================
+    // TOGGLE
+    // =====================================================
+
+    async Task Toggle(int id)
+    {
+        try
+        {
+            var result =
+                await Service.Toggle(id);
+
+            if (result.Item1)
+            {
+                await LoadPageData();
+
+                ShowToast(
+                    result.Item2,
+                    false);
+            }
+            else
+            {
+                ShowToast(
+                    result.Item2,
+                    true);
+            }
+        }
+        catch (Exception ex)
+        {
+            ShowToast(
+                ex.Message,
+                true);
+        }
+    }
+
+    // =====================================================
+    // DOWNLOAD CSV
+    // =====================================================
+
+    async Task DownloadCsv()
+    {
+        try
+        {
+            csvErrors.Clear();
+
+            if (!CanDownloadCsv)
+            {
+                ShowToast(
+                    "Select semester and division first",
+                    true);
+
+                return;
+            }
+
+            var subjects =
+                await Service.GetSubjectSemesters(
+                    SessionState.AcademicYearId ?? 0,
+                    csvSemesterId);
+
+            if (!subjects.Any())
+            {
+                ShowToast(
+                    "No subjects found",
+                    true);
+
+                return;
+            }
+
+            StringBuilder sb = new();
+
+            sb.AppendLine(
+                "Semester,Division,SubjectName,SubjectType,TheoryFacultyEmail,PracticalFacultyEmail");
+
+            var semester =
+                semesters.FirstOrDefault(x =>
+                    x.SemesterId ==
+                    csvSemesterId);
+
+            var division =
+                csvDivisions.FirstOrDefault(x =>
+                    x.DivisionId ==
+                    csvDivisionId);
+
+            foreach (var item in subjects)
+            {
+                string theory = "";
+                string practical = "";
+
+                if (item.Subject.SubjectCategory ==
+                    SubjectCategoryEnum.Theory)
+                {
+                    practical = "";
+                }
+                else if (item.Subject.SubjectCategory ==
+                    SubjectCategoryEnum.Practical)
+                {
+                    theory = "";
+                }
+
+                sb.AppendLine(
+                    $"{semester?.SemesterNo}," +
+                    $"{division?.DivisionName}," +
+                    $"{item.Subject.SubjectName}," +
+                    $"{item.Subject.SubjectCategory}," +
+                    $"{theory}," +
+                    $"{practical}");
+            }
+
+            var bytes =
+                Encoding.UTF8.GetBytes(
+                    sb.ToString());
+
+            string base64 =
+                Convert.ToBase64String(bytes);
+
+            await JS.InvokeVoidAsync(
+                "downloadFile",
+                "SubjectFacultyTemplate.csv",
+                base64);
+
+            ShowToast(
+                "CSV downloaded",
+                false);
+        }
+        catch (Exception ex)
+        {
+            ShowToast(
+                ex.Message,
+                true);
+        }
+    }
+
+    // =====================================================
+    // UPLOAD CSV
+    // =====================================================
+
+    async Task UploadCsv(
+      InputFileChangeEventArgs e)
+    {
+        try
+        {
+            csvErrors.Clear();
+
+            uploadedList.Clear();
+
+            if (csvSemesterId == 0)
+            {
+                csvErrors.Add(
+                    "Please select semester");
+
+                return;
+            }
+
+            if (csvDivisionId == 0)
+            {
+                csvErrors.Add(
+                    "Please select division");
+
+                return;
+            }
+
+            var file = e.File;
+
+            if (file == null)
+            {
+                csvErrors.Add(
+                    "Please select CSV file");
+
+                return;
+            }
+
+            // ==========================================
+            // GET DEPARTMENT
+            // ==========================================
+
+            var semester =
+                semesters.FirstOrDefault(x =>
+                    x.SemesterId ==
+                    csvSemesterId);
+
+            if (semester == null)
+            {
+                csvErrors.Add(
+                    "Semester not found");
+
+                return;
+            }
+
+            int departmentId =
+                SessionState.CourseId ?? 0;
+
+            // ==========================================
+            // LOAD SUBJECTS
+            // ==========================================
+
+            formSubjects =
+                await Service.GetSubjectSemesters(
+                    SessionState.AcademicYearId ?? 0,
+                    csvSemesterId);
+
+            using var stream =
+                file.OpenReadStream(
+                    1024 * 1024);
+
+            using StreamReader reader =
+                new(stream);
+
+            bool isHeader = true;
+
+            int rowNo = 1;
+
+            while (!reader.EndOfStream)
+            {
+                rowNo++;
+
+                var line =
+                    await reader.ReadLineAsync();
+
+                if (isHeader)
+                {
+                    isHeader = false;
+                    continue;
+                }
+
+                if (string.IsNullOrWhiteSpace(line))
+                    continue;
+
+                var data = line.Split(',');
+
+                if (data.Length < 6)
+                {
+                    csvErrors.Add(
+                        $"Row {rowNo}: Invalid column count");
+
+                    continue;
+                }
+
+                string subjectName =
+                    data[2].Trim();
+
+                string subjectType =
+                    data[3].Trim();
+
+                string theoryEmail =
+                    data[4].Trim();
+
+                string practicalEmail =
+                    data[5].Trim();
+
+                // ==========================================
+                // FIND SUBJECT
+                // ==========================================
+
+                var subject =
+                    formSubjects.FirstOrDefault(x =>
+                        x.Subject.SubjectName
+                        .Trim()
+                        .ToLower() ==
+                        subjectName
+                        .Trim()
+                        .ToLower());
+
+                if (subject == null)
+                {
+                    csvErrors.Add(
+                        $"Row {rowNo}: Subject not found - {subjectName}");
+
+                    continue;
+                }
+
+                // ==========================================
+                // THEORY
+                // ==========================================
+
+                if (subjectType == "Theory")
+                {
+                    if (string.IsNullOrWhiteSpace(
+                        theoryEmail))
+                    {
+                        csvErrors.Add(
+                            $"Row {rowNo}: Theory faculty required");
+
+                        continue;
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(
+                        practicalEmail))
+                    {
+                        csvErrors.Add(
+                            $"Row {rowNo}: Practical faculty must be empty for theory subject");
+
+                        continue;
+                    }
+
+                    var faculty =
+                        await Service.GetFacultyByEmail(
+                            theoryEmail);
+
+                    if (faculty == null)
+                    {
+                        csvErrors.Add(
+                            $"Row {rowNo}: Faculty not found - {theoryEmail}");
+
+                        continue;
+                    }
+
+                    // ==========================================
+                    // EXTERNAL FACULTY VALIDATION
+                    // ==========================================
+
+                    bool allowed =
+                        await Service.IsFacultyAllowed(
+                            faculty.FacultyId,
+                            departmentId);
+
+                    if (!allowed)
+                    {
+                        csvErrors.Add(
+                            $"Row {rowNo}: {faculty.FacultyName} not allowed for this department");
+
+                        continue;
+                    }
+
+                    // DUPLICATE CHECK
+                    bool duplicate =
+                        uploadedList.Any(x =>
+
+                            x.SubjectSemesterId ==
+                            subject.SubjectSemesterId &&
+
+                            x.DivisionId ==
+                            csvDivisionId &&
+
+                            x.FacultyId ==
+                            faculty.FacultyId &&
+
+                            x.TeachingType ==
+                            SubjectCategoryEnum.Theory);
+
+                    if (duplicate)
+                    {
+                        csvErrors.Add(
+                            $"Row {rowNo}: Duplicate theory assignment");
+
+                        continue;
+                    }
+
+                    uploadedList.Add(
+                        new SubjectFaculty
+                            {
+                                AcademicYearId =
+                                    SessionState.AcademicYearId ?? 0,
+
+                                SubjectSemesterId =
+                                    subject.SubjectSemesterId,
+
+                                DivisionId =
+                                    csvDivisionId,
+
+                                FacultyId =
+                                    faculty.FacultyId,
+
+                                TeachingType =
+                                    SubjectCategoryEnum.Theory
+                            });
+                }
+
+                // ==========================================
+                // PRACTICAL
+                // ==========================================
+
+                else if (subjectType == "Practical")
+                {
+                    if (string.IsNullOrWhiteSpace(
+                        practicalEmail))
+                    {
+                        csvErrors.Add(
+                            $"Row {rowNo}: Practical faculty required");
+
+                        continue;
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(
+                        theoryEmail))
+                    {
+                        csvErrors.Add(
+                            $"Row {rowNo}: Theory faculty must be empty for practical subject");
+
+                        continue;
+                    }
+
+                    var faculty =
+                        await Service.GetFacultyByEmail(
+                            practicalEmail);
+
+                    if (faculty == null)
+                    {
+                        csvErrors.Add(
+                            $"Row {rowNo}: Faculty not found - {practicalEmail}");
+
+                        continue;
+                    }
+
+                    // EXTERNAL VALIDATION
+                    bool allowed =
+                        await Service.IsFacultyAllowed(
+                            faculty.FacultyId,
+                            departmentId);
+
+                    if (!allowed)
+                    {
+                        csvErrors.Add(
+                            $"Row {rowNo}: {faculty.FacultyName} not allowed for this department");
+
+                        continue;
+                    }
+
+                    // DUPLICATE
+                    bool duplicate =
+                        uploadedList.Any(x =>
+
+                            x.SubjectSemesterId ==
+                            subject.SubjectSemesterId &&
+
+                            x.DivisionId ==
+                            csvDivisionId &&
+
+                            x.FacultyId ==
+                            faculty.FacultyId &&
+
+                            x.TeachingType ==
+                            SubjectCategoryEnum.Practical);
+
+                    if (duplicate)
+                    {
+                        csvErrors.Add(
+                            $"Row {rowNo}: Duplicate practical assignment");
+
+                        continue;
+                    }
+
+                    uploadedList.Add(
+                        new SubjectFaculty
+                            {
+                                AcademicYearId =
+                                    SessionState.AcademicYearId ?? 0,
+
+                                SubjectSemesterId =
+                                    subject.SubjectSemesterId,
+
+                                DivisionId =
+                                    csvDivisionId,
+
+                                FacultyId =
+                                    faculty.FacultyId,
+
+                                TeachingType =
+                                    SubjectCategoryEnum.Practical
+                            });
+                }
+
+                // ==========================================
+                // BOTH
+                // ==========================================
+
+                else if (subjectType == "Both")
+                {
+                    if (string.IsNullOrWhiteSpace(
+                        theoryEmail))
+                    {
+                        csvErrors.Add(
+                            $"Row {rowNo}: Theory faculty required");
+
+                        continue;
+                    }
+
+                    if (string.IsNullOrWhiteSpace(
+                        practicalEmail))
+                    {
+                        csvErrors.Add(
+                            $"Row {rowNo}: Practical faculty required");
+
+                        continue;
+                    }
+
+                    var theoryFaculty =
+                        await Service.GetFacultyByEmail(
+                            theoryEmail);
+
+                    var practicalFaculty =
+                        await Service.GetFacultyByEmail(
+                            practicalEmail);
+
+                    if (theoryFaculty == null)
+                    {
+                        csvErrors.Add(
+                            $"Row {rowNo}: Theory faculty not found");
+
+                        continue;
+                    }
+
+                    if (practicalFaculty == null)
+                    {
+                        csvErrors.Add(
+                            $"Row {rowNo}: Practical faculty not found");
+
+                        continue;
+                    }
+
+                    // THEORY VALIDATION
+                    bool theoryAllowed =
+                        await Service.IsFacultyAllowed(
+                            theoryFaculty.FacultyId,
+                            departmentId);
+
+                    if (!theoryAllowed)
+                    {
+                        csvErrors.Add(
+                            $"Row {rowNo}: {theoryFaculty.FacultyName} not allowed");
+
+                        continue;
+                    }
+
+                    // PRACTICAL VALIDATION
+                    bool practicalAllowed =
+                        await Service.IsFacultyAllowed(
+                            practicalFaculty.FacultyId,
+                            departmentId);
+
+                    if (!practicalAllowed)
+                    {
+                        csvErrors.Add(
+                            $"Row {rowNo}: {practicalFaculty.FacultyName} not allowed");
+
+                        continue;
+                    }
+
+                    uploadedList.Add(
+                        new SubjectFaculty
+                            {
+                                AcademicYearId =
+                                    SessionState.AcademicYearId ?? 0,
+
+                                SubjectSemesterId =
+                                    subject.SubjectSemesterId,
+
+                                DivisionId =
+                                    csvDivisionId,
+
+                                FacultyId =
+                                    theoryFaculty.FacultyId,
+
+                                TeachingType =
+                                    SubjectCategoryEnum.Theory
+                            });
+
+                    uploadedList.Add(
+                        new SubjectFaculty
+                            {
+                                AcademicYearId =
+                                    SessionState.AcademicYearId ?? 0,
+
+                                SubjectSemesterId =
+                                    subject.SubjectSemesterId,
+
+                                DivisionId =
+                                    csvDivisionId,
+
+                                FacultyId =
+                                    practicalFaculty.FacultyId,
+
+                                TeachingType =
+                                    SubjectCategoryEnum.Practical
+                            });
+                }
+
+                // ==========================================
+                // INVALID TYPE
+                // ==========================================
+
+                else
+                {
+                    csvErrors.Add(
+                        $"Row {rowNo}: Invalid subject type");
+
+                    continue;
+                }
+            }
+
+            // ==========================================
+            // FINAL MESSAGE
+            // ==========================================
+
+            if (!csvErrors.Any())
+            {
+                ShowToast(
+                    "CSV validated successfully",
+                    false);
+            }
+            else
+            {
+                ShowToast(
+                    "CSV contains validation errors",
+                    true);
+            }
+        }
+        catch (Exception ex)
+        {
+            csvErrors.Add(ex.Message);
+
+            ShowToast(
+                ex.Message,
+                true);
+        }
+    }
+
+    // =====================================================
+    // SAVE CSV
+    // =====================================================
+
+    async Task SaveCsv()
+    {
+        try
+        {
+            if (csvErrors.Any())
+            {
+                ShowToast(
+                    "Fix CSV errors first",
+                    true);
+
+                return;
+            }
+
+            if (!uploadedList.Any())
+            {
+                ShowToast(
+                    "No data found",
+                    true);
+
+                return;
+            }
+
+            var result =
+                await Service.BulkUpload(
+                    uploadedList);
+
+            if (result.Item1)
+            {
+                await LoadPageData();
+
+                CloseAll();
+
+                ShowToast(
+                    result.Item2,
+                    false);
+            }
+            else
+            {
+                ShowToast(
+                    result.Item2,
+                    true);
+            }
+        }
+        catch (Exception ex)
+        {
+            ShowToast(
+                ex.Message,
+                true);
+        }
+    }
+
+    // =====================================================
+    // BACK
+    // =====================================================
+
+    void GoBack()
+    {
+        try
+        {
+            Nav.NavigateTo(
+                "/tt/academic/subject-mapping");
+        }
+        catch
+        {
+        }
+    }
+
+    // =====================================================
+    // TOAST
+    // =====================================================
+
+    async void ShowToast(
+        string message,
+        bool error)
+    {
+        try
+        {
+            toastMessage = message;
+
+            isError = error;
+
+            showToast = true;
+
+            StateHasChanged();
+
+            await Task.Delay(3000);
+
+            showToast = false;
+
+            StateHasChanged();
+        }
+        catch
+        {
+        }
+    }
+
+    // ==========================================
+    // DISPOSE
+    // ==========================================
+
+    public void Dispose()
+    {
+        try
+        {
+            SessionState.OnChange -= ReloadData;
+        }
+        catch
+        {
+        }
+    }
+}

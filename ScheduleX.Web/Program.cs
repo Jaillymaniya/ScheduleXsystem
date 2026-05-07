@@ -129,6 +129,7 @@ builder.Services.AddScoped<SubjectApiService>();
 builder.Services.AddScoped<
     ITTCoordinatorRepository,
     TTCoordinatorRepository>();
+
 builder.Services.AddScoped<IFacultyRepository, FacultyRepository>();
 builder.Services.AddScoped<FacultyApiService>();
 builder.Services.AddScoped<IDivisionRepository, DivisionRepository>();
@@ -136,6 +137,9 @@ builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
 
 builder.Services.AddScoped<IRoomRepository, RoomRepository>();
 
+
+builder.Services.AddScoped<ILectureConfigRepository, LectureConfigRepository>();
+builder.Services.AddScoped<LectureConfigService>();
 
 builder.Services.AddScoped<ChangePasswordService>();
 //builder.Services.AddScoped<ITTCoordinatorRepository, TTCoordinatorRepository>();
@@ -160,7 +164,13 @@ builder.Services.AddScoped<
 builder.Services.AddScoped<
     SubjectSemesterApiService>();
 
+// SUBJECT FACULTY
+builder.Services.AddScoped<
+    ISubjectFacultyRepository,
+    SubjectFacultyRepository>();
 
+builder.Services.AddScoped<
+    SubjectFacultyApiService>();
 
 var app = builder.Build();
 

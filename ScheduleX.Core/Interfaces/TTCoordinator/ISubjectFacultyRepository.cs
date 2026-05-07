@@ -1,45 +1,56 @@
 ﻿using ScheduleX.Core.Entities;
 
-
-public interface ISubjectFacultyRepository
+namespace ScheduleX.Core.Interfaces.TTCoordinator
 {
-    // ================= DROPDOWNS =================
+    public interface ISubjectFacultyRepository
+    {
+        // ================= DROPDOWNS =================
 
-    Task<List<Course>> GetCoursesByCoordinator(int userId);
+        Task<List<Semester>> GetSemestersAsync(
+            int courseId);
 
-    Task<List<Semester>> GetSemesters(int courseId);
+        Task<List<Division>> GetDivisionsAsync(
+            int semesterId);
 
-    Task<List<Division>> GetDivisions(int semesterId);
+        Task<List<SubjectSemester>> GetSubjectSemestersAsync(
+            int academicYearId,
+            int semesterId);
 
-    Task<List<SubjectSemester>> GetSubjectSemesters(int semesterId);
-    Task<bool> IsFacultyAllowed(int facultyId, int departmentId);
-    Task<List<Faculty>> GetFaculties(int courseId);
+        Task<List<Faculty>> GetFacultiesAsync(
+            int courseId);
 
-    // ================= CROSS-DEPARTMENT =================
+        Task<List<Department>> GetDepartmentsAsync();
 
-    Task<List<Department>> GetDepartments();
+        Task<List<Faculty>> GetExternalFacultiesAsync(
+            int departmentId);
 
-    Task<List<Course>> GetCoursesByDepartment(int deptId);
+        Task<Faculty?> GetFacultyByEmailAsync(
+            string email);
 
-    Task<List<Faculty>> GetFacultyByCourse(int courseId);
+        Task<bool> IsFacultyAllowedAsync(
+            int facultyId,
+            int departmentId);
 
-    Task<Faculty?> GetFacultyByEmail(string email);
+        // ================= TABLE =================
 
-    // ================= DATA =================
+        Task<List<SubjectFaculty>> GetAllAsync(
+            int academicYearId,
+            int courseId);
 
-    Task<List<SubjectFaculty>> GetAllAsync();
+        // ================= CRUD =================
 
-    // ================= CRUD =================
+        Task<(bool, string)> AddAsync(
+            SubjectFaculty model);
 
-    Task<(bool, string)> AddAsync(SubjectFaculty model);
+        Task<(bool, string)> UpdateAsync(
+            SubjectFaculty model);
 
-    Task<(bool, string)> UpdateAsync(SubjectFaculty model); // 🔥 EDIT
+        Task<(bool, string)> ToggleAsync(
+            int id);
 
-    Task ToggleAsync(int id);
+        // ================= CSV =================
 
-    // ================= CSV =================
-
-    Task<(bool, string)> BulkInsertAsync(List<SubjectFaculty> list, int userId); // basic
-
-   
+        Task<(bool, string)> BulkInsertAsync(
+            List<SubjectFaculty> list);
+    }
 }
