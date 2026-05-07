@@ -1,0 +1,407 @@
+﻿@page "/tt/lecture-config"
+@layout ScheduleX.Web.Components.Layout.tt.TTLayout
+@rendermode InteractiveServer
+@inject NavigationManager Nav
+@inject ScheduleX.Web.Services.TT.LectureConfigService Service
+@inject IHttpContextAccessor HttpContextAccessor
+@using ScheduleX.Web.Services
+
+@inject AuthenticationStateProvider AuthProvider
+@inject TTSessionState SessionState
+
+
+<link href="css/tt/lecture-config.css" rel="stylesheet" /> 
+@* <link href="css/tt/lecture-config.css" rel="stylesheet" asp-append-version="true" /> *@
+
+<PageTitle>Lecture Configuration</PageTitle>
+
+<button class="btn btn-secondary" @onclick="GoBack">
+    ← Back
+</button>
+
+<div class="lecture-config-page">
+
+    <div class="lecture-header">
+        <div>
+            <h2>Lecture Configuration</h2>
+            <p>Configure weekly theory and practical lectures subject-wise for the selected semester.</p>
+        </div>
+    </div>
+
+    @* <div style="color:white"> *@
+    @*     CourseId: @SessionState.CourseId *@
+    @*     <br /> *@
+    @*     AcademicYearId: @SessionState.AcademicYearId *@
+    @* </div> *@
+
+    @if (isLoading)
+    {
+            <div class="lecture-card">
+                <p>Loading lecture configuration...</p>
+            </div>
+    }
+    else if (!string.IsNullOrWhiteSpace(error))
+    {
+            <div class="lecture-card">
+                <div class="alert alert-danger">@error</div>
+            </div>
+    }
+    else
+    {
+            <div class="lecture-card">
+
+                <div class="lecture-filter-row">
+
+                    <div class="lecture-filter-box">
+                        <label>Select Semester</label>
+
+                    <select class="semester-select" @onchange="OnSemesterChanged">
+                            <option value="0">-- Select Semester --</option>
+                        @foreach (var sem in semesters)
+                        {
+                                    <option value="@sem.SemesterId">
+                                        Semester @sem.SemesterNo
+                                    </option>
+                        }
+                        </select>
+                    </div>
+
+                    <div class="lecture-filter-actions">
+                        <button class="btn btn-primary lecture-save-btn"
+                                @onclick="SaveAllAsync"
+                                disabled="@(!CanSave)">
+                        @(isSaving ? "Saving..." : "Save All")
+                        </button>
+                    </div>
+
+                </div>
+
+            @if (!string.IsNullOrWhiteSpace(successMessage))
+            {
+                        <div class="alert alert-success mt-3">@successMessage</div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(saveError))
+            {
+                        <div class="alert alert-danger mt-3">@saveError</div>
+            }
+            </div>
+
+            <div class="lecture-card mt-3">
+
+            @if (isLoadingRows)
+            {
+                        <p>Loading subjects...</p>
+            }
+            else if (selectedSemesterId == 0)
+            {
+                        <p>Please select a semester.</p>
+            }
+            else if (subjectSemesters.Count == 0)
+            {
+                        <p>No subjects found.</p>
+            }
+            else
+            {
+                        <div class="table-responsive">
+
+                            <table class="table lecture-table">
+
+                                <thead>
+                                    <tr>
+                                        <th>Code</th>
+                                        <th>Subject</th>
+                                        <th>Category</th>
+                                        <th>Theory</th>
+                                        <th>Practical</th>
+                                        <th>Theory / Week</th>
+                                        <th>Practical / Week</th>
+                                        <th>Block Size</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                            @* @foreach (var row in rows) *@
+                            @* { *@
+                            @foreach (var s in subjectSemesters)
+                            {
+                                var config = configs.FirstOrDefault(x => x.SubjectSemesterId == s.SubjectSemesterId);
+                                <tr>
+                                    <td>@s.Subject.SubjectCode</td>
+                                    <td>@s.Subject.SubjectName</td>
+
+                                    <td>
+                                        <span class="category-badge">
+                                            @s.Subject.SubjectCategory
+                                        </span>
+                                    </td>
+
+                                    <td>@s.Subject.TheoryCredits</td>
+                                    <td>@s.Subject.PracticalCredits</td>
+
+                                    <td>
+                                        <input class="form-control" value="@s.Subject.TheoryCredits" readonly />
+                                    </td>
+
+                                    <td>
+                                        <input class="form-control" value="@s.Subject.PracticalCredits" readonly />
+                                    </td>
+
+                                    <td>
+                                        @* @{ *@
+                                        @*     var max = s.Subject.PracticalCredits; *@
+                                        @*     var isDisabled = max <= 0; *@
+                                        @* } *@
+
+                                        @* <input type="number" *@
+                                        @*        class="form-control" *@
+                                        @*        min="1" *@
+                                        @*        max="@max" *@
+                                        @*        value="@(config?.PracticalBlockSize ?? 1)" *@
+                                        @*        @onchange="e => UpdateBlockSize(s.SubjectSemesterId, e.Value)" /> *@
+
+                                        @{
+                                            var max = s.Subject.PracticalCredits;
+                                            var isDisabled = max <= 0;
+                                        }
+
+                                        <input type="number"
+                                               class="form-control"
+                                               min="1"
+                                               max="@max"
+                                               value="@(isDisabled ? "" : config?.PracticalBlockSize?.ToString())"
+                                               disabled="@isDisabled"
+                                               @onchange="e => UpdateBlockSize(s.SubjectSemesterId, e.Value)" />
+                                    </td>
+                                </tr>
+                            }
+                                </tbody>
+
+                            </table>
+
+                        </div>
+            }
+
+            </div>
+    }
+
+</div>
+
+@code {
+
+    private bool _isReloading = false;
+
+    private List<Semester> semesters = new();
+    private List<SubjectSemester> subjectSemesters = new();
+    private List<SubjectLectureConfig> configs = new();
+
+    private int selectedSemesterId;
+
+    private bool isLoading = true;
+    private bool isLoadingRows = false;
+    private bool isSaving = false;
+
+    private string? error;
+    private string? saveError;
+    private string? successMessage;
+
+    private bool _isBusy = false;
+
+    private bool CanSave => selectedSemesterId > 0 && subjectSemesters.Count > 0 && !isSaving;
+
+
+    private async Task OnSemesterChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out var id))
+        {
+            selectedSemesterId = id;
+            await LoadRows();
+        }
+    }
+
+    private async Task LoadRows()
+    {
+        if (selectedSemesterId == 0)
+            return;
+
+        var academicYearId = SessionState.AcademicYearId ?? 0;
+
+        subjectSemesters = await Service.GetSubjectsAsync(selectedSemesterId, academicYearId);
+
+        configs = await Service.GetConfigsAsync(selectedSemesterId, academicYearId);
+    }
+
+    private async Task SaveAllAsync()
+    {
+        try
+        {
+            isSaving = true;
+
+            var academicYearId = SessionState.AcademicYearId ?? 0;
+
+            if (academicYearId == 0)
+            {
+                saveError = "Invalid Academic Year. Please re-login.";
+                return;
+            }
+
+            var list = new List<SubjectLectureConfig>();
+
+            foreach (var s in subjectSemesters)
+            {
+                var config = configs.FirstOrDefault(x => x.SubjectSemesterId == s.SubjectSemesterId);
+
+                list.Add(new SubjectLectureConfig
+                    {
+                        AcademicYearId = academicYearId,
+                        SubjectSemesterId = s.SubjectSemesterId,
+                        TheoryLecturesPerWeek = (byte)s.Subject.TheoryCredits,
+                        PracticalLecturesPerWeek = (byte)s.Subject.PracticalCredits,
+                        PracticalBlockSize = config?.PracticalBlockSize ?? 0,
+                        IsActive = true,
+                        CreatedAt = DateTime.Now
+                    });
+            }
+
+            await Service.SaveAsync(list);
+
+            successMessage = "Saved successfully!";
+            await LoadRows();
+        }
+        catch (Exception ex)
+        {
+            saveError = ex.Message;
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private void ValidateBlockSize(SubjectLectureConfig config, int max)
+    {
+        if (config.PracticalBlockSize < 1)
+            config.PracticalBlockSize = 1;
+
+        if (config.PracticalBlockSize > max)
+            config.PracticalBlockSize = (byte)max;
+    }
+
+    private void UpdateBlockSize(int subjectSemesterId, object value)
+    {
+        if (!int.TryParse(value?.ToString(), out int val))
+            return;
+
+        var subject = subjectSemesters.First(x => x.SubjectSemesterId == subjectSemesterId);
+        var maxp = subject.Subject.PracticalCredits;
+
+        // ✅ BLOCK UPDATE IF NO PRACTICAL
+        if (maxp <= 0)
+            return;
+
+        var config = configs.FirstOrDefault(x => x.SubjectSemesterId == subjectSemesterId);
+
+        var max = subjectSemesters
+            .First(x => x.SubjectSemesterId == subjectSemesterId)
+            .Subject.PracticalCredits;
+
+        if (config == null)
+        {
+            config = new SubjectLectureConfig
+                {
+                    SubjectSemesterId = subjectSemesterId,
+                    AcademicYearId = 1,
+                    PracticalBlockSize = (byte)Math.Clamp(val, 1, max)
+                };
+
+            configs.Add(config);
+        }
+        else
+        {
+            config.PracticalBlockSize = (byte)Math.Clamp(val, 1, max);
+        }
+    }
+
+    void GoBack()
+        => Nav.NavigateTo("/tt/academic/subject-mapping");
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        SessionState.OnChange += Reload;
+
+        await LoadData();
+    }
+
+    private async void Reload()
+    {
+        if (_isReloading) return;
+
+        _isReloading = true;
+
+        try
+        {
+            await InvokeAsync(async () =>
+            {
+                await LoadData();
+                StateHasChanged();
+            });
+        }
+        finally
+        {
+            _isReloading = false;
+        }
+    }
+
+    private async Task LoadData()
+    {
+        if (_isBusy) return;
+
+        try
+        {
+            _isBusy = true;
+            isLoading = true;
+
+            if (SessionState.CourseId == null ||
+                SessionState.AcademicYearId == null)
+                return;
+
+            var userId = await GetUserIdSafe();
+
+            var academicYearId = SessionState.AcademicYearId ?? 0;
+            var courseId = SessionState.CourseId ?? 0;
+
+            semesters = await Service.GetSemestersAsync(userId, courseId, academicYearId);
+
+            selectedSemesterId = 0;
+            subjectSemesters.Clear();
+            configs.Clear();
+
+            if (semesters.Any())
+            {
+                selectedSemesterId = semesters.First().SemesterId;
+                await LoadRows();
+            }
+        }
+        finally
+        {
+            isLoading = false;
+            _isBusy = false;
+        }
+    }
+
+    public void Dispose()
+    {
+        SessionState.OnChange -= Reload;
+    }
+
+    private async Task<int> GetUserIdSafe()
+    {
+        var authState = await AuthProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        return int.Parse(user.FindFirst("UserId")?.Value ?? "0");
+    }
+
+    
+}

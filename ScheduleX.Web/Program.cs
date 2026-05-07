@@ -127,8 +127,12 @@ builder.Services.AddScoped<SubjectApiService>();
 builder.Services.AddScoped<
     ITTCoordinatorRepository,
     TTCoordinatorRepository>();
+
 builder.Services.AddScoped<IFacultyRepository, FacultyRepository>();
 builder.Services.AddScoped<FacultyApiService>();
+
+builder.Services.AddScoped<ILectureConfigRepository, LectureConfigRepository>();
+builder.Services.AddScoped<LectureConfigService>();
 
 builder.Services.AddScoped<ChangePasswordService>();
 //builder.Services.AddScoped<ITTCoordinatorRepository, TTCoordinatorRepository>();

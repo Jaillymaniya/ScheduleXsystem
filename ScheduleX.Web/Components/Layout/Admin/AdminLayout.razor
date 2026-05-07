@@ -1,37 +1,4 @@
 ﻿
-@* @inherits LayoutComponentBase  *@
-@* @rendermode InteractiveServer  *@
-@* @using Microsoft.AspNetCore.Components.Authorization *@
-@* @inject AuthenticationStateProvider AuthProvider *@
-
-@* @if (isAuthorized) *@
-@* { *@
-@*     <div class="admin-wrapper"> *@
-@*         <AdminSidebar /> *@
-
-@*         <div class="admin-main"> *@
-@*             <AdminTopbar /> *@
-
-@*             <div class="admin-content"> *@
-@*                 @Body *@
-@*             </div> *@
-@*         </div> *@
-@*     </div> *@
-@* } *@
-@* else *@
-@* { *@
-@*     <RedirectToLogin /> *@
-@* } *@
-
-@* @code { *@
-@*     private bool isAuthorized; *@
-
-@*     protected override async Task OnInitializedAsync() *@
-@*     { *@
-@*         var auth = await AuthProvider.GetAuthenticationStateAsync(); *@
-@*         isAuthorized = auth.User.Identity?.IsAuthenticated == true; *@
-@*     } *@
-@* } *@
 
 
 @inherits LayoutComponentBase
