@@ -105,21 +105,23 @@
 
     </button> *@
 
+    @* <button type="button" *@
+    @*         class="@GetNavClass("/tt/room-management")" *@
+    @*         @onclick='@(()=>Navigate("/tt/room-management"))'> *@
+
+    @*     Rooms/Labs *@
+
+    @* </button> *@
+
     <button type="button"
-            class="@GetNavClass("/tt/room-management")"
-            @onclick='@(()=>Navigate("/tt/room-management"))'>
+            class="@GetNavClass("/tt/academic/rooms")"
+            @onclick='@(()=>Navigate("/tt/academic/rooms"))'>
 
         Rooms/Labs
 
     </button>
 
-    @* <button type="button" *@
-    @*         class="@GetNavClass("/tt/division-management")" *@
-    @*         @onclick='@(()=>Navigate("/tt/division-management"))'> *@
-
-    @*     Divisions *@
-
-    @* </button> *@
+   
 
 
     <button type="button"

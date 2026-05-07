@@ -1,18 +1,26 @@
-﻿
+﻿using ScheduleX.Core.Entities;
 
-using ScheduleX.Core.Entities;
-
-namespace ScheduleX.Core.Interfaces.TTCoordinator;
-
-public interface IRoomRepository
+namespace ScheduleX.Core.Interfaces.TTCoordinator
 {
-    Task AddRoomAsync(Room room);
-    Task<List<Room>> GetAllRoomsAsync();
-    Task<List<Department>> GetDepartmentsAsync();
+    public interface IRoomRepository
+    {
+        Task<List<Room>> GetAllAsync();
 
-    Task UpdateRoomAsync(Room room);
+        Task<List<Department>> GetDepartmentsAsync();
 
-    Task DeleteRoomAsync(int id); // soft delete
-    Task DeactivateRoomAsync(int id);
-    Task ActivateRoomAsync(int id);
+        Task<Room?> GetByIdAsync(int id);
+
+        Task<bool> ExistsAsync(
+            string roomName,
+            int departmentId,
+            int? excludeId = null);
+
+        Task AddAsync(Room room);
+
+        Task UpdateAsync(Room room);
+
+        Task DeleteAsync(int id);
+
+        Task SaveAsync();
+    }
 }

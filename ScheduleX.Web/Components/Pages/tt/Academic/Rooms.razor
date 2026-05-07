@@ -1,0 +1,447 @@
+﻿@page "/tt/academic/rooms"
+
+@using Microsoft.EntityFrameworkCore
+@using ScheduleX.Core.Entities
+@using ScheduleX.Infrastructure.Data
+
+@using ScheduleX.Web.Components.Layout.tt
+
+@layout TTLayout
+@inject AppDbContext _context
+
+<link href="css/tt/rooms.css" rel="stylesheet" />
+
+<div class="room-page">
+
+    <h1 class="page-title">
+        Room Management
+    </h1>
+
+    <!-- FORM -->
+
+    <div class="room-form-card">
+
+        <div class="room-grid">
+
+            <!-- DEPARTMENT -->
+
+            <div class="form-group">
+
+                <label>
+                    Department
+                </label>
+
+                <select class="form-control"
+                        @bind="room.DepartmentId">
+
+                    <option value="0">
+                        Select Department
+                    </option>
+
+                    @foreach (var department in departments)
+                    {
+                        <option value="@department.DepartmentId">
+                            @department.DepartmentName
+                        </option>
+                    }
+
+                </select>
+
+            </div>
+
+            <!-- ROOM NAME -->
+
+            <div class="form-group">
+
+                <label>
+                    Room Name
+                </label>
+
+                <input class="form-control"
+                       @bind="room.RoomName" />
+
+            </div>
+
+            <!-- ROOM TYPE -->
+
+            <div class="form-group">
+
+                <label>
+                    Room Type
+                </label>
+
+                <select class="form-control"
+                        @bind="room.RoomType">
+                    <option value="0">
+                        Select Department
+                    </option>
+
+                    <option value="@RoomTypeEnum.Classroom">
+                        Classroom
+                    </option>
+
+                    <option value="@RoomTypeEnum.Lab">
+                        Lab
+                    </option>
+
+                </select>
+
+            </div>
+
+            <!-- CAPACITY -->
+
+            <div class="form-group">
+
+                <label>
+                    Capacity
+                </label>
+
+                <input type="number"
+                       class="form-control"
+                       @bind="room.Capacity" />
+
+            </div>
+
+        </div>
+
+        @if (!isEditMode)
+        {
+            <button class="add-btn"
+                    @onclick="AddRoom">
+
+                Add Room
+
+            </button>
+        }
+        else
+        {
+            <div class="btn-group-custom">
+
+                <button class="update-btn"
+                        @onclick="UpdateRoom">
+
+                    Update Room
+
+                </button>
+
+                <button class="cancel-btn"
+                        @onclick="CancelEdit">
+
+                    Cancel
+
+                </button>
+
+            </div>
+        }
+
+    </div>
+
+    <!-- TABLE -->
+
+    <div class="room-table-card">
+
+        <table class="room-table">
+
+            <thead>
+
+                <tr>
+                    <th>Department</th>
+                    <th>Room Name</th>
+                    <th>Room Type</th>
+                    <th>Capacity</th>
+                    <th>Actions</th>
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                @if (rooms.Any())
+                {
+                    @foreach (var item in rooms)
+                    {
+                        <tr>
+
+                            <td>
+                                @item.Department.DepartmentName
+                            </td>
+
+                            <td>
+                                @item.RoomName
+                            </td>
+
+                            <td>
+                                @item.RoomType
+                            </td>
+
+                            <td>
+                                @item.Capacity
+                            </td>
+
+                            <td>
+
+                                <button class="edit-btn"
+                                        @onclick="() => EditRoom(item.RoomId)">
+
+                                    Edit
+
+                                </button>
+
+                                <button class="delete-btn"
+                                        @onclick="() => DeleteRoom(item.RoomId)">
+
+                                    Delete
+
+                                </button>
+
+                            </td>
+
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+
+                        <td colspan="5"
+                            class="no-data">
+
+                            No rooms found
+
+                        </td>
+
+                    </tr>
+                }
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+<!-- TOAST -->
+@if (showToast)
+{
+    <div class="custom-toast @(isErrorToast ? "error-toast" : "success-toast")">
+
+        @toastMessage
+
+    </div>
+}
+
+@code {
+
+    private List<Room> rooms = new();
+
+    private List<Department> departments = new();
+
+    private Room room = new();
+
+    private bool isEditMode = false;
+
+    private int editId;
+
+    private string toastMessage = "";
+
+    private bool showToast = false;
+
+    private bool isErrorToast = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDepartments();
+
+        await LoadRooms();
+    }
+
+    // LOAD DEPARTMENTS
+
+    private async Task LoadDepartments()
+    {
+        departments = await _context.Departments
+            .Where(x => x.IsActive)
+            .OrderBy(x => x.DepartmentName)
+            .ToListAsync();
+    }
+
+    // LOAD ROOMS
+
+    private async Task LoadRooms()
+    {
+        rooms = await _context.Rooms
+            .Include(x => x.Department)
+            .OrderBy(x => x.RoomName)
+            .ToListAsync();
+    }
+
+    // ADD ROOM
+
+    private async Task AddRoom()
+    {
+        if (room.DepartmentId == 0)
+        {
+            ShowToast(
+                "Please select department",
+                true);
+
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(room.RoomName))
+        {
+            ShowToast(
+                "Room name required",
+                true);
+
+            return;
+        }
+
+        bool exists = await _context.Rooms.AnyAsync(x =>
+            x.RoomName.ToLower() == room.RoomName.ToLower());
+
+        if (exists)
+        {
+            ShowToast(
+                "Room already exists",
+                true);
+
+            return;
+        }
+
+        await _context.Rooms.AddAsync(room);
+
+        await _context.SaveChangesAsync();
+
+        ShowToast(
+            "Room added successfully",
+            false);
+
+        room = new Room();
+
+        await LoadRooms();
+    }
+
+    // EDIT ROOM
+
+    private async Task EditRoom(int id)
+    {
+        var existingRoom = await _context.Rooms
+            .FirstOrDefaultAsync(x => x.RoomId == id);
+
+        if (existingRoom != null)
+        {
+            room = new Room
+                {
+                    RoomId = existingRoom.RoomId,
+                    DepartmentId = existingRoom.DepartmentId,
+                    RoomName = existingRoom.RoomName,
+                    RoomType = existingRoom.RoomType,
+                    Capacity = existingRoom.Capacity
+                };
+
+            editId = existingRoom.RoomId;
+
+            isEditMode = true;
+        }
+    }
+
+    // UPDATE ROOM
+
+    private async Task UpdateRoom()
+    {
+        bool exists = await _context.Rooms.AnyAsync(x =>
+            x.RoomName.ToLower() == room.RoomName.ToLower()
+            && x.RoomId != editId);
+
+        if (exists)
+        {
+            ShowToast(
+                "Room already exists",
+                true);
+
+            return;
+        }
+
+        var existingRoom = await _context.Rooms
+            .FirstOrDefaultAsync(x => x.RoomId == editId);
+
+        if (existingRoom != null)
+        {
+            existingRoom.DepartmentId = room.DepartmentId;
+
+            existingRoom.RoomName = room.RoomName;
+
+            existingRoom.RoomType = room.RoomType;
+
+            existingRoom.Capacity = room.Capacity;
+
+            await _context.SaveChangesAsync();
+
+            ShowToast(
+                "Room updated successfully",
+                false);
+
+            room = new Room();
+
+            isEditMode = false;
+
+            await LoadRooms();
+        }
+    }
+
+    // DELETE ROOM
+
+    private async Task DeleteRoom(int id)
+    {
+        var existingRoom = await _context.Rooms
+            .FirstOrDefaultAsync(x => x.RoomId == id);
+
+        if (existingRoom != null)
+        {
+            _context.Rooms.Remove(existingRoom);
+
+            await _context.SaveChangesAsync();
+
+            ShowToast(
+                "Room deleted successfully",
+                false);
+
+            await LoadRooms();
+        }
+    }
+
+    // CANCEL
+
+    private void CancelEdit()
+    {
+        room = new Room();
+
+        isEditMode = false;
+    }
+
+    // TOAST
+
+    private void ShowToast(
+        string message,
+        bool isError)
+    {
+        toastMessage = message;
+
+        isErrorToast = isError;
+
+        showToast = true;
+
+        StateHasChanged();
+
+        _ = Task.Run(async () =>
+        {
+            await Task.Delay(3000);
+
+            showToast = false;
+
+            await InvokeAsync(StateHasChanged);
+        });
+    }
+}
