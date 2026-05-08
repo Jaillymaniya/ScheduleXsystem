@@ -147,6 +147,8 @@ builder.Services.AddScoped<ChangePasswordService>();
 //builder.Services.AddScoped<ITTCoordinatorRepository, TTCoordinatorRepository>();
 //builder.Services.AddScoped<ITTCoordinatorService, TTCoordinatorService>();
 
+builder.Services.AddScoped<TimeTableTemplateService>();
+
 builder.Services.AddScoped<ITTCoordinatorService, TTCoordinatorService>();
 
 builder.Services.AddScoped<ProfileService>();
