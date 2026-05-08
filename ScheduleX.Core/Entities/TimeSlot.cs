@@ -28,7 +28,7 @@ namespace ScheduleX.Core.Entities
         public ScheduleConfig ScheduleConfig { get; set; } = null!;
 
         [Required]
-        public byte SlotNo { get; set; }
+        public int SlotNo { get; set; }
 
         [Required]
         public TimeOnly StartTime { get; set; }

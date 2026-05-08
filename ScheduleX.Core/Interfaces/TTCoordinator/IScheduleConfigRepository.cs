@@ -9,17 +9,46 @@ namespace ScheduleX.Core.Interfaces.TTCoordinator;
 
 public interface IScheduleConfigRepository
 {
-    Task<ScheduleConfig?> GetByCourseAsync(int courseId);
-    Task<ScheduleConfig?> GetByConfigIdAsync(int configId);
-    Task<ScheduleConfig> SaveAsync(ScheduleConfig config);
+    // =========================================
+    // CONFIGURATION
+    // =========================================
 
-    Task<List<BreakRule>> GetBreakRulesAsync(int configId);
-    Task<BreakRule> AddBreakRuleAsync(BreakRule breakRule);
-    Task<BreakRule?> UpdateBreakRuleAsync(BreakRule breakRule);
-    Task<bool> DeleteBreakRuleAsync(int breakRuleId);
+    Task<ScheduleConfig?> GetConfigAsync(
+        int academicYearId,
+        int courseId);
 
-    Task<List<TimeSlot>> GenerateTimeSlotsAsync(int configId);
-    Task<List<TimeSlot>> GetTimeSlotsAsync(int configId);
+    Task<ScheduleConfig> SaveAsync(
+        ScheduleConfig model);
 
-    Task<List<TimeTableTemplate>> GetActiveTemplatesAsync();
+    // =========================================
+    // BREAK RULES
+    // =========================================
+
+    Task<List<BreakRule>> GetBreakRulesAsync(
+        int configId);
+
+    Task<BreakRule> AddBreakRuleAsync(
+        BreakRule model);
+
+    Task<BreakRule?> UpdateBreakRuleAsync(
+        BreakRule model);
+
+    Task<bool> DeleteBreakRuleAsync(
+        int breakRuleId);
+
+    // =========================================
+    // TIME SLOTS
+    // =========================================
+
+    Task<List<TimeSlot>> GetTimeSlotsAsync(
+        int configId);
+
+    Task<List<TimeSlot>> GenerateTimeSlotsAsync(
+        int configId);
+
+    // =========================================
+    // TEMPLATES
+    // =========================================
+
+    Task<List<TimeTableTemplate>> GetTemplatesAsync();
 }
