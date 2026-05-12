@@ -4,7 +4,7 @@
 @using ScheduleX.Web.Components.Layout.Admin
 @layout AdminLayout
 
-using ScheduleX.Core.Entities;
+@using ScheduleX.Core.Entities
 @using ScheduleX.Web.Services.Admin
 @using ScheduleX.Web.Helpers;
 @using System.Text
@@ -51,6 +51,27 @@ using ScheduleX.Core.Entities;
             disabled="@(uploadedFaculty.Count == 0)">
         💾 Save CSV
     </button>
+
+    <div class="filter-bar">
+
+    <label>Filter by Department:</label>
+
+        <select class="filter-select"
+                @bind="selectedDepartmentId"
+                @bind:after="ApplyFilter">
+
+            <option value="0">All Departments</option>
+
+            @foreach (var d in departments)
+            {
+                <option value="@d.DepartmentId">
+                    @d.DepartmentName
+                </option>
+            }
+
+        </select>
+
+</div>
 
 </div>
 
@@ -226,6 +247,9 @@ using ScheduleX.Core.Entities;
 
 @code {
 
+
+    List<Faculty> allFaculty = new();
+
     // List<Faculty> list = new();
     List<Department> departments = new();
     // Faculty model = new();
@@ -245,10 +269,15 @@ using ScheduleX.Core.Entities;
 
     int fileInputKey = 0;
 
+    int selectedDepartmentId = 0;
+
+
     protected override async Task OnInitializedAsync()
     {
-        list = await FacultyService.GetAllAsync();
-        departments = await DepartmentService.GetAllAsync();
+        allFaculty = await FacultyService.GetAllAsync() ?? new List<Faculty>();
+        list = allFaculty;
+
+        departments = await DepartmentService.GetAllAsync() ?? new List<Department>();
     }
 
     void OpenForm()
@@ -301,13 +330,13 @@ using ScheduleX.Core.Entities;
         else
             result = await FacultyService.UpdateAsync(model);
 
-        await ShowToast(result.message, result.success);
-
         if (result.success)
         {
             list = await FacultyService.GetAllAsync();
             showForm = false;
         }
+
+        await ShowToast(result.message, result.success);
     }
 
     async Task ToggleStatus(Faculty f)
@@ -320,7 +349,7 @@ using ScheduleX.Core.Entities;
             list = await FacultyService.GetAllAsync();
     }
 
-    async Task ShowToast(string message, bool success = true)
+    private async Task ShowToast(string message, bool success = true)
     {
         toastMessage = message;
         toastType = success ? "success" : "error";
@@ -328,10 +357,14 @@ using ScheduleX.Core.Entities;
 
         await InvokeAsync(StateHasChanged);
 
+        _ = HideToastAsync();
+    }
+
+    private async Task HideToastAsync()
+    {
         await Task.Delay(2500);
 
         showToast = false;
-
         await InvokeAsync(StateHasChanged);
     }
 
@@ -398,4 +431,25 @@ using ScheduleX.Core.Entities;
 
     await JS.InvokeVoidAsync("downloadFile", "FacultyTemplate.csv", base64);
 }
+
+    void ApplyFilter()
+    {
+        if (allFaculty == null || allFaculty.Count == 0)
+        {
+            list = new List<Faculty>();
+            return;
+        }
+
+        if (selectedDepartmentId == 0)
+        {
+            list = allFaculty;
+        }
+        else
+        {
+            list = allFaculty
+                .Where(x => x.DepartmentId == selectedDepartmentId)
+                .ToList();
+        }
+    }
+
 }

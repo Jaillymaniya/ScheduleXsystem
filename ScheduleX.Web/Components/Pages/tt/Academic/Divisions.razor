@@ -241,6 +241,8 @@
 
     protected override async Task OnInitializedAsync()
     {
+        SessionState.OnChange += StateHasChanged;
+
         var authState =
             await AuthStateProvider
             .GetAuthenticationStateAsync();
@@ -260,8 +262,16 @@
 
     private async Task LoadDropdowns()
     {
+        int courseId = SessionState.CourseId ?? 0;
+
+        if (courseId == 0)
+        {
+            semesters = new List<Semester>();
+            return;
+        }
+
         semesters =
-            await DivisionRepo.GetSemestersAsync();
+            await DivisionRepo.GetSemestersByCourseAsync(courseId);
     }
 
     // LOAD TABLE
@@ -422,5 +432,10 @@
         toastMessage = "";
 
         StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        SessionState.OnChange -= StateHasChanged;
     }
 }

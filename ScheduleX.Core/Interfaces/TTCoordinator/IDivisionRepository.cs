@@ -28,5 +28,7 @@ namespace ScheduleX.Core.Interfaces.TTCoordinator
         Task DeleteAsync(int id);
 
         Task SaveAsync();
+
+        Task<List<Semester>> GetSemestersByCourseAsync(int courseId);
     }
 }

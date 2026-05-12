@@ -27,6 +27,9 @@ using Timetable.Infrastructure.Repositories;
 using ScheduleX.Web.Services;
 using ScheduleX.Infrastructure.Repositories.TT;
 using ScheduleX.Web.Services.TT;
+using ScheduleX.Web.Services.TimeTable;
+using ScheduleX.Infrastructure.Repositories.TTCoordinator;
+using ScheduleX.Web.Services.Excel;
 var builder = WebApplication.CreateBuilder(args);
 
 // ================= DB =================
@@ -146,6 +149,13 @@ builder.Services.AddScoped<LectureConfigService>();
 builder.Services.AddScoped<ChangePasswordService>();
 //builder.Services.AddScoped<ITTCoordinatorRepository, TTCoordinatorRepository>();
 //builder.Services.AddScoped<ITTCoordinatorService, TTCoordinatorService>();
+
+builder.Services.AddScoped<ITimetableRepository, TimetableRepository>();
+
+
+builder.Services.AddScoped<IExcelService, ExcelService>();
+builder.Services.AddScoped<ITimeTableService, TimeTableService>();
+
 
 builder.Services.AddScoped<TimeTableTemplateService>();
 

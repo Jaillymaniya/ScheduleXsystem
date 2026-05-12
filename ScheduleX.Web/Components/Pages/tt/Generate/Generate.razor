@@ -1,0 +1,234 @@
+﻿@page "/tt/Generate/generate"
+@layout ScheduleX.Web.Components.Layout.tt.TTLayout
+
+@using ScheduleX.Core.Interfaces.TTCoordinator
+@using ScheduleX.Web.DTOs
+@inject AuthenticationStateProvider AuthProvider
+@inject IJSRuntime JS
+@inject ScheduleX.Web.Services.TimeTable.ITimeTableService TTService
+@inject ISubjectFacultyRepository Repo
+@inject ScheduleX.Core.Interfaces.TTCoordinator.ITimetableRepository TTRepo
+@inject TTSessionState SessionState
+
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
+@using ScheduleX.Web.Services
+
+<link href="css/tt-generate.css" rel="stylesheet" />
+
+<div class="generate-page">
+
+    <div class="page-header">
+        <h3>Generate Timetable</h3>
+    </div>
+
+    <div class="tt-card">
+
+        <div class="form-grid">
+
+            <!-- COURSE -->
+            @* <div> *@
+            @*     <label>Course</label> *@
+            @*     <select class="tt-select" *@
+            @*             @bind="model.CourseId" *@
+            @*             @bind:after="OnCourseChanged"> *@
+            @*         <option value="0">Select Course</option> *@
+            @*         @foreach (var c in courses) *@
+            @*         { *@
+            @*             <option value="@c.CourseId">@c.CourseName</option> *@
+            @*         } *@
+            @*     </select> *@
+            @* </div> *@
+
+            <!-- TEMPLATE -->
+            <div>
+                <label>Template</label>
+                <select class="tt-select" @bind="model.TemplateId">
+                    <option value="0">Select Template</option>
+                    @foreach (var t in templates)
+                    {
+                        <option value="@t.TemplateId">@t.TemplateName</option>
+                    }
+                </select>
+            </div>
+
+            <!-- SEMESTER -->
+            @* <div> *@
+            @*     <label>Semester</label> *@
+            @*     <select class="tt-select" @bind="selectedSemesterId"> *@
+            @*         <option value="0">Select Semester</option> *@
+            @*         @foreach (var s in semesters) *@
+            @*         { *@
+            @*             <option value="@s.SemesterId">Semester @s.SemesterNo</option> *@
+            @*         } *@
+            @*     </select> *@
+            @* </div> *@
+
+        </div>
+
+        <div class="mt-3">
+            <button class="btn btn-success"
+                    disabled="@isLoading"
+                    @onclick="GenerateTimeTable">
+
+                @if (isLoading)
+                {
+                    <span>Generating...</span>
+                }
+                else
+                {
+                    <span>Generate Timetable</span>
+                }
+            </button>
+        </div>
+
+        <!-- PROGRESS BAR -->
+        @if (isLoading)
+        {
+            <div class="progress mt-3">
+                <div class="progress-bar" style="width:100%">
+                    Generating...
+                </div>
+            </div>
+        }
+
+    </div>
+
+    @if (!string.IsNullOrEmpty(message))
+    {
+        <div class="tt-card">@message</div>
+    }
+
+    @if (preview != null)
+    {
+        <GeneratePreview Data="preview" />
+    }
+
+    @if (!string.IsNullOrEmpty(fileBase64))
+    {
+        <button class="btn btn-primary" @onclick="Download">
+            Download Excel
+        </button>
+    }
+
+</div>
+
+@if (showToast)
+{
+    <div class="toast-container">
+        <div class="toast-message @toastType">@toastMessage</div>
+    </div>
+}
+
+@code {
+
+    GenerateTTDto model = new();
+
+    List<TimeTableTemplate> templates = new();
+
+    // int selectedSemesterId = 0;
+
+    string fileBase64;
+    List<PreviewDto>? preview;
+    string message;
+
+    bool isLoading = false;
+
+    bool showToast;
+    string toastMessage;
+
+    string toastType = "success";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity?.IsAuthenticated != true)
+            return;
+
+        model.UserId = int.Parse(
+            user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0"
+        );
+
+        templates = await TTRepo.GetTemplatesAsync();
+    }
+
+    
+
+    async Task GenerateTimeTable()
+    {
+        try
+        {
+            if (SessionState.CourseId == 0)
+            {
+                await ShowToast("Select Course from Topbar", "danger");
+                return;
+            }
+
+            if (SessionState.AcademicYearId == 0)
+            {
+                await ShowToast("Select Academic Year", "danger");
+                return;
+            }
+
+            if (model.TemplateId == 0)
+            {
+                await ShowToast("Select Template", "danger");
+                return;
+            }
+
+            isLoading = true;
+
+            model.CourseId = SessionState.CourseId.GetValueOrDefault();
+            model.AcademicYearId = SessionState.AcademicYearId.GetValueOrDefault();
+
+            // 🔥 AUTO FETCH ALL SEMESTERS
+            var semesters = await TTRepo
+                .GetSemestersByCourseAsync(model.CourseId);
+
+            model.SemesterIds = semesters
+                .Select(x => x.SemesterId)
+                .ToList();
+
+            var result = await TTService.GenerateAsync(model);
+
+            isLoading = false;
+
+            if (!result.Success)
+            {
+                await ShowToast(result.Message, "danger");
+                return;
+            }
+
+            preview = result.Preview;
+            fileBase64 = result.Base64;
+
+            await ShowToast("Full Timetable Generated!", "success");
+        }
+        catch (Exception ex)
+        {
+            isLoading = false;
+            await ShowToast(ex.Message, "danger");
+        }
+    }
+
+    async Task Download()
+    {
+        await JS.InvokeVoidAsync("downloadFileFromBase64", "timetable.xlsx", fileBase64);
+    }
+
+    async Task ShowToast(string msg, string type)
+    {
+        toastMessage = msg;
+        toastType = type;
+        showToast = true;
+
+        StateHasChanged();
+
+        await Task.Delay(3000);
+        showToast = false;
+
+        StateHasChanged();
+    }
+}

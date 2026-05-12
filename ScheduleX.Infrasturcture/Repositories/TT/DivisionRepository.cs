@@ -164,5 +164,13 @@ namespace ScheduleX.Infrastructure.Repositories.TT
         {
             await _context.SaveChangesAsync();
         }
+
+        public async Task<List<Semester>> GetSemestersByCourseAsync(int courseId)
+        {
+            return await _context.Semesters
+                .Where(x => x.CourseId == courseId && x.IsActive)
+                .OrderBy(x => x.SemesterNo)
+                .ToListAsync();
+        }
     }
 }
