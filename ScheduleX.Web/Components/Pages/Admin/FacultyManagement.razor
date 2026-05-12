@@ -15,6 +15,13 @@
 
 <link href="/css/admin/faculty.css" rel="stylesheet" />
 
+@if (showToast)
+{
+    <div class="toast @toastType">
+        @toastMessage
+    </div>
+}
+
 <h2>Faculty Management</h2>
 
 @* <button class="btn btn-primary" @onclick="OpenForm">+ Add Faculty</button> *@
@@ -238,12 +245,7 @@
     </div>
 }
 
-@if (showToast)
-{
-    <div class="toast @toastType">
-        @toastMessage
-    </div>
-}
+
 
 @code {
 
@@ -330,13 +332,15 @@
         else
             result = await FacultyService.UpdateAsync(model);
 
+        await ShowToast(result.message, result.success);
+
         if (result.success)
         {
             list = await FacultyService.GetAllAsync();
             showForm = false;
         }
 
-        await ShowToast(result.message, result.success);
+        
     }
 
     async Task ToggleStatus(Faculty f)
@@ -413,7 +417,7 @@
     {
         var result = await FacultyService.BulkUpload(uploadedFaculty);
 
-        await ShowToast(result.Item2, !result.Item1);
+        await ShowToast(result.Item2, result.Item1);
 
         if (result.Item1)
         {
