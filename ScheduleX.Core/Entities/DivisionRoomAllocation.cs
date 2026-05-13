@@ -5,9 +5,12 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace ScheduleX.Core.Entities
 {
+
+    [Index(nameof(RoomId), IsUnique = true)]
     public class DivisionRoomAllocation
     {
         [Key]

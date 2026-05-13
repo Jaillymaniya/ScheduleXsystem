@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using ScheduleX.Infrastructure.Data;
 
@@ -11,9 +12,11 @@ using ScheduleX.Infrastructure.Data;
 namespace ScheduleX.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260508081412_UpdateDivisionRoomAllocationConstraint")]
+    partial class UpdateDivisionRoomAllocationConstraint
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -568,8 +571,8 @@ namespace ScheduleX.Infrastructure.Migrations
                     b.Property<int>("LectureDurationMin")
                         .HasColumnType("int");
 
-                    b.Property<int>("LecturesPerDay")
-                        .HasColumnType("int");
+                    b.Property<byte>("LecturesPerDay")
+                        .HasColumnType("tinyint");
 
                     b.Property<TimeOnly>("StartTime")
                         .HasColumnType("time");
@@ -904,8 +907,8 @@ namespace ScheduleX.Infrastructure.Migrations
                     b.Property<TimeOnly>("EndTime")
                         .HasColumnType("time");
 
-                    b.Property<int>("SlotNo")
-                        .HasColumnType("int");
+                    b.Property<byte>("SlotNo")
+                        .HasColumnType("tinyint");
 
                     b.Property<byte>("SlotType")
                         .HasColumnType("tinyint");
