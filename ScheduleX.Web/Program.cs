@@ -136,6 +136,9 @@ builder.Services.AddScoped<IDivisionRepository, DivisionRepository>();
 builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
 
 builder.Services.AddScoped<IRoomRepository, RoomRepository>();
+builder.Services.AddScoped<
+    IDivisionRoomAllocationRepository,
+    DivisionRoomAllocationRepository>();
 
 
 builder.Services.AddScoped<ILectureConfigRepository, LectureConfigRepository>();
