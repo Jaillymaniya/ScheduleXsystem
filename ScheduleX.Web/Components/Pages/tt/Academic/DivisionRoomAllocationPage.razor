@@ -1,512 +1,14 @@
-﻿@* @page "/tt/academic/division-room-allocation" *@
-
-@* @using Microsoft.AspNetCore.Components.Authorization *@
-@* @using System.Security.Claims *@
-
-@* @using ScheduleX.Core.Entities *@
-@* @using ScheduleX.Core.Interfaces.TTCoordinator *@
-@* @using ScheduleX.Web.Components.Layout.tt *@
-
-@* @layout TTLayout *@
-
-@* @inject IDivisionRoomAllocationRepository AllocationRepo *@
-@* @inject AuthenticationStateProvider AuthStateProvider *@
-
-@* <link href="css/tt/division-room-allocation.css" rel="stylesheet" /> *@
-
-@* <div class="allocation-page"> *@
-
-@*     <h1 class="page-title"> *@
-@*         Division Room Allocation *@
-@*     </h1> *@
-
-@*     <!-- FORM --> *@
-
-@*     <div class="allocation-form-card"> *@
-
-@*         <div class="allocation-grid"> *@
-
-@*             <!-- SEMESTER --> *@
-
-@*             <div class="form-group"> *@
-
-@*                 <label>Semester</label> *@
-
-@*                 <select class="form-control" *@
-@*                         @bind="allocation.SemesterId"> *@
-
-@*                     <option value="0"> *@
-@*                         Select Semester *@
-@*                     </option> *@
-
-@*                     @foreach (var semester in semesters) *@
-@*                     { *@
-@*                         <option value="@semester.SemesterId"> *@
-@*                             Semester @semester.SemesterNo *@
-@*                         </option> *@
-@*                     } *@
-
-@*                 </select> *@
-
-@*             </div> *@
-
-@*             <!-- DIVISION --> *@
-
-@*             <div class="form-group"> *@
-
-@*                 <label>Division</label> *@
-
-@*                 <select class="form-control" *@
-@*                         @bind="allocation.DivisionId"> *@
-
-@*                     <option value="0"> *@
-@*                         Select Division *@
-@*                     </option> *@
-
-@*                     @foreach (var division in divisions) *@
-@*                     { *@
-@*                         <option value="@division.DivisionId"> *@
-@*                             @division.DivisionName *@
-@*                         </option> *@
-@*                     } *@
-
-@*                 </select> *@
-
-@*             </div> *@
-
-@*             <!-- ROOM --> *@
-
-@*             <div class="form-group"> *@
-
-@*                 <label>Room</label> *@
-
-@*                 <select class="form-control" *@
-@*                         @bind="allocation.RoomId"> *@
-
-@*                     <option value="0"> *@
-@*                         Select Room *@
-@*                     </option> *@
-
-@*                     @foreach (var room in rooms) *@
-@*                     { *@
-@*                         <option value="@room.RoomId"> *@
-@*                             @room.RoomName *@
-@*                         </option> *@
-@*                     } *@
-
-@*                 </select> *@
-
-@*             </div> *@
-
-@*             <!-- FIXED --> *@
-
-@*             <div class="form-group checkbox-group"> *@
-
-@*                 <label class="checkbox-label"> *@
-
-@*                     <input type="checkbox" *@
-@*                            @bind="allocation.IsFixed" /> *@
-
-@*                     Fixed Allocation *@
-
-@*                 </label> *@
-
-@*             </div> *@
-
-@*             <!-- EFFECTIVE FROM --> *@
-
-@*             <div class="form-group"> *@
-
-@*                 <label>Effective From</label> *@
-
-@*                 <input type="date" *@
-@*                        class="form-control" *@
-@*                        @bind="allocation.EffectiveFrom" /> *@
-
-@*             </div> *@
-
-@*             <!-- EFFECTIVE TO --> *@
-
-@*             <div class="form-group"> *@
-
-@*                 <label>Effective To</label> *@
-
-@*                 <input type="date" *@
-@*                        class="form-control" *@
-@*                        @bind="allocation.EffectiveTo" /> *@
-
-@*             </div> *@
-
-@*         </div> *@
-
-@*         @if (!isEditMode) *@
-@*         { *@
-@*             <button class="add-btn" *@
-@*                     @onclick="AddAllocation"> *@
-
-@*                 Add Allocation *@
-
-@*             </button> *@
-@*         } *@
-@*         else *@
-@*         { *@
-@*             <div class="btn-group-custom"> *@
-
-@*                 <button class="update-btn" *@
-@*                         @onclick="UpdateAllocation"> *@
-
-@*                     Update *@
-
-@*                 </button> *@
-
-@*                 <button class="cancel-btn" *@
-@*                         @onclick="CancelEdit"> *@
-
-@*                     Cancel *@
-
-@*                 </button> *@
-
-@*             </div> *@
-@*         } *@
-
-@*     </div> *@
-
-@*     <!-- TABLE --> *@
-
-@*     <div class="allocation-table-card"> *@
-
-@*         <table class="allocation-table"> *@
-
-@*             <thead> *@
-
-@*                 <tr> *@
-
-@*                     <th>Semester</th> *@
-
-@*                     <th>Division</th> *@
-
-@*                     <th>Room</th> *@
-
-@*                     <th>Fixed</th> *@
-
-@*                     <th>From</th> *@
-
-@*                     <th>To</th> *@
-
-@*                     <th>Actions</th> *@
-
-@*                 </tr> *@
-
-@*             </thead> *@
-
-@*             <tbody> *@
-
-@*                 @if (allocations.Any()) *@
-@*                 { *@
-@*                     @foreach (var item in allocations) *@
-@*                     { *@
-@*                         <tr> *@
-
-@*                             <td> *@
-@*                                 Semester @item.Semester.SemesterNo *@
-@*                             </td> *@
-
-@*                             <td> *@
-@*                                 @item.Division.DivisionName *@
-@*                             </td> *@
-
-@*                             <td> *@
-@*                                 @item.Room.RoomName *@
-@*                             </td> *@
-
-@*                             <td> *@
-@*                                 @(item.IsFixed ? "Yes" : "No") *@
-@*                             </td> *@
-
-@*                             <td> *@
-@*                                 @item.EffectiveFrom *@
-@*                             </td> *@
-
-@*                             <td> *@
-@*                                 @item.EffectiveTo *@
-@*                             </td> *@
-
-@*                             <td> *@
-
-@*                                 <button class="edit-btn" *@
-@*                                         @onclick="() => EditAllocation(item.AllocationId)"> *@
-
-@*                                     Edit *@
-
-@*                                 </button> *@
-
-@*                                 <button class="delete-btn" *@
-@*                                         @onclick="() => DeleteAllocation(item.AllocationId)"> *@
-
-@*                                     Delete *@
-
-@*                                 </button> *@
-
-@*                             </td> *@
-
-@*                         </tr> *@
-@*                     } *@
-@*                 } *@
-@*                 else *@
-@*                 { *@
-@*                     <tr> *@
-
-@*                         <td colspan="7" *@
-@*                             class="no-data"> *@
-
-@*                             No allocations found *@
-
-@*                         </td> *@
-
-@*                     </tr> *@
-@*                 } *@
-
-@*             </tbody> *@
-
-@*         </table> *@
-
-@*     </div> *@
-
-@* </div> *@
-
-@* @if (showToast) *@
-@* { *@
-@*     <div class="custom-toast @(isErrorToast ? "error-toast" : "success-toast")"> *@
-
-@*         @toastMessage *@
-
-@*     </div> *@
-@* } *@
-
-@* @code { *@
-
-@*     private List<DivisionRoomAllocation> allocations = new(); *@
-
-@*     private List<Semester> semesters = new(); *@
-
-@*     private List<Division> divisions = new(); *@
-
-@*     private List<Room> rooms = new(); *@
-
-@*     private DivisionRoomAllocation allocation = new(); *@
-
-@*     private bool isEditMode = false; *@
-
-@*     private int editId; *@
-
-@*     private int LoggedInUserId; *@
-
-@*     private string toastMessage = ""; *@
-
-@*     private bool showToast = false; *@
-
-@*     private bool isErrorToast = false; *@
-
-
-
-@*     protected override async Task OnInitializedAsync() *@
-@*     { *@
-@*         var authState = *@
-@*             await AuthStateProvider.GetAuthenticationStateAsync(); *@
-
-@*         var user = authState.User; *@
-
-@*         LoggedInUserId = Convert.ToInt32( *@
-@*             user.FindFirst(ClaimTypes.NameIdentifier)?.Value); *@
-
-@*         semesters = *@
-@*             await AllocationRepo.GetSemestersAsync(); *@
-
-@*         divisions = *@
-@*             await AllocationRepo *@
-@*             .GetDivisionsAsync(LoggedInUserId); *@
-
-@*         rooms = *@
-@*             await AllocationRepo *@
-@*             .GetRoomsAsync(LoggedInUserId); *@
-
-@*         allocations = *@
-@*             await AllocationRepo *@
-@*             .GetAllAsync(LoggedInUserId); *@
-@*     } *@
-
-
-
-@*     private async Task AddAllocation() *@
-@*     { *@
-@*         if (allocation.SemesterId == 0 *@
-@*             || allocation.DivisionId == 0 *@
-@*             || allocation.RoomId == 0) *@
-@*         { *@
-@*             ShowToast( *@
-@*                 "Please fill all fields", *@
-@*                 true); *@
-
-@*             return; *@
-@*         } *@
-
-@*         bool exists = *@
-@*             await AllocationRepo.ExistsAsync( *@
-@*                 allocation.DivisionId, *@
-@*                 allocation.RoomId); *@
-
-@*         if (exists) *@
-@*         { *@
-@*             ShowToast( *@
-@*                 "Room already allocated", *@
-@*                 true); *@
-
-@*             return; *@
-@*         } *@
-
-@*         allocation.CreatedAt = DateTime.Now; *@
-
-@*         await AllocationRepo.AddAsync(allocation); *@
-
-@*         await AllocationRepo.SaveAsync(); *@
-
-@*         ShowToast( *@
-@*             "Allocation added successfully", *@
-@*             false); *@
-
-@*         allocation = new DivisionRoomAllocation(); *@
-
-@*         allocations = *@
-@*             await AllocationRepo *@
-@*             .GetAllAsync(LoggedInUserId); *@
-@*     } *@
-
-
-
-@*     private async Task EditAllocation(int id) *@
-@*     { *@
-@*         var existing = *@
-@*             await AllocationRepo.GetByIdAsync(id); *@
-
-@*         if (existing != null) *@
-@*         { *@
-@*             allocation = new DivisionRoomAllocation *@
-@*                 { *@
-@*                     AllocationId = existing.AllocationId, *@
-@*                     SemesterId = existing.SemesterId, *@
-@*                     DivisionId = existing.DivisionId, *@
-@*                     RoomId = existing.RoomId, *@
-@*                     IsFixed = existing.IsFixed, *@
-@*                     EffectiveFrom = existing.EffectiveFrom, *@
-@*                     EffectiveTo = existing.EffectiveTo *@
-@*                 }; *@
-
-@*             editId = existing.AllocationId; *@
-
-@*             isEditMode = true; *@
-@*         } *@
-@*     } *@
-
-
-
-@*     private async Task UpdateAllocation() *@
-@*     { *@
-@*         bool exists = *@
-@*             await AllocationRepo.ExistsAsync( *@
-@*                 allocation.DivisionId, *@
-@*                 allocation.RoomId, *@
-@*                 editId); *@
-
-@*         if (exists) *@
-@*         { *@
-@*             ShowToast( *@
-@*                 "Room already allocated", *@
-@*                 true); *@
-
-@*             return; *@
-@*         } *@
-
-@*         await AllocationRepo.UpdateAsync(allocation); *@
-
-@*         await AllocationRepo.SaveAsync(); *@
-
-@*         ShowToast( *@
-@*             "Allocation updated successfully", *@
-@*             false); *@
-
-@*         allocation = new DivisionRoomAllocation(); *@
-
-@*         isEditMode = false; *@
-
-@*         allocations = *@
-@*             await AllocationRepo *@
-@*             .GetAllAsync(LoggedInUserId); *@
-@*     } *@
-
-
-
-@*     private async Task DeleteAllocation(int id) *@
-@*     { *@
-@*         await AllocationRepo.DeleteAsync(id); *@
-
-@*         await AllocationRepo.SaveAsync(); *@
-
-@*         ShowToast( *@
-@*             "Allocation deleted successfully", *@
-@*             false); *@
-
-@*         allocations = *@
-@*             await AllocationRepo *@
-@*             .GetAllAsync(LoggedInUserId); *@
-@*     } *@
-
-
-
-@*     private void CancelEdit() *@
-@*     { *@
-@*         allocation = new DivisionRoomAllocation(); *@
-
-@*         isEditMode = false; *@
-@*     } *@
-
-
-
-@*     private void ShowToast( *@
-@*         string message, *@
-@*         bool isError) *@
-@*     { *@
-@*         toastMessage = message; *@
-
-@*         isErrorToast = isError; *@
-
-@*         showToast = true; *@
-
-@*         StateHasChanged(); *@
-
-@*         _ = Task.Run(async () => *@
-@*         { *@
-@*             await Task.Delay(3000); *@
-
-@*             showToast = false; *@
-
-@*             await InvokeAsync(StateHasChanged); *@
-@*         }); *@
-@*     } *@
-@* } *@
-
-
-
-
-@page "/tt/academic/division-room-allocation"
+﻿@page "/tt/academic/division-room-allocation"
 
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 @using ScheduleX.Core.Entities
 @using ScheduleX.Core.Interfaces.TTCoordinator
 @using System.Security.Claims
-
+@inject NavigationManager Nav
 @using ScheduleX.Web.Components.Layout.tt
-
+@using ScheduleX.Web.Services
+@inject TTSessionState SessionState
 @layout TTLayout
 
 @attribute [Authorize(Roles = "TTCoordinator")]
@@ -522,6 +24,34 @@
     <h1 class="page-title">
         Division Room Allocation
     </h1>
+
+    <div class="lecture-config-page">
+
+        <div class="btn-section">
+
+            <button type="button"
+                    class="back-btn"
+                    @onclick="GoBack">
+
+                <i class="fas fa-arrow-left"></i>
+
+                Back
+
+            </button>
+
+            <button type="button"
+                    class="back-btn"
+                    @onclick="GoNext">
+
+                <i class="fas fa-arrow-right"></i>
+
+                Next
+
+            </button>
+
+        </div>
+    </div>
+    <br/>
 
     <!-- FORM -->
 
@@ -824,40 +354,24 @@
 
 
 
-    protected override async Task
-    OnInitializedAsync()
+    protected override async Task OnInitializedAsync()
     {
-        var authState =
-            await AuthStateProvider
-            .GetAuthenticationStateAsync();
-
-        var user =
-            authState.User;
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
 
         LoggedInUserId =
-            Convert.ToInt32(
-                user.FindFirst(
-                    ClaimTypes.NameIdentifier)
-                    ?.Value);
+            Convert.ToInt32(user.FindFirst(ClaimTypes.NameIdentifier)?.Value);
 
-        semesters =
-            await AllocationRepo
-            .GetSemestersAsync();
+        var courseId = SessionState.CourseId;
 
-        divisions =
-            await AllocationRepo
-            .GetDivisionsAsync(
-                LoggedInUserId);
+        if (courseId == null || courseId == 0)
+            return;
 
-        rooms =
-            await AllocationRepo
-            .GetRoomsAsync(
-                LoggedInUserId);
-
-        allocations =
-            await AllocationRepo
-            .GetAllAsync(
-                LoggedInUserId);
+        // 🔥 Load sequentially (SAFE for Blazor)
+        semesters = await AllocationRepo.GetSemestersByCourseAsync(courseId.Value);
+        divisions = await AllocationRepo.GetDivisionsAsync(LoggedInUserId);
+        rooms = await AllocationRepo.GetRoomsAsync(LoggedInUserId);
+        allocations = await AllocationRepo.GetAllAsync(LoggedInUserId);
     }
 
 
@@ -1107,5 +621,22 @@
 
         await InvokeAsync(
             StateHasChanged);
+    }
+
+    void GoBack()
+    {
+        try
+        {
+            Nav.NavigateTo(
+                "/tt/academic/subject-mapping");
+        }
+        catch
+        {
+        }
+    }
+
+    void GoNext()
+    {
+        Nav.NavigateTo("/tt/Configuration/schedule-configuration");
     }
 }

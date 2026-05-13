@@ -148,3 +148,52 @@
 .error-toast {
     background: #dc2626;
 }
+
+
+
+.allocation-page .btn-section {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.allocation-page .btn {
+    border: none;
+    border-radius: 14px;
+    padding: 11px 22px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.allocation-page .btn:hover {
+    transform: translateY(-2px);
+}
+
+
+/* ============================================
+   BACK BUTTON
+   ============================================ */
+
+.allocation-page .back-btn {
+    border: 1px solid #334155;
+    background: linear-gradient(145deg, #17263d, #1f3554);
+    color: #e2e8f0;
+    border-radius: 14px;
+    padding: 11px 20px;
+    min-width: 110px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.allocation-page .back-btn:hover {
+    transform: translateY(-2px);
+    border-color: #60a5fa;
+}

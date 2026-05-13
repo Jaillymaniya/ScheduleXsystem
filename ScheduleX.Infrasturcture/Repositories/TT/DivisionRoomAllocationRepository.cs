@@ -394,5 +394,13 @@ DivisionAlreadyAllocatedAsync(
         {
             await _context.SaveChangesAsync();
         }
+
+        public async Task<List<Semester>> GetSemestersByCourseAsync(int courseId)
+        {
+            return await _context.Semesters
+                .Where(x => x.CourseId == courseId)
+                .OrderBy(x => x.SemesterNo)
+                .ToListAsync();
+        }
     }
 }

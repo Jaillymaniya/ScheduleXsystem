@@ -15,32 +15,7 @@
 
 <PageTitle>Lecture Configuration</PageTitle>
 
-<div class="lecture-config-page">
 
-<div class="btn-section">
-
-    <button type="button"
-            class="back-btn"
-            @onclick="GoBack">
-
-        <i class="fas fa-arrow-left"></i>
-
-        Back
-
-    </button>
-
-    <button type="button"
-            class="back-btn"
-            @onclick="GoNext">
-
-        <i class="fas fa-arrow-right"></i>
-
-        Next
-
-    </button>
-
-</div>
-</div>
 
 <div class="lecture-config-page">
 
@@ -48,6 +23,33 @@
         <div>
             <h2>Lecture Configuration</h2>
             <p>Configure weekly theory and practical lectures subject-wise for the selected semester.</p>
+        </div>
+
+        <div class="lecture-config-page">
+
+            <div class="btn-section">
+
+                <button type="button"
+                        class="back-btn"
+                        @onclick="GoBack">
+
+                    <i class="fas fa-arrow-left"></i>
+
+                    Back
+
+                </button>
+
+                <button type="button"
+                        class="back-btn"
+                        @onclick="GoNext">
+
+                    <i class="fas fa-arrow-right"></i>
+
+                    Next
+
+                </button>
+
+            </div>
         </div>
     </div>
 
@@ -360,7 +362,7 @@
 
     void GoNext()
     {
-        Nav.NavigateTo("/tt/lecture-config");
+        Nav.NavigateTo("/tt/academic/division-room-allocation");
     }
 
 
