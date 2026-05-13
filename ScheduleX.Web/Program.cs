@@ -126,12 +126,11 @@ builder.Services.AddScoped<SemesterApiService>();
 builder.Services.AddScoped<ISubjectRepository, SubjectRepository>();
 builder.Services.AddScoped<SubjectApiService>();
 
-builder.Services.AddScoped<
-    ITTCoordinatorRepository,
-    TTCoordinatorRepository>();
+builder.Services.AddScoped<ITTCoordinatorRepository, TTCoordinatorRepository>();
 
 builder.Services.AddScoped<IFacultyRepository, FacultyRepository>();
 builder.Services.AddScoped<FacultyApiService>();
+
 builder.Services.AddScoped<IDivisionRepository, DivisionRepository>();
 builder.Services.AddScoped<IDepartmentRepository, DepartmentRepository>();
 
@@ -139,6 +138,9 @@ builder.Services.AddScoped<IRoomRepository, RoomRepository>();
 builder.Services.AddScoped<
     IDivisionRoomAllocationRepository,
     DivisionRoomAllocationRepository>();
+
+builder.Services.AddScoped<IScheduleConfigRepository, ScheduleConfigRepository>();
+builder.Services.AddScoped<ScheduleConfigService>();
 
 
 builder.Services.AddScoped<ILectureConfigRepository, LectureConfigRepository>();
@@ -148,9 +150,9 @@ builder.Services.AddScoped<ChangePasswordService>();
 //builder.Services.AddScoped<ITTCoordinatorRepository, TTCoordinatorRepository>();
 //builder.Services.AddScoped<ITTCoordinatorService, TTCoordinatorService>();
 
-builder.Services.AddScoped<
-    ITTCoordinatorService,
-    TTCoordinatorService>();
+builder.Services.AddScoped<TimeTableTemplateService>();
+
+builder.Services.AddScoped<ITTCoordinatorService, TTCoordinatorService>();
 
 builder.Services.AddScoped<ProfileService>();
 

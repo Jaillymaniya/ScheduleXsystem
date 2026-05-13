@@ -1,0 +1,699 @@
+﻿@using System.Text.Json
+@using ScheduleX.Core.Entities
+@using ScheduleX.Web.Services.TT
+
+@page "/tt/Configuration/templates"
+@layout ScheduleX.Web.Components.Layout.tt.TTLayout
+@rendermode InteractiveServer
+
+<link href="css/tt/templates.css" rel="stylesheet" />
+
+@inject TimeTableTemplateService Service
+
+<div class="template-page">
+
+    <div class="template-header">
+        <div>
+            <h2>Timetable Templates</h2>
+            <p>
+                Manage timetable template designs for add,
+                edit, view, soft delete and default selection.
+            </p>
+        </div>
+
+        <button class="tt-btn tt-btn-primary"
+                @onclick="OpenAddForm">
+            + Add Template
+        </button>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(message))
+    {
+        <div class="tt-alert tt-alert-success">
+            @message
+        </div>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(error))
+    {
+        <div class="tt-alert tt-alert-danger">
+            @error
+        </div>
+    }
+
+    <div class="template-card">
+
+        @if (loading)
+        {
+            <p>Loading templates...</p>
+        }
+        else if (!templates.Any())
+        {
+            <p>No templates found.</p>
+        }
+        else
+        {
+            <table class="template-table">
+
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Layout</th>
+                        <th>Status</th>
+                        <th>Used In Batch</th>
+                        <th>Created</th>
+                        <th style="width:260px;">Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    @foreach (var item in templates)
+                    {
+                        <tr>
+
+                            <td>@item.TemplateName</td>
+
+                            <td>@item.LayoutType</td>
+
+                            <td>
+                                @if (item.IsActive)
+                                {
+                                    <span class="status-badge active">
+                                        Active
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="status-badge inactive">
+                                        Inactive
+                                    </span>
+                                }
+                            </td>
+
+                            <td>
+                                @(item.TimeTableBatches?.Count ?? 0)
+                            </td>
+
+                            <td>
+                                @item.CreatedAt.ToString("dd-MM-yyyy")
+                            </td>
+
+                            <td>
+                                <div class="action-group">
+
+                                    <button class="tt-btn tt-btn-sm"
+                                            @onclick="() => ViewTemplate(item)">
+                                        View
+                                    </button>
+
+                                    <button class="tt-btn tt-btn-sm tt-btn-warning"
+                                            @onclick="() => EditTemplate(item)">
+                                        Edit
+                                    </button>
+
+                                    @if (item.IsActive)
+                                    {
+                                        <button class="tt-btn tt-btn-sm tt-btn-danger"
+                                                @onclick="() => SoftDelete(item.TemplateId)">
+                                            Soft Delete
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button class="tt-btn tt-btn-sm tt-btn-success"
+                                                @onclick="() => Restore(item.TemplateId)">
+                                            Restore
+                                        </button>
+                                    }
+
+                                </div>
+                            </td>
+
+                        </tr>
+                    }
+
+                </tbody>
+
+            </table>
+        }
+
+    </div>
+
+    @if (showForm)
+    {
+        <div class="template-modal-backdrop">
+
+            <div class="template-modal">
+
+                <div class="modal-header">
+
+                    <h3>
+                        @(isEdit ? "Edit Template" : "Add Template")
+                    </h3>
+
+                    <button class="close-btn"
+                            @onclick="CloseForm">
+                        ×
+                    </button>
+
+                </div>
+
+                <div class="modal-body">
+
+                    <div class="form-row">
+
+                        <label>Template Name</label>
+
+                        <input class="form-control"
+                               @bind="form.TemplateName" />
+
+                    </div>
+
+                    <div class="form-row">
+
+                        <label>Layout Type</label>
+
+                        <select class="form-control"
+                                @bind="form.LayoutType">
+
+                            <option value="@LayoutTypeEnum.Grid">
+                                Grid
+                            </option>
+
+                            <option value="@LayoutTypeEnum.Compact">
+                                Compact
+                            </option>
+
+                            <option value="@LayoutTypeEnum.Detailed">
+                                Detailed
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="form-row">
+
+                        <label>Template JSON</label>
+
+                        <textarea class="form-control form-textarea"
+                                  @bind="form.TemplateJson">
+    </textarea>
+
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button class="tt-btn"
+                            @onclick="CloseForm">
+                        Cancel
+                    </button>
+
+                    @if (isEdit)
+                    {
+                        <button class="tt-btn tt-btn-primary"
+                                @onclick="UpdateTemplate">
+                            Update
+                        </button>
+                    }
+                    else
+                    {
+                        <button class="tt-btn tt-btn-primary"
+                                @onclick="CreateTemplate">
+                            Save
+                        </button>
+                    }
+
+                </div>
+
+            </div>
+
+        </div>
+    }
+
+    @if (showView && selectedTemplate != null && previewConfig != null)
+    {
+        <div class="template-modal-backdrop">
+
+            <div class="template-modal large preview-modal">
+
+                <div class="modal-header">
+
+                    <h3>View Template</h3>
+
+                    <button class="close-btn"
+                            @onclick="CloseView">
+                        ×
+                    </button>
+
+                </div>
+
+                <div class="modal-body">
+
+                    <div class="view-grid">
+
+                        <div>
+                            <strong>Name:</strong>
+                            @selectedTemplate.TemplateName
+                        </div>
+
+                        <div>
+                            <strong>Layout:</strong>
+                            @selectedTemplate.LayoutType
+                        </div>
+
+                        <div>
+                            <strong>Status:</strong>
+                            @(selectedTemplate.IsActive ? "Active" : "Inactive")
+                        </div>
+
+                        @* <div> *@
+                        @*     <strong>Default:</strong> *@
+                        @*     @(selectedTemplate.IsDefault ? "Yes" : "No") *@
+                        @* </div> *@
+
+                        <div>
+                            <strong>Used In Batch:</strong>
+                            @(selectedTemplate.TimeTableBatches?.Count ?? 0)
+                        </div>
+
+                        <div>
+                            <strong>Created:</strong>
+                            @selectedTemplate.CreatedAt.ToString("dd-MM-yyyy hh:mm tt")
+                        </div>
+
+                    </div>
+
+                    <div class="preview-section mt-3">
+
+                        <label>Template Preview</label>
+
+                        <div class="template-preview-box">
+
+                            <table class="preview-table"
+                                   style="@GetPreviewTableStyle()">
+
+                                <thead>
+
+                                    <tr>
+
+                                        <th style="@GetPreviewHeaderStyle()">
+                                            Time
+                                        </th>
+
+                                        @foreach (var day in previewDays)
+                                        {
+                                            <th style="@GetPreviewHeaderStyle()">
+                                                @day
+                                            </th>
+                                        }
+
+                                    </tr>
+
+                                </thead>
+
+                                <tbody>
+
+                                    @foreach (var slot in previewSlots)
+                                    {
+                                        <tr>
+
+                                            <td style="@GetPreviewBodyStyle()"
+                                                class="time-cell">
+                                                @slot.Time
+                                            </td>
+
+                                            @foreach (var day in previewDays)
+                                            {
+                                                <td style="@GetPreviewBodyStyle()">
+
+                                                    @if (slot.IsBreak)
+                                                    {
+                                                        <div class="preview-break">
+                                                            Break
+                                                        </div>
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="preview-subject">
+                                                            @slot.SubjectName
+                                                        </div>
+
+                                                        @if (previewConfig.ShowSubjectCode)
+                                                        {
+                                                            <div class="preview-meta">
+                                                                @slot.SubjectCode
+                                                            </div>
+                                                        }
+
+                                                        @if (previewConfig.ShowFaculty)
+                                                        {
+                                                            <div class="preview-meta">
+                                                                @slot.FacultyName
+                                                            </div>
+                                                        }
+
+                                                        @if (previewConfig.ShowRoom)
+                                                        {
+                                                            <div class="preview-meta">
+                                                                @slot.RoomName
+                                                            </div>
+                                                        }
+                                                    }
+
+                                                </td>
+                                            }
+
+                                        </tr>
+                                    }
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
+                    </div>
+
+                    <div class="form-row mt-3">
+
+                        <label>Template JSON</label>
+
+                        <textarea class="form-control form-textarea"
+                                  readonly>
+                            @selectedTemplate.TemplateJson
+                            </textarea>
+
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button class="tt-btn"
+                            @onclick="CloseView">
+                        Close
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+    }
+
+</div>
+
+@code {
+
+    private List<TimeTableTemplate> templates = new();
+
+    private TimeTableTemplate? selectedTemplate;
+
+    private bool loading = true;
+
+    private bool showForm = false;
+
+    private bool showView = false;
+
+    private bool isEdit = false;
+
+    private string? message;
+
+    private string? error;
+
+    private TimeTableTemplate form = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTemplates();
+    }
+
+    private async Task LoadTemplates()
+    {
+        try
+        {
+            loading = true;
+
+            templates = await Service.GetAllAsync();
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private void OpenAddForm()
+    {
+        isEdit = false;
+
+        showForm = true;
+
+        error = null;
+
+        message = null;
+
+        form = new TimeTableTemplate
+            {
+                LayoutType = LayoutTypeEnum.Grid,
+                IsActive = true
+            };
+    }
+
+    private void EditTemplate(TimeTableTemplate item)
+    {
+        isEdit = true;
+
+        showForm = true;
+
+        form = new TimeTableTemplate
+            {
+                TemplateId = item.TemplateId,
+                TemplateName = item.TemplateName,
+                LayoutType = item.LayoutType,
+                TemplateJson = item.TemplateJson,
+                IsActive = item.IsActive,
+                IsDefault = item.IsDefault
+            };
+    }
+
+    private void ViewTemplate(TimeTableTemplate item)
+    {
+        selectedTemplate = item;
+
+        previewConfig = ParseTemplateJson(item.TemplateJson);
+
+        showView = true;
+    }
+
+    private void CloseForm()
+    {
+        showForm = false;
+    }
+
+    private void CloseView()
+    {
+        showView = false;
+
+        selectedTemplate = null;
+
+        previewConfig = new TemplatePreviewConfig();
+    }
+
+    private async Task CreateTemplate()
+    {
+        var result = await Service.CreateAsync(form);
+
+        if (result.Success)
+        {
+            message = result.Message;
+
+            showForm = false;
+
+            await LoadTemplates();
+        }
+        else
+        {
+            error = result.Message;
+        }
+    }
+
+    private async Task UpdateTemplate()
+    {
+        var result = await Service.UpdateAsync(form);
+
+        if (result.Success)
+        {
+            message = result.Message;
+
+            showForm = false;
+
+            await LoadTemplates();
+        }
+        else
+        {
+            error = result.Message;
+        }
+    }
+
+    private async Task SoftDelete(int id)
+    {
+        var result = await Service.SoftDeleteAsync(id);
+
+        if (result.Success)
+        {
+            message = result.Message;
+
+            await LoadTemplates();
+        }
+        else
+        {
+            error = result.Message;
+        }
+    }
+
+    private async Task Restore(int id)
+    {
+        var result = await Service.RestoreAsync(id);
+
+        if (result.Success)
+        {
+            message = result.Message;
+
+            await LoadTemplates();
+        }
+        else
+        {
+            error = result.Message;
+        }
+    }
+
+    private TemplatePreviewConfig previewConfig = new();
+
+    private List<string> previewDays = new()
+    {
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday"
+    };
+
+    private List<PreviewSlot> previewSlots = new()
+    {
+        new PreviewSlot
+        {
+            Time = "09:00 - 10:00",
+            SubjectName = "Mathematics",
+            SubjectCode = "MAT101",
+            FacultyName = "Dr. Patel",
+            RoomName = "A-101"
+        },
+
+        new PreviewSlot
+        {
+            Time = "10:00 - 11:00",
+            SubjectName = "Programming",
+            SubjectCode = "CSE102",
+            FacultyName = "Prof. Shah",
+            RoomName = "Lab-2"
+        },
+
+        new PreviewSlot
+        {
+            Time = "11:00 - 11:20",
+            IsBreak = true
+        },
+
+        new PreviewSlot
+        {
+            Time = "11:20 - 12:20",
+            SubjectName = "Database",
+            SubjectCode = "DBMS201",
+            FacultyName = "Ms. Desai",
+            RoomName = "B-204"
+        }
+    };
+
+    private class TemplatePreviewConfig
+    {
+        public string HeaderBg { get; set; } = "#1e293b";
+
+        public string HeaderText { get; set; } = "#ffffff";
+
+        public string BodyBg { get; set; } = "#ffffff";
+
+        public string BodyText { get; set; } = "#111827";
+
+        public string BorderColor { get; set; } = "#cbd5e1";
+
+        public bool ShowRoom { get; set; } = true;
+
+        public bool ShowFaculty { get; set; } = true;
+
+        public bool ShowSubjectCode { get; set; } = true;
+
+        public string CellPadding { get; set; } = "8px";
+
+        public string FontSize { get; set; } = "14px";
+    }
+
+    private class PreviewSlot
+    {
+        public string Time { get; set; } = "";
+
+        public string SubjectName { get; set; } = "";
+
+        public string SubjectCode { get; set; } = "";
+
+        public string FacultyName { get; set; } = "";
+
+        public string RoomName { get; set; } = "";
+
+        public bool IsBreak { get; set; }
+    }
+
+    private TemplatePreviewConfig ParseTemplateJson(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+            return new TemplatePreviewConfig();
+
+        try
+        {
+            var options = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                };
+
+            return JsonSerializer.Deserialize<TemplatePreviewConfig>(json, options)
+                   ?? new TemplatePreviewConfig();
+        }
+        catch
+        {
+            return new TemplatePreviewConfig();
+        }
+    }
+
+    private string GetPreviewTableStyle()
+    {
+        return $"width:100%; border-collapse:collapse; font-size:{previewConfig.FontSize};";
+    }
+
+    private string GetPreviewHeaderStyle()
+    {
+        return $"background:{previewConfig.HeaderBg}; color:{previewConfig.HeaderText}; border:1px solid {previewConfig.BorderColor}; padding:{previewConfig.CellPadding}; text-align:center;";
+    }
+
+    private string GetPreviewBodyStyle()
+    {
+        return $"background:{previewConfig.BodyBg}; color:{previewConfig.BodyText}; border:1px solid {previewConfig.BorderColor}; padding:{previewConfig.CellPadding}; vertical-align:top; min-width:140px;";
+    }
+
+}

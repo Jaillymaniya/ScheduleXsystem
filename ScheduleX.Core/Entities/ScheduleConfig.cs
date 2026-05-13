@@ -44,7 +44,7 @@ namespace ScheduleX.Core.Entities
         public int WorkingDaysMask { get; set; } // bitmask
 
         [Required]
-        public byte LecturesPerDay { get; set; }
+        public int LecturesPerDay { get; set; }
 
         public bool IsActive { get; set; } = true;
 
