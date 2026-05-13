@@ -22,18 +22,35 @@ namespace ScheduleX.Infrastructure.Repositories.TT
         public async Task<List<SubjectSemester>> GetSubjectsAsync(int semesterId, int academicYearId)
         {
             return await _context.SubjectSemesters
-                .Where(x => x.SemesterId == semesterId && x.IsActive)
-                .Include(x => x.Subject)
-                .ToListAsync();
+                .AsNoTracking()
+        .Where(x =>
+            x.SemesterId == semesterId &&
+            x.AcademicYearId == academicYearId &&
+            x.IsActive)
+        .Include(x => x.Subject)
+        .ToListAsync();
         }
 
         public async Task<List<SubjectLectureConfig>> GetBySemesterAsync(int semesterId, int academicYearId)
         {
+            //return await _context.SubjectLectureConfigs
+            //    .Include(x => x.SubjectSemester)
+            //    .Where(x => x.SubjectSemester.SemesterId == semesterId
+            //             && x.AcademicYearId == academicYearId
+            //             && x.IsActive)
+            //    .ToListAsync();
+            var subjectSemesterIds = await _context.SubjectSemesters
+                .AsNoTracking()
+        .Where(x => x.SemesterId == semesterId && x.IsActive)
+        .Select(x => x.SubjectSemesterId)
+        .ToListAsync();
+
             return await _context.SubjectLectureConfigs
                 .Include(x => x.SubjectSemester)
-                .Where(x => x.SubjectSemester.SemesterId == semesterId
-                         && x.AcademicYearId == academicYearId
-                         && x.IsActive)
+                .Where(x =>
+                    subjectSemesterIds.Contains(x.SubjectSemesterId) &&
+                    x.AcademicYearId == academicYearId &&
+                    x.IsActive)
                 .ToListAsync();
         }
 
@@ -51,9 +68,10 @@ namespace ScheduleX.Infrastructure.Repositories.TT
             await _context.SubjectLectureConfigs.AddAsync(entity);
         }
 
-        public async Task UpdateRangeAsync(List<SubjectLectureConfig> entities)
+        public Task UpdateRangeAsync(List<SubjectLectureConfig> entities)
         {
             _context.SubjectLectureConfigs.UpdateRange(entities);
+            return Task.CompletedTask;
         }
 
         public async Task SaveChangesAsync()
@@ -68,6 +86,7 @@ namespace ScheduleX.Infrastructure.Repositories.TT
     int academicYearId)
         {
             return await _context.Semesters
+                .AsNoTracking()
                 .Where(x =>
                     x.CourseId == courseId &&
                     x.IsActive)
@@ -81,6 +100,7 @@ namespace ScheduleX.Infrastructure.Repositories.TT
     int academicYearId)
         {
             return await _context.SubjectLectureConfigs
+                .AsNoTracking()
                 .Where(x =>
                     subjectSemesterIds.Contains(x.SubjectSemesterId) &&
                     x.AcademicYearId == academicYearId &&

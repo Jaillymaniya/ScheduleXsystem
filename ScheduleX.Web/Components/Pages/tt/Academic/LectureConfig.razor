@@ -15,9 +15,32 @@
 
 <PageTitle>Lecture Configuration</PageTitle>
 
-<button class="btn btn-secondary" @onclick="GoBack">
-    ← Back
-</button>
+<div class="lecture-config-page">
+
+<div class="btn-section">
+
+    <button type="button"
+            class="back-btn"
+            @onclick="GoBack">
+
+        <i class="fas fa-arrow-left"></i>
+
+        Back
+
+    </button>
+
+    <button type="button"
+            class="back-btn"
+            @onclick="GoNext">
+
+        <i class="fas fa-arrow-right"></i>
+
+        Next
+
+    </button>
+
+</div>
+</div>
 
 <div class="lecture-config-page">
 
@@ -322,30 +345,48 @@
         }
     }
 
+
     void GoBack()
-        => Nav.NavigateTo("/tt/academic/subject-mapping");
+    {
+        try
+        {
+            Nav.NavigateTo(
+                "/tt/academic/subject-mapping");
+        }
+        catch
+        {
+        }
+    }
+
+    void GoNext()
+    {
+        Nav.NavigateTo("/tt/lecture-config");
+    }
 
 
     protected override async Task OnInitializedAsync()
     {
-        SessionState.OnChange += Reload;
+        SessionState.OnChange += OnSessionChanged;
 
         await LoadData();
     }
 
-    private async void Reload()
+    private void OnSessionChanged()
     {
-        if (_isReloading) return;
+        _ = Reload();
+    }
+
+    private async Task Reload()
+    {
+        if (_isReloading)
+            return;
 
         _isReloading = true;
 
         try
         {
-            await InvokeAsync(async () =>
-            {
-                await LoadData();
-                StateHasChanged();
-            });
+            await LoadData();
+            await InvokeAsync(StateHasChanged);
         }
         finally
         {
@@ -392,9 +433,9 @@
 
     public void Dispose()
     {
-        SessionState.OnChange -= Reload;
+        SessionState.OnChange -= OnSessionChanged;
     }
-
+        
     private async Task<int> GetUserIdSafe()
     {
         var authState = await AuthProvider.GetAuthenticationStateAsync();

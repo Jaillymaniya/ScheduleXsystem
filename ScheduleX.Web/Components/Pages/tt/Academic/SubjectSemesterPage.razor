@@ -86,6 +86,16 @@
 
             </button>
 
+            <button type="button"
+                    class="back-btn"
+                    @onclick="GoNext">
+
+                <i class="fas fa-arrow-right"></i>
+
+                Next
+
+            </button>
+
         </div>
 
     </div>
@@ -527,6 +537,11 @@
     void GoBack()
     {
         Nav.NavigateTo("/tt/academic/subject-mapping");
+    }
+    
+    void GoNext()
+    {
+        Nav.NavigateTo("/tt/subject-faculty");
     }
 
     // ================= FILTER =================
