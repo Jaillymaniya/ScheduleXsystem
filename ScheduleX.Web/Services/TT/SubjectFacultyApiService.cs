@@ -55,13 +55,18 @@ namespace ScheduleX.Web.Services.TT
         // DIVISIONS
         // =====================================================
 
-        public async Task<List<Division>>
-            GetDivisions(int semesterId)
+        public async Task<List<Division>> GetDivisions(
+     int academicYearId,
+     int courseId,
+     int semesterId)
         {
             try
             {
                 return await _repo
-                    .GetDivisionsAsync(semesterId);
+                    .GetDivisionsAsync(
+                        academicYearId,
+                        courseId,
+                        semesterId);
             }
             catch
             {

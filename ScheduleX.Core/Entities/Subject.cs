@@ -28,7 +28,7 @@ namespace ScheduleX.Core.Entities
         public Course Course { get; set; } = null!;
 
         [Required(ErrorMessage = "Subject name is required")]
-        [MaxLength(150)]
+        [MaxLength(300)]
         public string SubjectName { get; set; } = null!;
 
         [MaxLength(30)]
