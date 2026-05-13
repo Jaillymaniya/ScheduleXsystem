@@ -15,10 +15,17 @@
 
 <link href="/css/admin/faculty.css" rel="stylesheet" />
 
-@if (showToast)
+@* @if (showToast) *@
+@* { *@
+@*     <div class="toast @toastType"> *@
+@*         @toastMessage *@
+@*     </div> *@
+@* } *@
+
+@if (!string.IsNullOrWhiteSpace(message))
 {
-    <div class="toast @toastType">
-        @toastMessage
+    <div class="alert-box @(isSuccess ? "alert-success" : "alert-error")">
+        @message
     </div>
 }
 
@@ -249,6 +256,8 @@
 
 @code {
 
+    string message = "";
+    bool isSuccess = true;
 
     List<Faculty> allFaculty = new();
 
@@ -263,9 +272,9 @@
     List<Faculty> uploadedFaculty = new();
     List<string> csvErrors = new();
 
-    bool showToast = false;
-    string toastMessage = "";
-    string toastType = "success";
+    // bool showToast = false;
+    // string toastMessage = "";
+    // string toastType = "success";
 
     bool showForm = false;
 
@@ -332,11 +341,14 @@
         else
             result = await FacultyService.UpdateAsync(model);
 
-        await ShowToast(result.message, result.success);
+        // await ShowToast(result.message, result.success);
+        ShowMessage(result.message, result.success);
 
         if (result.success)
         {
-            list = await FacultyService.GetAllAsync();
+            // list = await FacultyService.GetAllAsync();
+            allFaculty = await FacultyService.GetAllAsync();
+            ApplyFilter();
             showForm = false;
         }
 
@@ -347,30 +359,26 @@
     {
         var result = await FacultyService.ToggleStatusAsync(f.FacultyId);
 
-        await ShowToast(result.message, result.success);
+        // await ShowToast(result.message, result.success);
+        ShowMessage(result.message, result.success);
 
         if (result.success)
-            list = await FacultyService.GetAllAsync();
+            // list = await FacultyService.GetAllAsync();
+            allFaculty = await FacultyService.GetAllAsync();
+            ApplyFilter();
     }
 
-    private async Task ShowToast(string message, bool success = true)
-    {
-        toastMessage = message;
-        toastType = success ? "success" : "error";
-        showToast = true;
+    // private async Task ShowToast(string message, bool success = true)
+    // {
+    //     toastMessage = message;
+    //     toastType = success ? "success" : "error";
+    //     showToast = true;
 
-        await InvokeAsync(StateHasChanged);
+    //     await InvokeAsync(StateHasChanged);
 
-        _ = HideToastAsync();
-    }
+    //     _ = HideToastAsync();
+    // }
 
-    private async Task HideToastAsync()
-    {
-        await Task.Delay(2500);
-
-        showToast = false;
-        await InvokeAsync(StateHasChanged);
-    }
 
     async Task UploadCsv(InputFileChangeEventArgs e)
     {
@@ -402,14 +410,19 @@
             uploadedFaculty = result.valid;
             csvErrors = result.errors;
 
-            await ShowToast(
-                result.errors.Any() ? "CSV has errors" : "CSV valid",
-                result.errors.Any()
-            );
+            // await ShowToast(
+            //     result.errors.Any() ? "CSV has errors" : "CSV valid",
+            //     result.errors.Any()
+            // );
+            ShowMessage(
+    result.errors.Any() ? "CSV has errors" : "CSV valid",
+    !result.errors.Any()
+    );
         }
         catch (Exception ex)
         {
-            await ShowToast(ex.Message, true);
+            // await ShowToast(ex.Message, true);
+            ShowMessage(ex.Message, false);
         }
     }
 
@@ -417,11 +430,14 @@
     {
         var result = await FacultyService.BulkUpload(uploadedFaculty);
 
-        await ShowToast(result.Item2, result.Item1);
+        // await ShowToast(result.Item2, result.Item1);
+        ShowMessage(result.Item2, result.Item1);
 
         if (result.Item1)
         {
-            list = await FacultyService.GetAllAsync();
+            // list = await FacultyService.GetAllAsync();
+            allFaculty = await FacultyService.GetAllAsync();
+            ApplyFilter();
             uploadedFaculty.Clear();
 
             fileInputKey++; // 🔥 resets file input
@@ -454,6 +470,23 @@
                 .Where(x => x.DepartmentId == selectedDepartmentId)
                 .ToList();
         }
+    }
+
+    void ShowMessage(string msg, bool success)
+    {
+        message = msg;
+        isSuccess = success;
+
+        StateHasChanged();
+
+        _ = Task.Run(async () =>
+        {
+            await Task.Delay(3000);
+
+            message = "";
+
+            await InvokeAsync(StateHasChanged);
+        });
     }
 
 }
