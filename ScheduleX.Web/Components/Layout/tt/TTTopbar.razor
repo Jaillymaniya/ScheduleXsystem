@@ -1,19 +1,80 @@
-﻿@* @using Microsoft.AspNetCore.Components.Routing *@
+﻿
+
+@* @using Microsoft.AspNetCore.Components.Authorization *@
+@* @using Microsoft.AspNetCore.Components.Routing *@
+@* @using Microsoft.AspNetCore.Identity *@
+@* @using Microsoft.EntityFrameworkCore *@
+
+@* @using ScheduleX.Core.Entities *@
+@* @using ScheduleX.Infrastructure.Data *@
+@* @using ScheduleX.Web.Services *@
+
 @* @inject NavigationManager Nav *@
+@* @inject AppDbContext Db *@
+@* @inject UserManager<User> UserManager *@
+@* @inject AuthenticationStateProvider AuthProvider *@
+@* @inject TTSessionState SessionState *@
 
 @* <div class="tt-topbar-inner"> *@
 
 @*     <!-- LEFT --> *@
 @*     <div class="tt-topbar-left"> *@
-@*         <div class="tt-title">TT Coordinator Dashboard</div> *@
-@*         <div class="tt-subtitle">Manage setup • configure • generate • export</div> *@
+
+@*         <div class="tt-title"> *@
+@*             TT Coordinator Dashboard *@
+@*         </div> *@
+
+@*         <div class="tt-subtitle"> *@
+@*             Manage setup • configure • generate • export *@
+@*         </div> *@
+
 @*     </div> *@
 
 @*     <!-- CENTER --> *@
 @*     <div class="tt-topbar-center"> *@
-@*         <span class="tt-badge">Department: Computer</span> *@
-@*         <span class="tt-badge">Course: BCA</span> *@
-@*         <span class="tt-badge muted">Semester: 4</span> *@
+
+@*         <!-- Academic Year --> *@
+@*         <div class="tt-select-wrap"> *@
+
+@*             <label class="tt-select-label"> *@
+@*                 Academic Year *@
+@*             </label> *@
+
+@*             <select class="tt-select" *@
+@*                     @bind="SelectedAcademicYearId"> *@
+
+@*                 @foreach (var year in AcademicYears) *@
+@*                 { *@
+@*                     <option value="@year.AcademicYearId"> *@
+@*                         @year.YearName *@
+@*                     </option> *@
+@*                 } *@
+
+@*             </select> *@
+
+@*         </div> *@
+
+@*         <!-- Course --> *@
+@*         <div class="tt-select-wrap"> *@
+
+@*             <label class="tt-select-label"> *@
+@*                 Course *@
+@*             </label> *@
+
+@*             <select class="tt-select" *@
+@*                     @bind="SelectedCourseId"> *@
+
+@*                 @foreach (var course in Courses) *@
+@*                 { *@
+@*                     <option value="@course.CourseId"> *@
+@*                         @course.CourseName *@
+@*                     </option> *@
+@*                 } *@
+
+@*             </select> *@
+
+@*         </div> *@
+
 @*     </div> *@
 
 @*     <!-- RIGHT --> *@
@@ -21,22 +82,29 @@
 
 @*         <button class="tt-btn ghost" *@
 @*                 @onclick="@(()=>Nav.NavigateTo("/tt/account/profile"))"> *@
+
 @*             Profile *@
+
 @*         </button> *@
 
 @*         <button class="tt-btn ghost" *@
 @*                 @onclick="@(()=>Nav.NavigateTo("/tt/account/change-password"))"> *@
+
 @*             Change Password *@
+
 @*         </button> *@
 
-@*         <!-- ✅ SAME LOGOUT AS ADMIN --> *@
+@*         <!-- LOGOUT --> *@
 @*         <form method="post" *@
 @*               action="/api/auth/logout" *@
 @*               data-enhance="false" *@
 @*               style="display:inline;"> *@
 
-@*             <button type="submit" class="tt-btn danger"> *@
+@*             <button type="submit" *@
+@*                     class="tt-btn danger"> *@
+
 @*                 Logout *@
+
 @*             </button> *@
 
 @*         </form> *@
@@ -44,6 +112,112 @@
 @*     </div> *@
 
 @* </div> *@
+
+@* @code { *@
+
+@*     private List<AcademicYear> AcademicYears = new(); *@
+
+@*     private List<Course> Courses = new(); *@
+
+@*     // ========================= *@
+@*     // ACADEMIC YEAR *@
+@*     // ========================= *@
+
+@*     private int _selectedAcademicYearId; *@
+
+@*     private int SelectedAcademicYearId *@
+@*     { *@
+@*         get => _selectedAcademicYearId; *@
+
+@*         set *@
+@*         { *@
+@*             if (_selectedAcademicYearId != value) *@
+@*             { *@
+@*                 _selectedAcademicYearId = value; *@
+
+@*                 var selectedYear = AcademicYears *@
+@*                     .FirstOrDefault(x => x.AcademicYearId == value); *@
+
+@*                 SessionState.AcademicYearId = value; *@
+
+@*                 SessionState.AcademicYearName = *@
+@*                     selectedYear?.YearName; *@
+@*             } *@
+@*         } *@
+@*     } *@
+
+@*     // ========================= *@
+@*     // COURSE *@
+@*     // ========================= *@
+
+@*     private int _selectedCourseId; *@
+
+@*     private int SelectedCourseId *@
+@*     { *@
+@*         get => _selectedCourseId; *@
+
+@*         set *@
+@*         { *@
+@*             if (_selectedCourseId != value) *@
+@*             { *@
+@*                 _selectedCourseId = value; *@
+
+@*                 var selectedCourse = Courses *@
+@*                     .FirstOrDefault(x => x.CourseId == value); *@
+
+@*                 SessionState.CourseId = value; *@
+
+@*                 SessionState.CourseName = *@
+@*                     selectedCourse?.CourseName; *@
+@*             } *@
+@*         } *@
+@*     } *@
+
+@*     // ========================= *@
+@*     // LOAD DATA *@
+@*     // ========================= *@
+
+@*     protected override async Task OnInitializedAsync() *@
+@*     { *@
+@*         // Academic Years *@
+@*         AcademicYears = await Db.AcademicYears *@
+@*             .Where(x => x.IsActive) *@
+@*             .OrderByDescending(x => x.CreatedAt) *@
+@*             .ToListAsync(); *@
+
+@*         // Logged in user *@
+@*         var authState = *@
+@*             await AuthProvider.GetAuthenticationStateAsync(); *@
+
+@*         var user = *@
+@*             await UserManager.GetUserAsync(authState.User); *@
+
+@*         // Load assigned courses *@
+@*         if (user != null) *@
+@*         { *@
+@*             Courses = await Db.TTCoordinatorCourses *@
+@*                 .Where(x => x.UserId == user.Id) *@
+@*                 .Select(x => x.Course) *@
+@*                 .Where(x => x.IsActive) *@
+@*                 .Distinct() *@
+@*                 .ToListAsync(); *@
+@*         } *@
+
+@*         // Default Academic Year *@
+@*         if (AcademicYears.Any()) *@
+@*         { *@
+@*             SelectedAcademicYearId = *@
+@*                 AcademicYears.First().AcademicYearId; *@
+@*         } *@
+
+@*         // Default Course *@
+@*         if (Courses.Any()) *@
+@*         { *@
+@*             SelectedCourseId = *@
+@*                 Courses.First().CourseId; *@
+@*         } *@
+@*     } *@
+@* } *@
 
 @using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.Components.Routing
@@ -60,10 +234,10 @@
 @inject AuthenticationStateProvider AuthProvider
 @inject TTSessionState SessionState
 
-<div class="tt-topbar-inner">
+<div class="tt-topbar-inner compact-topbar">
 
     <!-- LEFT -->
-    <div class="tt-topbar-left">
+    <div class="tt-topbar-left compact-left">
 
         <div class="tt-title">
             TT Coordinator Dashboard
@@ -76,16 +250,16 @@
     </div>
 
     <!-- CENTER -->
-    <div class="tt-topbar-center">
+    <div class="tt-topbar-center compact-center">
 
         <!-- Academic Year -->
-        <div class="tt-select-wrap">
+        <div class="tt-select-wrap compact-select">
 
             <label class="tt-select-label">
                 Academic Year
             </label>
 
-            <select class="tt-select"
+            <select class="tt-select compact-input"
                     @bind="SelectedAcademicYearId">
 
                 @foreach (var year in AcademicYears)
@@ -100,13 +274,13 @@
         </div>
 
         <!-- Course -->
-        <div class="tt-select-wrap">
+        <div class="tt-select-wrap compact-select">
 
             <label class="tt-select-label">
                 Course
             </label>
 
-            <select class="tt-select"
+            <select class="tt-select compact-input"
                     @bind="SelectedCourseId">
 
                 @foreach (var course in Courses)
@@ -120,36 +294,50 @@
 
         </div>
 
+        <!-- TERM -->
+        <div class="tt-select-wrap compact-select">
+
+            <label class="tt-select-label">
+                Term
+            </label>
+
+            <select class="tt-select compact-input"
+                    @bind="SelectedAcademicTermId">
+
+                @foreach (var term in AcademicTerms)
+                {
+                    <option value="@term.AcademicTermId">
+                        @term.TermType
+                    </option>
+                }
+
+            </select>
+
+        </div>
+
     </div>
 
     <!-- RIGHT -->
-    <div class="tt-topbar-right">
+    <div class="tt-topbar-right compact-right">
 
-        <button class="tt-btn ghost"
+        <button class="tt-btn ghost small-btn"
                 @onclick="@(()=>Nav.NavigateTo("/tt/account/profile"))">
-
             Profile
-
         </button>
 
-        <button class="tt-btn ghost"
+        <button class="tt-btn ghost small-btn"
                 @onclick="@(()=>Nav.NavigateTo("/tt/account/change-password"))">
-
             Change Password
-
         </button>
 
-        <!-- LOGOUT -->
         <form method="post"
               action="/api/auth/logout"
               data-enhance="false"
               style="display:inline;">
 
             <button type="submit"
-                    class="tt-btn danger">
-
+                    class="tt-btn danger small-btn">
                 Logout
-
             </button>
 
         </form>
@@ -163,6 +351,8 @@
     private List<AcademicYear> AcademicYears = new();
 
     private List<Course> Courses = new();
+
+    private List<AcademicTerm> AcademicTerms = new();
 
     // =========================
     // ACADEMIC YEAR
@@ -187,6 +377,14 @@
 
                 SessionState.AcademicYearName =
                     selectedYear?.YearName;
+
+                LoadAcademicTerms();
+
+                if (AcademicTerms.Any())
+                {
+                    SelectedAcademicTermId =
+                        AcademicTerms.First().AcademicTermId;
+                }
             }
         }
     }
@@ -214,8 +412,63 @@
 
                 SessionState.CourseName =
                     selectedCourse?.CourseName;
+
+                LoadAcademicTerms();
+
+                if (AcademicTerms.Any())
+                {
+                    SelectedAcademicTermId =
+                        AcademicTerms.First().AcademicTermId;
+                }
             }
         }
+    }
+
+    // =========================
+    // TERM
+    // =========================
+
+    private int _selectedAcademicTermId;
+
+    private int SelectedAcademicTermId
+    {
+        get => _selectedAcademicTermId;
+
+        set
+        {
+            if (_selectedAcademicTermId != value)
+            {
+                _selectedAcademicTermId = value;
+
+                var selectedTerm = AcademicTerms
+                    .FirstOrDefault(x => x.AcademicTermId == value);
+
+                SessionState.AcademicTermId = value;
+
+                SessionState.TermName =
+                    selectedTerm?.TermType.ToString();
+            }
+        }
+    }
+
+    // =========================
+    // LOAD TERMS
+    // =========================
+
+    private void LoadAcademicTerms()
+    {
+        if (_selectedAcademicYearId <= 0 || _selectedCourseId <= 0)
+        {
+            AcademicTerms.Clear();
+            return;
+        }
+
+        AcademicTerms = Db.AcademicTerms
+            .Where(x =>
+                x.AcademicYearId == _selectedAcademicYearId &&
+                x.CourseId == _selectedCourseId)
+            .OrderBy(x => x.TermType)
+            .ToList();
     }
 
     // =========================
@@ -260,6 +513,13 @@
         {
             SelectedCourseId =
                 Courses.First().CourseId;
+        }
+
+        // Default Term
+        if (AcademicTerms.Any())
+        {
+            SelectedAcademicTermId =
+                AcademicTerms.First().AcademicTermId;
         }
     }
 }

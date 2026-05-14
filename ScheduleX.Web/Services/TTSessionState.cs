@@ -108,7 +108,28 @@ namespace ScheduleX.Web.Services
                 NotifyStateChanged();
             }
         }
+        // NEW TERM
+        private int? _academicTermId;
+        public int? AcademicTermId
+        {
+            get => _academicTermId;
+            set
+            {
+                _academicTermId = value;
+                NotifyStateChanged();
+            }
+        }
 
+        private string? _termName;
+        public string? TermName
+        {
+            get => _termName;
+            set
+            {
+                _termName = value;
+                NotifyStateChanged();
+            }
+        }
         private void NotifyStateChanged()
         {
             OnChange?.Invoke();

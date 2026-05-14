@@ -57,24 +57,6 @@ body {
     z-index: 10;
 }
 
-.tt-topbar-inner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 14px;
-    padding: 14px 18px;
-}
-
-.tt-title {
-    font-weight: 700;
-    font-size: 18px;
-}
-
-.tt-subtitle {
-    font-size: 12px;
-    color: var(--muted);
-    margin-top: 2px;
-}
 
 .tt-badge {
     display: inline-flex;
@@ -637,45 +619,69 @@ body {
 }
 
 /* =========================================
-   TOPBAR FILTER DROPDOWNS
+   FINAL COMPACT TOPBAR
 ========================================= */
-/* =========================================
-   TOPBAR DROPDOWN FILTERS
-========================================= */
+
+.tt-topbar-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 8px 18px;
+    min-height: 68px;
+}
+
+.tt-topbar-left {
+    min-width: 210px;
+    max-width: 210px;
+}
+
+.tt-title {
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.tt-subtitle {
+    font-size: 10px;
+    color: var(--muted);
+    line-height: 1.2;
+    margin-top: 2px;
+}
 
 .tt-topbar-center {
     display: flex;
-    align-items: center;
-    gap: 18px;
-    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 8px;
+    flex-wrap: nowrap;
+    flex: 1;
+    justify-content: center;
 }
 
 .tt-select-wrap {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 2px;
 }
 
 .tt-select-label {
-    font-size: 11px;
+    font-size: 9px;
     color: var(--muted);
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: .05em;
 }
 
 .tt-select {
-    min-width: 220px;
-    height: 42px;
-    border-radius: 14px;
+    width: 140px;
+    min-width: 140px;
+    height: 32px;
+    border-radius: 10px;
     border: 1px solid var(--border);
     background: rgba(255,255,255,0.04);
     color: var(--text);
-    padding: 0 14px;
+    padding: 0 10px;
+    font-size: 12px;
     outline: none;
-    font-size: 14px;
-    transition: .2s ease;
-    cursor: pointer;
 }
 
     .tt-select:hover {
@@ -684,7 +690,7 @@ body {
 
     .tt-select:focus {
         border-color: rgba(34,197,94,0.55);
-        box-shadow: 0 0 0 3px rgba(34,197,94,0.12);
+        box-shadow: 0 0 0 2px rgba(34,197,94,0.10);
     }
 
     .tt-select option {
@@ -692,15 +698,34 @@ body {
         color: white;
     }
 
-@media (max-width: 900px) {
+.tt-topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: nowrap;
+}
 
-    .tt-topbar-center {
-        width: 100%;
-        gap: 12px;
+.tt-btn {
+    height: 32px;
+    padding: 0 10px;
+    font-size: 12px;
+    border-radius: 10px;
+    white-space: nowrap;
+}
+
+    .tt-btn.ghost {
+        padding: 0 8px;
     }
 
-    .tt-select-wrap {
-        width: 100%;
+@media (max-width: 900px) {
+    .tt-topbar-inner {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .tt-topbar-center {
+        flex-wrap: wrap;
+        justify-content: flex-start;
     }
 
     .tt-select {
