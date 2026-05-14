@@ -39,6 +39,10 @@ namespace ScheduleX.Core.Entities
 
         public DateTime CreatedAt { get; set; } = DateTime.Now;
 
+        //no need migration and also it is not for table
+        [NotMapped]
+        public string? AllowedDepartmentsCsv { get; set; }
+
         // Nav
         public ICollection<FacultyAvailability> FacultyAvailabilities { get; set; } = new List<FacultyAvailability>();
         //public ICollection<SubjectOffering> SubjectOfferings { get; set; } = new List<SubjectOffering>();

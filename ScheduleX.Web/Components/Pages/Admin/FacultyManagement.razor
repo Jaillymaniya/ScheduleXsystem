@@ -100,9 +100,11 @@
     <thead>
         <tr>
             <th>Name</th> 
+            <th>Email Id</th>
             <th>Department</th>
             <th>Max Lecture Per Day</th>
-             <th>External</th> 
+             <th>External</th>
+                    <th>External Departments</th>
             <th>Status</th>
             <th>Action</th>
         </tr>
@@ -113,9 +115,13 @@
         {
             <tr>
                 <td>@f.FacultyName</td>
+                <td>@f.Email</td>
                 <td>@f.Department?.DepartmentName</td>
                 <td>@f.MaxLecturesPerDay</td>
                 <td>@(f.IsExternal ? "Yes" : "No")</td>
+                        <td>
+                            @GetExternalDepartments(f)
+                        </td>
                 <td>@(f.IsActive ? "Active" : "Inactive")</td>
                 <td>
                             <div class="action-buttons">
@@ -230,10 +236,34 @@
                     </InputSelect>
                     </div>
 
+                    @* <div class="checkbox-row"> *@
+                    @*     <InputCheckbox @bind-Value="model.IsExternal" /> *@
+                    @*     <label>External Faculty</label> *@
+                    @* </div> *@
+
                     <div class="checkbox-row">
                         <InputCheckbox @bind-Value="model.IsExternal" />
                         <label>External Faculty</label>
                     </div>
+
+                    @if (model.IsExternal)
+                    {
+                        <div class="form-group">
+                            <label>Allowed External Departments</label>
+
+                            @* @foreach (var d in departments) *@
+                            @foreach (var d in departments.Where(x => x.DepartmentId != model.DepartmentId))
+                            {
+                                <div>
+                                    <input type="checkbox"
+                                           checked="@selectedExternalDepartments.Contains(d.DepartmentId)"
+                                           @onchange="(e) => OnDepartmentCheckChanged(d.DepartmentId, (bool)e.Value!)" />
+
+                                    @d.DepartmentName
+                                </div>
+                            }
+                        </div>
+                    }
 
                     <InputNumber class="form-control"
                                  @bind-Value="model.MaxLecturesPerDay"
@@ -276,6 +306,8 @@
     // string toastMessage = "";
     // string toastType = "success";
 
+    List<int> selectedExternalDepartments = new();
+
     bool showForm = false;
 
     int fileInputKey = 0;
@@ -317,6 +349,11 @@
                 IsActive = f.IsActive
             };
 
+        // ✅ IMPORTANT: bind external departments
+        selectedExternalDepartments = f.ExternalPermissions?
+            .Select(x => x.DepartmentId)
+            .ToList() ?? new List<int>();
+
         showForm = true;
     }
 
@@ -337,9 +374,14 @@
         (bool success, string message) result;
 
         if (model.FacultyId == 0)
-            result = await FacultyService.CreateAsync(model);
+            // result = await FacultyService.CreateAsync(model);
+            result = await FacultyService.CreateAsync(
+    model,
+    selectedExternalDepartments
+    );
         else
-            result = await FacultyService.UpdateAsync(model);
+            // result = await FacultyService.UpdateAsync(model);
+            result = await FacultyService.UpdateAsync(model, selectedExternalDepartments);
 
         // await ShowToast(result.message, result.success);
         ShowMessage(result.message, result.success);
@@ -487,6 +529,30 @@
 
             await InvokeAsync(StateHasChanged);
         });
+    }
+
+    void OnDepartmentCheckChanged(int departmentId, bool isChecked)
+    {
+        if (isChecked)
+        {
+            if (!selectedExternalDepartments.Contains(departmentId))
+                selectedExternalDepartments.Add(departmentId);
+        }
+        else
+        {
+            selectedExternalDepartments.Remove(departmentId);
+        }
+    }
+
+    private string GetExternalDepartments(Faculty f)
+    {
+        if (f.ExternalPermissions == null || !f.ExternalPermissions.Any())
+            return "-";
+
+        return string.Join(", ",
+            f.ExternalPermissions
+                .Where(x => x.Department != null)
+                .Select(x => x.Department.DepartmentName));
     }
 
 }

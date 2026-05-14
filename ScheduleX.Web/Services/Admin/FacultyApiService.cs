@@ -22,7 +22,9 @@ namespace ScheduleX.Web.Services.Admin
             return await _repo.GetAllAsync();
         }
 
-        public async Task<(bool success, string message)> CreateAsync(Faculty faculty)
+        public async Task<(bool success, string message)> CreateAsync(
+    Faculty faculty,
+    List<int> externalDepartmentIds)
         {
             try
             {
@@ -31,12 +33,15 @@ namespace ScheduleX.Web.Services.Admin
                 // 🔥 External Faculty auto insert
                 if (faculty.IsExternal)
                 {
-                    _context.ExternalFacultyPermissions.Add(new ExternalFacultyPermission
+                    foreach (var deptId in externalDepartmentIds)
                     {
-                        FacultyId = faculty.FacultyId,
-                        DepartmentId = faculty.DepartmentId,
-                        IsActive = true
-                    });
+                        _context.ExternalFacultyPermissions.Add(new ExternalFacultyPermission
+                        {
+                            FacultyId = faculty.FacultyId,
+                            DepartmentId = deptId,
+                            IsActive = true
+                        });
+                    }
 
                     await _context.SaveChangesAsync();
                 }
@@ -49,7 +54,63 @@ namespace ScheduleX.Web.Services.Admin
             }
         }
 
-        public async Task<(bool success, string message)> UpdateAsync(Faculty faculty)
+        //public async Task<(bool success, string message)> UpdateAsync(Faculty faculty)
+        //{
+        //    try
+        //    {
+        //        var existingFaculty = await _context.Faculties
+        //            .FirstOrDefaultAsync(x => x.FacultyId == faculty.FacultyId);
+
+        //        if (existingFaculty == null)
+        //            return (false, "Faculty not found");
+
+        //        // ✅ Update fields manually
+        //        existingFaculty.FacultyName = faculty.FacultyName;
+        //        existingFaculty.FacultyCode = faculty.FacultyCode;
+        //        existingFaculty.Email = faculty.Email;
+        //        existingFaculty.Phone = faculty.Phone;
+        //        existingFaculty.DepartmentId = faculty.DepartmentId;
+        //        existingFaculty.IsExternal = faculty.IsExternal;
+        //        existingFaculty.MaxLecturesPerDay = faculty.MaxLecturesPerDay;
+
+        //        var existingPermission = await _context.ExternalFacultyPermissions
+        //            .FirstOrDefaultAsync(x => x.FacultyId == faculty.FacultyId);
+
+        //        // ✅ Handle external logic
+        //        if (!faculty.IsExternal)
+        //        {
+        //            if (existingPermission != null)
+        //            {
+        //                _context.ExternalFacultyPermissions.Remove(existingPermission);
+        //            }
+        //        }
+        //        else
+        //        {
+        //            if (existingPermission == null)
+        //            {
+        //                _context.ExternalFacultyPermissions.Add(new ExternalFacultyPermission
+        //                {
+        //                    FacultyId = faculty.FacultyId,
+        //                    DepartmentId = faculty.DepartmentId,
+        //                    IsActive = true
+        //                });
+        //            }
+        //        }
+
+        //        // ✅ SINGLE SAVE
+        //        await _context.SaveChangesAsync();
+
+        //        return (true, "Faculty updated successfully");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return (false, ex.InnerException?.Message ?? ex.Message);
+        //    }
+        //}
+
+        public async Task<(bool success, string message)> UpdateAsync(
+    Faculty faculty,
+    List<int> externalDepartmentIds)
         {
             try
             {
@@ -59,7 +120,7 @@ namespace ScheduleX.Web.Services.Admin
                 if (existingFaculty == null)
                     return (false, "Faculty not found");
 
-                // ✅ Update fields manually
+                // ================= UPDATE BASIC FIELDS =================
                 existingFaculty.FacultyName = faculty.FacultyName;
                 existingFaculty.FacultyCode = faculty.FacultyCode;
                 existingFaculty.Email = faculty.Email;
@@ -68,31 +129,29 @@ namespace ScheduleX.Web.Services.Admin
                 existingFaculty.IsExternal = faculty.IsExternal;
                 existingFaculty.MaxLecturesPerDay = faculty.MaxLecturesPerDay;
 
-                var existingPermission = await _context.ExternalFacultyPermissions
-                    .FirstOrDefaultAsync(x => x.FacultyId == faculty.FacultyId);
+                // ================= SYNC EXTERNAL DEPARTMENTS =================
 
-                // ✅ Handle external logic
-                if (!faculty.IsExternal)
+                // 1. REMOVE ALL OLD MAPPINGS
+                var oldPermissions = await _context.ExternalFacultyPermissions
+                    .Where(x => x.FacultyId == faculty.FacultyId)
+                    .ToListAsync();
+
+                _context.ExternalFacultyPermissions.RemoveRange(oldPermissions);
+
+                // 2. ADD NEW MAPPINGS (ONLY IF EXTERNAL)
+                if (faculty.IsExternal && externalDepartmentIds != null)
                 {
-                    if (existingPermission != null)
-                    {
-                        _context.ExternalFacultyPermissions.Remove(existingPermission);
-                    }
-                }
-                else
-                {
-                    if (existingPermission == null)
+                    foreach (var deptId in externalDepartmentIds.Distinct())
                     {
                         _context.ExternalFacultyPermissions.Add(new ExternalFacultyPermission
                         {
                             FacultyId = faculty.FacultyId,
-                            DepartmentId = faculty.DepartmentId,
+                            DepartmentId = deptId,
                             IsActive = true
                         });
                     }
                 }
 
-                // ✅ SINGLE SAVE
                 await _context.SaveChangesAsync();
 
                 return (true, "Faculty updated successfully");

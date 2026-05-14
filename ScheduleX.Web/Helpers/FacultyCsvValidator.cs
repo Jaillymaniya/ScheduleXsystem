@@ -20,7 +20,7 @@ namespace ScheduleX.Web.Helpers
 
                 try
                 {
-                    if (row.Length < 7)
+                    if (row.Length < 8)
                     {
                         errors.Add($"Row {rowNo}: Missing columns");
                         continue;
@@ -33,6 +33,7 @@ namespace ScheduleX.Web.Helpers
                     string deptName = row[4]?.Trim();
                     string isExternalText = row[5]?.Trim();
                     string maxLecturesText = row[6]?.Trim();
+                    string allowedDepartments = row[7]?.Trim();
 
                     var dept = departments
                         .FirstOrDefault(x =>
@@ -62,6 +63,7 @@ namespace ScheduleX.Web.Helpers
                         DepartmentId = dept.DepartmentId,
                         IsExternal = isExternal,
                         MaxLecturesPerDay = maxLectures,
+                        AllowedDepartmentsCsv = allowedDepartments,
                         IsActive = true
                     });
                 }
@@ -78,7 +80,7 @@ namespace ScheduleX.Web.Helpers
         {
             var sb = new StringBuilder();
 
-            sb.AppendLine("FacultyName,FacultyCode,Email,Phone,DepartmentName,IsExternal,MaxLecturesPerDay");
+            sb.AppendLine("FacultyName,FacultyCode,Email,Phone,DepartmentName,IsExternal,MaxLecturesPerDay,AllowedDepartments(Use | separator)");
             //sb.AppendLine("John Doe,FD101,john@gmail.com,9876543210,Computer Science,false,4");
 
             return Encoding.UTF8.GetBytes(sb.ToString());
