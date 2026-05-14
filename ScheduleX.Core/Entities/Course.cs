@@ -43,5 +43,7 @@ namespace ScheduleX.Core.Entities
         = new List<TTCoordinatorCourse>();
         public ICollection<ScheduleConfig> ScheduleConfigs { get; set; } = new List<ScheduleConfig>();
         public ICollection<TimeTableBatch> TimeTableBatches { get; set; } = new List<TimeTableBatch>();
+        public ICollection<AcademicTerm> AcademicTerms { get; set; }
+    = new List<AcademicTerm>();
     }
 }

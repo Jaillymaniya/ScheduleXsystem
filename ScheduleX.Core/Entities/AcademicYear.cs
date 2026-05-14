@@ -24,7 +24,7 @@ namespace ScheduleX.Core.Entities
         // =========================
         // NAVIGATION PROPERTIES
         // =========================
-
+        public ICollection<AcademicTerm> AcademicTerms { get; set; } = new List<AcademicTerm>();
         // Timetable batches for this academic year
         public ICollection<TimeTableBatch> TimeTableBatches { get; set; } = new List<TimeTableBatch>();
 

@@ -21,6 +21,8 @@ namespace ScheduleX.Core.Entities
 
         [Required]
         public int SemesterNo { get; set; } // 1..8
+        [Required]
+        public SemesterPatternEnum SemesterPattern { get; set; }
 
         public bool IsActive { get; set; } = true;
 

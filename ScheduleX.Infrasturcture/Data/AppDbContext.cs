@@ -21,7 +21,7 @@ public class AppDbContext
 
     // DbSets (tables)
     public DbSet<AcademicYear> AcademicYears => Set<AcademicYear>(); // ✅ ADDED
-
+    public DbSet<AcademicTerm> AcademicTerms => Set<AcademicTerm>();
     public DbSet<Department> Departments => Set<Department>();
 
     public DbSet<Course> Courses => Set<Course>();
@@ -59,7 +59,7 @@ public class AppDbContext
 
         // ✅ Table names
         modelBuilder.Entity<AcademicYear>().ToTable("TblAcademicYear"); // ✅ ADDED
-
+        modelBuilder.Entity<AcademicTerm>().ToTable("TblAcademicTerm");
         modelBuilder.Entity<Department>().ToTable("TblDepartment");
         modelBuilder.Entity<User>().ToTable("TblUser");
         modelBuilder.Entity<Course>().ToTable("TblCourse");
@@ -91,7 +91,13 @@ public class AppDbContext
         // =========================
         // UNIQUE CONSTRAINTS
         // =========================
-
+        modelBuilder.Entity<AcademicTerm>()
+    .HasIndex(x => new { x.AcademicYearId, x.CourseId, x.TermType })
+    .IsUnique();
+        modelBuilder.Entity<AcademicTerm>()
+    .HasIndex(x => new { x.AcademicYearId, x.CourseId, x.IsCurrent })
+    .IsUnique()
+    .HasFilter("[IsCurrent] = 1");
         modelBuilder.Entity<Department>()
             .HasIndex(x => x.DepartmentName).IsUnique();
 
@@ -122,7 +128,8 @@ public class AppDbContext
             .HasIndex(x => x.RoomName).IsUnique();
 
         modelBuilder.Entity<DivisionRoomAllocation>()
-            .HasIndex(x => x.DivisionId).IsUnique();
+     .HasIndex(x => new { x.AcademicTermId, x.DivisionId })
+     .IsUnique();
 
         modelBuilder.Entity<Faculty>()
             .HasIndex(x => x.FacultyCode).IsUnique()
@@ -182,7 +189,29 @@ public class AppDbContext
         {
             fk.DeleteBehavior = DeleteBehavior.Restrict;
         }
+        modelBuilder.Entity<AcademicTerm>()
+    .HasOne(x => x.AcademicYear)
+    .WithMany(x => x.AcademicTerms)
+    .HasForeignKey(x => x.AcademicYearId)
+    .OnDelete(DeleteBehavior.Restrict);
 
+        modelBuilder.Entity<AcademicTerm>()
+    .HasOne(x => x.Course)
+    .WithMany(x => x.AcademicTerms)
+    .HasForeignKey(x => x.CourseId)
+    .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<DivisionRoomAllocation>()
+    .HasOne(x => x.AcademicTerm)
+    .WithMany(x => x.DivisionRoomAllocations)
+    .HasForeignKey(x => x.AcademicTermId)
+    .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<TimeTableBatch>()
+    .HasOne(x => x.AcademicTerm)
+    .WithMany(x => x.TimeTableBatches)
+    .HasForeignKey(x => x.AcademicTermId)
+    .OnDelete(DeleteBehavior.Restrict);
         modelBuilder.Entity<FacultyAvailability>()
             .HasOne(x => x.Faculty)
             .WithMany(x => x.FacultyAvailabilities)

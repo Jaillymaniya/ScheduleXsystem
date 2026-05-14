@@ -27,7 +27,11 @@ namespace ScheduleX.Core.Entities
         [ForeignKey(nameof(AcademicYearId))]
         public AcademicYear AcademicYear { get; set; } = null!;
 
+        [Required]
+        public int AcademicTermId { get; set; }
 
+        [ForeignKey(nameof(AcademicTermId))]
+        public AcademicTerm AcademicTerm { get; set; } = null!;
         [Required]
         public int CreatedByUserId { get; set; }
 

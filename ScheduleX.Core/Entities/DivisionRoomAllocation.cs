@@ -15,7 +15,11 @@ namespace ScheduleX.Core.Entities
     {
         [Key]
         public int AllocationId { get; set; }
+        [Required]
+        public int AcademicTermId { get; set; }
 
+        [ForeignKey(nameof(AcademicTermId))]
+        public AcademicTerm AcademicTerm { get; set; } = null!;
         [Required]
         public int SemesterId { get; set; }
 
