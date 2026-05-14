@@ -43,13 +43,18 @@ namespace ScheduleX.Infrastructure.Repositories.TT
         // =====================================================
 
         public async Task<List<Division>> GetDivisionsAsync(
-            int semesterId)
+     int academicYearId,
+     int courseId,
+     int semesterId)
         {
             try
             {
                 return await _context.Divisions
                     .Where(x =>
-                        x.SemesterId == semesterId)
+                        x.AcademicYearId == academicYearId &&
+                        x.CourseId == courseId &&
+                        x.SemesterId == semesterId &&
+                        x.IsActive)
                     .OrderBy(x => x.DivisionName)
                     .ToListAsync();
             }

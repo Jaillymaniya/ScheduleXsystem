@@ -17,7 +17,7 @@
 @inject NavigationManager Nav
 @inject IJSRuntime JS
 
-<link href="/css/tt/subject-faculty.css" rel="stylesheet" />
+ @* <link href="/css/tt/subject-faculty.css" rel="stylesheet" />  *@
 
 <div class="subject-faculty-page">
 
@@ -25,13 +25,13 @@
     <!-- HEADER -->
     <!-- ========================================= -->
 
-    <div class="page-header">
+    <div class="subject-faculty-page-header">
 
         <div>
 
             <h3>Subject Faculty Management</h3>
 
-            <div class="selected-info">
+            <div class="subject-faculty-selected-info">
 
                 <span>
                     Academic Year :
@@ -55,17 +55,17 @@
 
             @if (!IsSelectionValid)
             {
-                <div class="selection-warning">
+                <div class="subject-faculty-selection-warning">
                     Please select Academic Year and Course first
                 </div>
             }
 
         </div>
 
-        <div class="btn-section">
+        <div class="subject-faculty-btn-section">
 
             <button type="button"
-                    class="btn btn-success"
+                    class="subject-faculty-btn subject-faculty-btn-success"
                     @onclick="OpenManual"
                     disabled="@(!IsSelectionValid)">
 
@@ -74,7 +74,7 @@
             </button>
 
             <button type="button"
-                    class="btn btn-warning"
+                    class="subject-faculty-btn subject-faculty-btn-warning"
                     @onclick="OpenCsv"
                     disabled="@(!IsSelectionValid)">
 
@@ -82,17 +82,10 @@
 
             </button>
 
-            <button type="button"
-                    class="btn btn-info"
-                    @onclick="DownloadCsv"
-                    disabled="@(!CanDownloadCsv)">
-
-                Download CSV
-
-            </button>
+           
 
             <button type="button"
-                    class="back-btn"
+                    class="subject-faculty-back-btn"
                     @onclick="GoBack">
 
                 <i class="fas fa-arrow-left"></i>
@@ -102,7 +95,7 @@
             </button>
 
             <button type="button"
-                    class="back-btn"
+                    class="subject-faculty-back-btn"
                     @onclick="GoNext">
 
                 <i class="fas fa-arrow-right"></i>
@@ -120,11 +113,11 @@
     <!-- ========================================= -->
     @if (showManual)
     {
-        <div class="popup-overlay">
+        <div class="subject-faculty-popup-overlay">
 
-            <div class="popup-box">
+            <div class="subject-faculty-popup-box">
 
-                <div class="popup-header">
+                <div class="subject-faculty-popup-header">
 
                     <h4>
                         @(isEdit
@@ -133,7 +126,7 @@
                     </h4>
 
                     <button type="button"
-                            class="close-btn"
+                            class="subject-faculty-close-btn"
                             @onclick="CloseAll">
 
                         ✕
@@ -142,14 +135,14 @@
 
                 </div>
 
-                <div class="subject-grid">
+                <div class="subject-faculty-grid">
 
                     <!-- SEMESTER -->
-                    <div class="form-field">
+                    <div class="subject-faculty-form-field">
 
                         <label>Semester</label>
 
-                        <select class="tt-select"
+                        <select class="subject-faculty-select"
                                 @bind="selectedSemesterId"
                                 @bind:after="OnSemesterChanged">
 
@@ -172,7 +165,7 @@
                         @if (!string.IsNullOrWhiteSpace(
                        semesterError))
                         {
-                            <span class="validation-text">
+                            <span class="subject-faculty-validation-text">
                                 @semesterError
                             </span>
                         }
@@ -180,11 +173,11 @@
                     </div>
 
                     <!-- DIVISION -->
-                    <div class="form-field">
+                    <div class="subject-faculty-form-field">
 
                         <label>Division</label>
 
-                        <select class="tt-select"
+                        <select class="subject-faculty-select"
                                 @bind="model.DivisionId">
 
                             <option value="0">
@@ -205,7 +198,7 @@
                         @if (!string.IsNullOrWhiteSpace(
                        divisionError))
                         {
-                            <span class="validation-text">
+                            <span class="subject-faculty-validation-text">
                                 @divisionError
                             </span>
                         }
@@ -213,11 +206,11 @@
                     </div>
 
                     <!-- SUBJECT -->
-                    <div class="form-field">
+                    <div class="subject-faculty-form-field">
 
                         <label>Subject</label>
 
-                        <select class="tt-select"
+                        <select class="subject-faculty-select"
                                 @bind="model.SubjectSemesterId">
 
                             <option value="0">
@@ -239,7 +232,7 @@
                         @if (!string.IsNullOrWhiteSpace(
                        subjectError))
                         {
-                            <span class="validation-text">
+                            <span class="subject-faculty-validation-text">
                                 @subjectError
                             </span>
                         }
@@ -247,11 +240,11 @@
                     </div>
 
                     <!-- FACULTY -->
-                    <div class="form-field">
+                    <div class="subject-faculty-form-field">
 
                         <label>Faculty</label>
 
-                        <select class="tt-select"
+                        <select class="subject-faculty-select"
                                 @bind="model.FacultyId">
 
                             <option value="0">
@@ -279,7 +272,7 @@
                         @if (!string.IsNullOrWhiteSpace(
                        facultyError))
                         {
-                            <span class="validation-text">
+                            <span class="subject-faculty-validation-text">
                                 @facultyError
                             </span>
                         }
@@ -287,11 +280,11 @@
                     </div>
 
                     <!-- TEACHING TYPE -->
-                    <div class="form-field">
+                    <div class="subject-faculty-form-field">
 
                         <label>Teaching Type</label>
 
-                        <select class="tt-select"
+                        <select class="subject-faculty-select"
                                 @bind="model.TeachingType">
 
                             <option value="">
@@ -311,7 +304,7 @@
                         @if (!string.IsNullOrWhiteSpace(
                        teachingError))
                         {
-                            <span class="validation-text">
+                            <span class="subject-faculty-validation-text">
                                 @teachingError
                             </span>
                         }
@@ -321,10 +314,10 @@
                 </div>
 
                 <!-- BUTTON -->
-                <div class="btn-section">
+                <div class="subject-faculty-btn-section">
 
                     <button type="button"
-                            class="btn btn-success"
+                            class="subject-faculty-btn subject-faculty-btn-success"
                             @onclick="Save">
 
                         @(isEdit
@@ -334,7 +327,7 @@
                     </button>
 
                     <button type="button"
-                            class="btn btn-secondary"
+                            class="subject-faculty-btn subject-faculty-btn-secondary"
                             @onclick="CloseAll">
 
                         Cancel
@@ -353,127 +346,107 @@
     <!-- ========================================= -->
     @if (showCsv)
     {
-        <div class="popup-overlay">
+        <div class="subject-faculty-popup-overlay">
 
-            <div class="popup-box csv-popup">
+            <div class="subject-faculty-popup-box subject-faculty-csv-popup">
 
-                <div class="popup-header">
+
+                <div class="subject-faculty-popup-header">
 
                     <h4>CSV Upload</h4>
 
                     <button type="button"
-                            class="close-btn"
+                            class="subject-faculty-close-btn"
                             @onclick="CloseAll">
-
                         ✕
-
                     </button>
 
                 </div>
 
-                <div class="csv-form">
+                <div class="subject-faculty-csv-form">
 
-                    <!-- SEMESTER -->
-                    <div class="form-field">
+                    <!-- ROW 1 -->
+                    <div class="subject-faculty-csv-top-row">
 
-                        <label>Semester</label>
+                        <!-- SEMESTER -->
+                        <div class="subject-faculty-form-field">
+                            <label>Semester</label>
 
-                        <select class="tt-select"
-                                @bind="csvSemesterId"
-                                @bind:after="OnCsvSemesterChanged">
+                            <select class="subject-faculty-select"
+                                    @bind="csvSemesterId"
+                                    @bind:after="OnCsvSemesterChanged">
 
-                            <option value="0">
-                                Select Semester
-                            </option>
+                                <option value="0">Select Semester</option>
 
-                            @foreach (var sem in semesters
-                           .OrderByDescending(x => x.SemesterNo))
-                            {
-                                <option value="@sem.SemesterId">
+                                @foreach (var sem in semesters.OrderByDescending(x => x.SemesterNo))
+                                {
+                                    <option value="@sem.SemesterId">
+                                        Semester @sem.SemesterNo
+                                    </option>
+                                }
 
-                                    Semester @sem.SemesterNo
+                            </select>
+                        </div>
 
-                                </option>
-                            }
+                        <!-- DIVISION -->
+                        <div class="subject-faculty-form-field">
+                            <label>Division</label>
 
-                        </select>
+                            <select class="subject-faculty-select"
+                                    @bind="csvDivisionId">
 
-                    </div>
+                                <option value="0">Select Division</option>
 
-                    <!-- DIVISION -->
-                    <div class="form-field">
+                                @foreach (var div in csvDivisions)
+                                {
+                                    <option value="@div.DivisionId">
+                                        @div.DivisionName
+                                    </option>
+                                }
 
-                        <label>Division</label>
-
-                        <select class="tt-select"
-                                @bind="csvDivisionId">
-
-                            <option value="0">
-                                Select Division
-                            </option>
-
-                            @foreach (var div in csvDivisions)
-                            {
-                                <option value="@div.DivisionId">
-
-                                    @div.DivisionName
-
-                                </option>
-                            }
-
-                        </select>
+                            </select>
+                        </div>
 
                     </div>
 
-                    <!-- DOWNLOAD -->
-                    <button type="button"
-                            class="btn btn-info"
-                            @onclick="DownloadCsv"
-                            disabled="@(!CanDownloadCsv)">
+                    <!-- ROW 2 -->
+                    <div class="subject-faculty-csv-bottom-row">
 
-                        Download CSV Template
+                        <button type="button"
+                                class="subject-faculty-btn subject-faculty-btn-info subject-faculty-csv-action-btn"
+                                @onclick="DownloadCsv"
+                                disabled="@(!CanDownloadCsv)">
+                            Download Template
+                        </button>
 
-                    </button>
+                        <div class="subject-faculty-csv-file-box">
+                            <InputFile OnChange="UploadCsv"
+                                       accept=".csv" />
+                        </div>
 
-                    <!-- FILE -->
-                    <InputFile OnChange="UploadCsv"
-                               accept=".csv" />
+                        <button type="button"
+                                class="subject-faculty-btn subject-faculty-btn-success subject-faculty-csv-action-btn"
+                                @onclick="SaveCsv">
+                            Save CSV
+                        </button>
 
-                    <!-- ERRORS -->
+                        <button type="button"
+                                class="subject-faculty-btn subject-faculty-btn-secondary subject-faculty-csv-action-btn"
+                                @onclick="CloseAll">
+                            Cancel
+                        </button>
+
+                    </div>
+
                     @if (csvErrors.Any())
                     {
-                        <div class="csv-error-box">
-
+                        <div class="subject-faculty-csv-error-box">
                             @foreach (var err in csvErrors)
                             {
-                                <div>
-                                    • @err
-                                </div>
+                                <div>• @err</div>
                             }
-
                         </div>
                     }
-
-                    <!-- BUTTONS -->
-                    <div class="btn-group">
-
-                        <button type="button"
-                                class="btn btn-success"
-                                @onclick="SaveCsv">
-
-                            Save CSV
-
-                        </button>
-
-                        <button type="button"
-                                class="btn btn-secondary"
-                                @onclick="CloseAll">
-
-                            Cancel
-
-                        </button>
-
-                    </div>
 
                 </div>
 
@@ -486,81 +459,34 @@
     <!-- SEMESTER FILTER -->
     <!-- ========================================= -->
 
-    <div class="semester-filter-wrapper">
+    <div class="subject-faculty-semester-filter-wrapper">
 
-        <div class="semester-filter-container">
+        <div class="subject-faculty-semester-filter-container">
 
             <!-- ALL -->
             <button type="button"
                     class="@(selectedSemesterNo == 0
-                        ? "semester-pill active"
-                        : "semester-pill")"
+            ? "subject-faculty-semester-pill active"
+            : "subject-faculty-semester-pill")"
                     @onclick="()=>SelectSemester(0)">
-
-                <span>All</span>
-
-                <div class="pill-count">
-
-                    <span class="count-active">
-                        @list.Count(x => x.IsActive)
-                    </span>
-
-                    <span>/</span>
-
-                    <span class="count-inactive">
-                        @list.Count(x => !x.IsActive)
-                    </span>
-
-                </div>
-
+                All
             </button>
 
-            @foreach (var sem in semesters
-            .OrderByDescending(x => x.SemesterNo))
+            @foreach (var sem in semesters.OrderByDescending(x => x.SemesterNo))
             {
-                var activeCount =
-                list.Count(x =>
-                x.SubjectSemester.Semester.SemesterNo ==
-                sem.SemesterNo &&
-                x.IsActive);
-
-                var inactiveCount =
-                list.Count(x =>
-                x.SubjectSemester.Semester.SemesterNo ==
-                sem.SemesterNo &&
-                !x.IsActive);
-
                 <button type="button"
                         class="@(selectedSemesterNo == sem.SemesterNo
-                            ? "semester-pill active"
-                            : "semester-pill")"
+                ? "subject-faculty-semester-pill active"
+                : "subject-faculty-semester-pill")"
                         @onclick="()=>SelectSemester(sem.SemesterNo)">
-
-                    <span>
-                        Sem @sem.SemesterNo
-                    </span>
-
-                    <div class="pill-count">
-
-                        <span class="count-active">
-                            @activeCount
-                        </span>
-
-                        <span>/</span>
-
-                        <span class="count-inactive">
-                            @inactiveCount
-                        </span>
-
-                    </div>
-
+                    Sem @sem.SemesterNo
                 </button>
             }
 
         </div>
 
         <button type="button"
-                class="refresh-btn"
+                class="subject-faculty-refresh-btn"
                 @onclick="RefreshFilter">
 
             <i class="fas fa-rotate-right"></i>
@@ -575,26 +501,30 @@
     <!-- DIVISION FILTER -->
     <!-- ========================================= -->
 
-    <div class="division-filter-container">
+    <div class="subject-faculty-division-filter-container">
 
         <button type="button"
                 class="@(selectedDivisionId == 0
-                    ? "division-pill active"
-                    : "division-pill")"
+                    ? "subject-faculty-division-pill active"
+
+                    : "subject-faculty-division-pill")"
                 @onclick="()=>SelectDivision(0)">
 
             All
 
         </button>
 
-        @foreach (var div in divisions
-        .OrderBy(x => x.DivisionName))
+        @foreach (var div in divisions.OrderBy(x => x.DivisionName))
         {
+            bool hasRecords = list.Any(x =>
+            x.DivisionId == div.DivisionId);
+
             <button type="button"
                     class="@(selectedDivisionId == div.DivisionId
-                        ? "division-pill active"
-                        : "division-pill")"
-                    @onclick="()=>SelectDivision(div.DivisionId)">
+                ? "subject-faculty-division-pill active"
+                : "subject-faculty-division-pill")"
+                    @onclick="()=>SelectDivision(div.DivisionId)"
+                    disabled="@(!hasRecords)">
 
                 @div.DivisionName
 
@@ -606,10 +536,18 @@
     <!-- ========================================= -->
     <!-- TABLE -->
     <!-- ========================================= -->
+    <div class="subject-faculty-record-summary">
+        <span class="subject-faculty-count-active">
+            Active: @FilteredList.Count(x => x.IsActive)
+        </span>
 
-    <div class="tt-card">
+        <span class="subject-faculty-count-inactive">
+            Inactive: @FilteredList.Count(x => !x.IsActive)
+        </span>
+    </div>
+    <div class="subject-faculty-card">
 
-        <table class="table-dark">
+        <table class="subject-faculty-table">
 
             <thead>
 
@@ -642,9 +580,7 @@
                         <tr>
 
                             <td>
-                                Sem
-                                @item.SubjectSemester
-                                .Semester.SemesterNo
+                                Sem @item.SubjectSemester.Semester.SemesterNo
                             </td>
 
                             <td>
@@ -652,8 +588,7 @@
                             </td>
 
                             <td>
-                                @item.SubjectSemester
-                                .Subject.SubjectName
+                                @item.SubjectSemester.Subject.SubjectName
                             </td>
 
                             <td>
@@ -668,13 +603,13 @@
 
                                 @if (item.IsActive)
                                 {
-                                    <span class="status-active">
+                                    <span class="subject-faculty-status-active">
                                         Active
                                     </span>
                                 }
                                 else
                                 {
-                                    <span class="status-inactive">
+                                    <span class="subject-faculty-status-inactive">
                                         Inactive
                                     </span>
                                 }
@@ -683,10 +618,10 @@
 
                             <td>
 
-                                <div class="action-group">
+                                <div class="subject-faculty-action-group">
 
                                     <button type="button"
-                                            class="btn btn-warning"
+                                            class="subject-faculty-btn subject-faculty-btn-warning"
                                             @onclick="()=>Edit(item)">
 
                                         Edit
@@ -694,7 +629,7 @@
                                     </button>
 
                                     <button type="button"
-                                            class="btn btn-secondary"
+                                            class="subject-faculty-btn subject-faculty-btn-secondary"
                                             @onclick="()=>Toggle(item.SubjectFacultyId)">
 
                                         @(item.IsActive
@@ -736,7 +671,7 @@
 <!-- ========================================= -->
 @if (showToast)
 {
-    <div class="toast-box @(isError ? "toast-error" : "toast-success")">
+    <div class="subject-faculty-toast-box @(isError ? "subject-faculty-toast-error" : "subject-faculty-toast-success")">
 
         @toastMessage
 
@@ -839,7 +774,42 @@
                 true);
         }
     }
+    async Task LoadDivisionFilter()
+    {
+        try
+        {
+            if (selectedSemesterNo == 0)
+            {
+                divisions = list
+                    .Select(x => x.Division)
+                    .DistinctBy(x => x.DivisionId)
+                    .OrderBy(x => x.DivisionName)
+                    .ToList();
 
+                return;
+            }
+
+            var semester = semesters
+                .FirstOrDefault(x =>
+                    x.SemesterNo == selectedSemesterNo);
+
+            if (semester == null)
+            {
+                divisions = new();
+                return;
+            }
+
+            divisions =
+                await Service.GetDivisions(
+                    SessionState.AcademicYearId ?? 0,
+                    SessionState.CourseId ?? 0,
+                    semester.SemesterId);
+        }
+        catch
+        {
+            divisions = new();
+        }
+    }
     // =====================================================
     // LOAD
     // =====================================================
@@ -860,16 +830,12 @@
                     SessionState.AcademicYearId ?? 0,
                     SessionState.CourseId ?? 0);
 
-            divisions =
-                list.Select(x => x.Division)
-                .DistinctBy(x => x.DivisionId)
-                .OrderBy(x => x.DivisionName)
-                .ToList();
 
             faculties =
                 await Service.GetFaculties(
                     SessionState.CourseId ?? 0);
 
+            await LoadDivisionFilter();
             StateHasChanged();
         }
         catch
@@ -989,11 +955,14 @@
     // FILTERS
     // =====================================================
 
-    void SelectSemester(int semNo)
+    async Task SelectSemester(int semNo)
     {
         try
         {
             selectedSemesterNo = semNo;
+            selectedDivisionId = 0;
+
+            await LoadDivisionFilter();
         }
         catch
         {
@@ -1011,12 +980,14 @@
         }
     }
 
-    void RefreshFilter()
+    async Task RefreshFilter()
     {
         try
         {
             selectedSemesterNo = 0;
             selectedDivisionId = 0;
+
+            await LoadDivisionFilter();
         }
         catch
         {
@@ -1112,8 +1083,13 @@
     {
         try
         {
+            model.DivisionId = 0;
+            model.SubjectSemesterId = 0;
+
             formDivisions =
                 await Service.GetDivisions(
+                    SessionState.AcademicYearId ?? 0,
+                    SessionState.CourseId ?? 0,
                     selectedSemesterId);
 
             formSubjects =
@@ -1132,12 +1108,32 @@
     // CSV SEMESTER
     // =====================================================
 
+    // async Task OnCsvSemesterChanged()
+    // {
+    //     try
+    //     {
+    //         csvDivisions =
+    //             await Service.GetDivisions(
+    //                 SessionState.AcademicYearId ?? 0,
+    //                 SessionState.CourseId ?? 0,
+    //                 csvSemesterId);
+
+    //         StateHasChanged();
+    //     }
+    //     catch
+    //     {
+    //     }
+    // }
     async Task OnCsvSemesterChanged()
     {
         try
         {
+            csvDivisionId = 0;
+
             csvDivisions =
                 await Service.GetDivisions(
+                    SessionState.AcademicYearId ?? 0,
+                    SessionState.CourseId ?? 0,
                     csvSemesterId);
 
             StateHasChanged();
@@ -1271,8 +1267,10 @@
                 item.SubjectSemester.SemesterId;
 
             formDivisions =
-                await Service.GetDivisions(
-                    selectedSemesterId);
+     await Service.GetDivisions(
+         SessionState.AcademicYearId ?? 0,
+         SessionState.CourseId ?? 0,
+         selectedSemesterId);
 
             formSubjects =
                 await Service.GetSubjectSemesters(
@@ -1474,7 +1472,7 @@
             }
 
             int departmentId =
-                SessionState.CourseId ?? 0;
+    faculties.FirstOrDefault()?.DepartmentId ?? 0;
 
             // ==========================================
             // LOAD SUBJECTS
@@ -1486,22 +1484,24 @@
                     csvSemesterId);
 
             using var stream =
-                file.OpenReadStream(
-                    1024 * 1024);
+     file.OpenReadStream(1024 * 1024);
 
-            using StreamReader reader =
-                new(stream);
+            using var reader =
+                new StreamReader(stream);
 
             bool isHeader = true;
 
             int rowNo = 1;
 
-            while (!reader.EndOfStream)
+            while (true)
             {
-                rowNo++;
-
                 var line =
                     await reader.ReadLineAsync();
+
+                if (line == null)
+                    break;
+
+                rowNo++;
 
                 if (isHeader)
                 {
@@ -1512,7 +1512,7 @@
                 if (string.IsNullOrWhiteSpace(line))
                     continue;
 
-                var data = line.Split(',');
+                var data = line.Split(',', StringSplitOptions.None);
 
                 if (data.Length < 6)
                 {

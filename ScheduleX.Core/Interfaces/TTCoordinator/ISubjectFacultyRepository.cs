@@ -10,7 +10,9 @@ namespace ScheduleX.Core.Interfaces.TTCoordinator
             int courseId);
 
         Task<List<Division>> GetDivisionsAsync(
-            int semesterId);
+     int academicYearId,
+     int courseId,
+     int semesterId);
 
         Task<List<SubjectSemester>> GetSubjectSemestersAsync(
             int academicYearId,
