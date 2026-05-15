@@ -123,6 +123,9 @@ builder.Services.AddScoped<AcademicYearApiService>();
 builder.Services.AddScoped<ICourseRepository, CourseRepository>();
 builder.Services.AddScoped<CourseApiService>();
 
+builder.Services.AddScoped<IAcademicTermRepository, AcademicTermRepository>();
+builder.Services.AddScoped<AcademicTermApiService>();
+
 builder.Services.AddScoped<ISemesterRepository, SemesterRepository>();
 builder.Services.AddScoped<SemesterApiService>();
 

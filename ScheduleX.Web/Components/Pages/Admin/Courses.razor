@@ -6,6 +6,7 @@
 @inject ScheduleX.Web.Services.Admin.CourseApiService CourseService
 @inject ScheduleX.Web.Services.Admin.DepartmentApiService DepartmentService
 @inject NavigationManager Nav
+@inject ScheduleX.Web.Services.Admin.AcademicTermApiService TermService
 
 <link href="/css/admin/course.css" rel="stylesheet" />
 
@@ -96,6 +97,11 @@
                             <td class="cm-right">
                                 <button class="cm-btn cm-btn-light" @onclick="() => Edit(c)">Edit</button>
 
+                                <button class="cm-btn cm-btn-primary"
+                                        @onclick="() => OpenTermModal(c)">
+                                    Add/Edit Term
+                                </button>
+
                                 @if (c.IsActive)
                                 {
                                     <button class="cm-btn cm-btn-danger" @onclick="() => Toggle(c.CourseId)">Deactivate</button>
@@ -175,6 +181,191 @@
     </div>
 }
 
+@if (showTermModal && selectedCourse != null)
+{
+    <div class="cm-modal-overlay">
+        <div class="cm-modal cm-modal-lg">
+
+            <div class="cm-modal-head">
+                <div class="cm-modal-title">Manage Terms</div>
+
+                <button class="cm-x"
+                        style="margin-left:auto;"
+                        @onclick="() => showTermModal = false">
+                    ✕
+                </button>
+            </div>
+
+            <p>
+                <b>Course:</b> @selectedCourse.CourseName
+            </p>
+
+            <p>
+                <b>Academic Year:</b> 2025-26
+            </p>
+
+            
+
+            <EditForm Model="termModel" OnValidSubmit="SaveTerm">
+
+                <div class="cm-form-grid">
+
+                    <div class="cm-field">
+                        <label>Term Type</label>
+
+                        <InputSelect class="cm-select"
+                                     @bind-Value="termModel.TermType">
+
+                            @foreach (var item in Enum.GetValues<TermTypeEnum>())
+                            {
+                                <option value="@item">@item</option>
+                            }
+
+                        </InputSelect>
+                    </div>
+
+                    <div class="cm-field">
+                        <label>Semester Pattern</label>
+
+                        <InputSelect class="cm-select"
+                                     @bind-Value="termModel.SemesterPattern">
+
+                            @foreach (var item in Enum.GetValues<SemesterPatternEnum>())
+                            {
+                                <option value="@item">@item</option>
+                            }
+
+                        </InputSelect>
+                    </div>
+
+                    <div class="cm-field">
+                        <label>Status</label>
+
+                        <InputSelect class="cm-select"
+                                     @bind-Value="termModel.Status">
+
+                            @foreach (var item in Enum.GetValues<TermStatusEnum>())
+                            {
+                                <option value="@item">@item</option>
+                            }
+
+                        </InputSelect>
+                    </div>
+
+                    <div class="cm-field">
+                        <label>Start Date</label>
+
+                        <InputDate class="cm-input"
+                                   @bind-Value="termModel.StartDate" />
+                    </div>
+
+                    <div class="cm-field">
+                        <label>End Date</label>
+
+                        <InputDate class="cm-input"
+                                   @bind-Value="termModel.EndDate" />
+                    </div>
+
+                    <div class="cm-field">
+                        <label>
+                            <InputCheckbox @bind-Value="termModel.IsCurrent" />
+                            Current Term
+                        </label>
+                    </div>
+
+                </div>
+
+                <button type="submit"
+                        class="cm-btn cm-btn-primary">
+                    Save Term
+                </button>
+
+            </EditForm>
+
+            <hr />
+
+            <table class="cm-table">
+
+                @* <thead> *@
+                @*     <tr> *@
+                @*         <th>Term</th> *@
+                @*         <th>Pattern</th> *@
+                @*         <th>Status</th> *@
+                @*     </tr> *@
+                @* </thead> *@
+
+                <thead>
+                    <tr>
+                        <th>Term</th>
+                        <th>Pattern</th>
+                        <th>Status</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Current</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                @* <tbody> *@
+
+                @*     @foreach (var t in terms) *@
+                @*     { *@
+                @*         <tr> *@
+                @*             <td>@t.TermType</td> *@
+                @*             <td>@t.SemesterPattern</td> *@
+                @*             <td>@t.Status</td> *@
+                @*         </tr> *@
+                @*     } *@
+
+                @* </tbody> *@
+
+                <tbody>
+                    @foreach (var t in terms)
+                    {
+                        <tr>
+                            <td>@t.TermType</td>
+                            <td>@t.SemesterPattern</td>
+                            <td>@t.Status</td>
+
+                            <td>
+                                @(t.StartDate.HasValue
+                                    ? t.StartDate.Value.ToString("dd-MM-yyyy")
+                                    : "-")
+                            </td>
+
+                            <td>
+                                @(t.EndDate.HasValue
+                                    ? t.EndDate.Value.ToString("dd-MM-yyyy")
+                                    : "-")
+                            </td>
+
+                            <td>
+                                @if (t.IsCurrent)
+                                {
+                                    <span class="cm-badge cm-badge-green">Current</span>
+                                }
+                                else
+                                {
+                                    <span class="cm-badge cm-badge-gray">-</span>
+                                }
+                            </td>
+
+                            <td>
+                                <button class="cm-btn cm-btn-light"
+                                        @onclick="() => EditTerm(t)">
+                                    Edit
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+
+            </table>
+
+        </div>
+    </div>
+}
+
 @if (showToast)
 {
     <div class="cm-toast">
@@ -193,6 +384,16 @@
     bool showForm = false;
     bool showToast = false;
     string toastMessage = "";
+
+    bool showTermModal = false;
+
+    AcademicTermDto? editingTerm = null;
+
+    CourseDto? selectedCourse;
+
+    List<AcademicTermDto> terms = new();
+
+    AcademicTermCreateDto termModel = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -313,5 +514,82 @@
     void GoNext()
     {
         Nav.NavigateTo("/admin/semesters");
+    }
+
+    async Task OpenTermModal(CourseDto course)
+    {
+        selectedCourse = course;
+
+        termModel = new AcademicTermCreateDto
+            {
+                CourseId = course.CourseId,
+                Status = TermStatusEnum.Upcoming,
+                IsCurrent = false
+            };
+
+        terms = await TermService.GetByCourseAsync(course.CourseId);
+
+        showTermModal = true;
+    }
+
+    // async Task SaveTerm()
+    // {
+    //     await TermService.CreateAsync(termModel);
+
+    //     terms = await TermService.GetByCourseAsync(termModel.CourseId);
+
+    //     await ShowToast("Term added successfully");
+    // }
+
+    async Task SaveTerm()
+    {
+        if (editingTerm == null)
+        {
+            await TermService.CreateAsync(termModel);
+            await ShowToast("Term added successfully");
+        }
+        else
+        {
+            await TermService.UpdateAsync(editingTerm.AcademicTermId, new AcademicTermUpdateDto
+                {
+                    CourseId = termModel.CourseId,
+                    TermType = termModel.TermType,
+                    SemesterPattern = termModel.SemesterPattern,
+                    Status = termModel.Status,
+                    StartDate = termModel.StartDate,
+                    EndDate = termModel.EndDate,
+                    IsCurrent = termModel.IsCurrent
+                });
+
+            await ShowToast("Term updated successfully");
+        }
+
+        terms = await TermService.GetByCourseAsync(termModel.CourseId);
+        editingTerm = null;
+        // 🔥 RESET EVERYTHING PROPERLY
+        editingTerm = null;
+
+        termModel = new AcademicTermCreateDto
+            {
+                CourseId = selectedCourse!.CourseId,
+                Status = TermStatusEnum.Upcoming,
+                IsCurrent = false
+            };
+    }
+
+    void EditTerm(AcademicTermDto t)
+    {
+        editingTerm = t;
+
+        termModel = new AcademicTermCreateDto
+            {
+                CourseId = t.CourseId,
+                TermType = t.TermType,
+                SemesterPattern = t.SemesterPattern,
+                Status = t.Status,
+                StartDate = t.StartDate,
+                EndDate = t.EndDate,
+                IsCurrent = t.IsCurrent
+            };
     }
 }

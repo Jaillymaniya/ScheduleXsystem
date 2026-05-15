@@ -1,16 +1,4 @@
-﻿//using System;
-//using System.Collections.Generic;
-//using System.Linq;
-//using System.Text;
-//using System.Threading.Tasks;
-
-//namespace ScheduleX.Infrastructure.Repositories.Admin
-//{
-//    internal class CourseRepository
-//    {
-//    }
-//}
-
+﻿
 using Microsoft.EntityFrameworkCore;
 using ScheduleX.Core.Entities;
 using ScheduleX.Core.Interfaces;
