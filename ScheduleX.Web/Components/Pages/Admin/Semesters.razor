@@ -102,7 +102,9 @@
                     <tr>
                         <th>Course</th>
                         <th>Semester</th>
+                        <th>Term Type</th>
                         <th>Status</th>
+                       
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -113,7 +115,7 @@
                         <tr>
                             <td>@s.Course.CourseName</td>
                             <td>Sem @s.SemesterNo</td>
-
+                            <td>@s.SemesterPattern</td>
                             <td>
                                 <span class="status-badge @(s.IsActive ? "active" : "inactive")">
                                     @(s.IsActive ? "Active" : "Inactive")
