@@ -47,13 +47,20 @@
                             : SessionState.CourseName)
                     </b>
                 </span>
-
+                <span>
+                    Term :
+                    <b>
+                        @(string.IsNullOrWhiteSpace(SessionState.TermName)
+                            ? "Not Selected"
+                            : SessionState.TermName)
+                    </b>
+                </span>
             </div>
 
             @if (!IsSelectionValid)
             {
                 <div class="selection-warning">
-                    Please select Academic Year and Course first
+                    Please select Academic Year, Course and Term first
                 </div>
             }
 
@@ -486,10 +493,12 @@
     string semesterError = "";
     string subjectError = "";
     bool IsSelectionValid =>
-    SessionState.AcademicYearId.HasValue &&
-    SessionState.AcademicYearId.Value > 0 &&
-    SessionState.CourseId.HasValue &&
-    SessionState.CourseId.Value > 0;
+     SessionState.AcademicYearId.HasValue &&
+     SessionState.AcademicYearId.Value > 0 &&
+     SessionState.CourseId.HasValue &&
+     SessionState.CourseId.Value > 0 &&
+     SessionState.AcademicTermId.HasValue &&
+     SessionState.AcademicTermId.Value > 0;
     protected override async Task OnInitializedAsync()
     {
         try
@@ -513,16 +522,18 @@
                 return;
 
             semesters = await Service.GetSemesters(
-                SessionState.CourseId.Value);
+     SessionState.CourseId.Value,
+     SessionState.AcademicTermId.Value);
 
             subjects = await Service.GetSubjects(
                 SessionState.CourseId.Value);
 
             list = await Service.GetAll(
                 SessionState.AcademicYearId.Value,
-                SessionState.CourseId.Value);
+                SessionState.CourseId.Value,
+                SessionState.AcademicTermId.Value);
 
-            StateHasChanged();
+            
         }
         catch
         {
@@ -530,9 +541,27 @@
         }
     }
 
-    async void ReloadData()
+    private bool _isReloading = false;
+
+    private async Task ReloadData()
     {
-        await LoadPageData();
+        if (_isReloading)
+            return;
+
+        try
+        {
+            _isReloading = true;
+
+            await InvokeAsync(async () =>
+            {
+                await LoadPageData();
+                StateHasChanged();
+            });
+        }
+        finally
+        {
+            _isReloading = false;
+        }
     }
     void GoBack()
     {

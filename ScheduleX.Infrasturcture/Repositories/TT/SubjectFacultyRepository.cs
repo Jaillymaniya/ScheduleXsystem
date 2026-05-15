@@ -21,15 +21,23 @@ namespace ScheduleX.Infrastructure.Repositories.TT
         // =====================================================
 
         public async Task<List<Semester>> GetSemestersAsync(
-            int courseId)
+      int courseId,
+      int academicTermId)
         {
             try
             {
+                var term = await _context.AcademicTerms
+                    .FirstOrDefaultAsync(x =>
+                        x.AcademicTermId == academicTermId);
+
+                if (term == null)
+                    return new();
+
                 return await _context.Semesters
                     .Where(x =>
-                        x.CourseId == courseId)
-                    .OrderByDescending(x =>
-                        x.SemesterNo)
+                        x.CourseId == courseId &&
+                        x.SemesterPattern == term.SemesterPattern)
+                    .OrderByDescending(x => x.SemesterNo)
                     .ToListAsync();
             }
             catch
@@ -255,12 +263,20 @@ namespace ScheduleX.Infrastructure.Repositories.TT
         // =====================================================
 
         public async Task<List<SubjectFaculty>>
-            GetAllAsync(
-                int academicYearId,
-                int courseId)
+     GetAllAsync(
+         int academicYearId,
+         int courseId,
+         int academicTermId)
         {
             try
             {
+                var term = await _context.AcademicTerms
+                    .FirstOrDefaultAsync(x =>
+                        x.AcademicTermId == academicTermId);
+
+                if (term == null)
+                    return new();
+
                 return await _context.SubjectFaculties
 
                     .Include(x => x.SubjectSemester)
@@ -274,15 +290,15 @@ namespace ScheduleX.Infrastructure.Repositories.TT
                     .Include(x => x.Faculty)
 
                     .Where(x =>
-                        x.AcademicYearId ==
-                        academicYearId &&
+                        x.AcademicYearId == academicYearId &&
 
-                        x.SubjectSemester.Semester
-                        .CourseId == courseId)
+                        x.SubjectSemester.Semester.CourseId == courseId &&
+
+                        x.SubjectSemester.Semester.SemesterPattern
+                            == term.SemesterPattern)
 
                     .OrderByDescending(x =>
-                        x.SubjectSemester.Semester
-                        .SemesterNo)
+                        x.SubjectSemester.Semester.SemesterNo)
 
                     .ThenBy(x =>
                         x.IsActive ? 0 : 1)
@@ -294,7 +310,6 @@ namespace ScheduleX.Infrastructure.Repositories.TT
                 return new();
             }
         }
-
         // =====================================================
         // ADD
         // =====================================================

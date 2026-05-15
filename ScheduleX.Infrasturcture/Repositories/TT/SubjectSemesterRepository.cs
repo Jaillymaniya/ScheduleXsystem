@@ -15,11 +15,19 @@ namespace ScheduleX.Infrastructure.Repositories.TT
         }
 
         public async Task<List<SubjectSemester>> GetAllAsync(
-            int academicYearId,
-            int courseId)
+     int academicYearId,
+     int courseId,
+     int academicTermId)
         {
             try
             {
+                var term = await _context.AcademicTerms
+                    .FirstOrDefaultAsync(x =>
+                        x.AcademicTermId == academicTermId);
+
+                if (term == null)
+                    return new();
+
                 return await _context.SubjectSemesters
                     .Include(x => x.Subject)
                     .Include(x => x.Semester)
@@ -27,7 +35,8 @@ namespace ScheduleX.Infrastructure.Repositories.TT
                     .Include(x => x.AcademicYear)
                     .Where(x =>
                         x.AcademicYearId == academicYearId &&
-                        x.Semester.CourseId == courseId)
+                        x.Semester.CourseId == courseId &&
+                        x.Semester.SemesterPattern == term.SemesterPattern)
                     .OrderByDescending(x => x.CreatedAt)
                     .ToListAsync();
             }
@@ -37,14 +46,25 @@ namespace ScheduleX.Infrastructure.Repositories.TT
             }
         }
 
-        public async Task<List<Semester>> GetSemestersAsync(int courseId)
+        public async Task<List<Semester>> GetSemestersAsync(
+     int courseId,
+     int academicTermId)
         {
             try
             {
+                var term = await _context.AcademicTerms
+                    .FirstOrDefaultAsync(x =>
+                        x.AcademicTermId == academicTermId);
+
+                if (term == null)
+                    return new();
+
                 return await _context.Semesters
                     .Where(x =>
                         x.CourseId == courseId &&
-                        x.IsActive)
+                        x.IsActive &&
+                        x.SemesterPattern == term.SemesterPattern)
+                    .OrderBy(x => x.SemesterNo)
                     .ToListAsync();
             }
             catch

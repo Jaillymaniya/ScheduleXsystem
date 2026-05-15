@@ -9,7 +9,12 @@ namespace ScheduleX.Core.Interfaces.TTCoordinator
     {
         //Task<List<Division>> GetAllAsync(int ttCoordinatorId);
         Task<List<Division>> GetAllAsync(
-         int ttCoordinatorId);
+     int ttCoordinatorId,
+     int academicYearId,
+     int courseId,
+     int academicTermId);
+
+       
         Task<List<Semester>> GetSemestersAsync();
 
         Task<Division?> GetByIdAsync(int id);
@@ -29,6 +34,8 @@ namespace ScheduleX.Core.Interfaces.TTCoordinator
 
         Task SaveAsync();
 
-        Task<List<Semester>> GetSemestersByCourseAsync(int courseId);
+        Task<List<Semester>> GetSemestersByCourseAsync(
+            int courseId,
+            int academicTermId);
     }
 }

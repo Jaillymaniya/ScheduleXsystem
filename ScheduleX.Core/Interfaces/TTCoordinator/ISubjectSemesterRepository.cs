@@ -7,10 +7,13 @@ namespace ScheduleX.Core.Interfaces.TTCoordinator
     public interface ISubjectSemesterRepository
     {
         Task<List<SubjectSemester>> GetAllAsync(
-            int academicYearId,
-            int courseId);
+     int academicYearId,
+     int courseId,
+     int academicTermId);
 
-        Task<List<Semester>> GetSemestersAsync(int courseId);
+        Task<List<Semester>> GetSemestersAsync(
+            int courseId,
+            int academicTermId);
 
         Task<List<Subject>> GetSubjectsAsync(int courseId);
 

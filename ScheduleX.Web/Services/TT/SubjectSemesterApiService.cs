@@ -15,14 +15,16 @@ namespace ScheduleX.Web.Services.TT
         }
 
         public async Task<List<SubjectSemester>> GetAll(
-            int academicYearId,
-            int courseId)
+     int academicYearId,
+     int courseId,
+     int academicTermId)
         {
             try
             {
                 return await _repo.GetAllAsync(
                     academicYearId,
-                    courseId);
+                    courseId,
+                    academicTermId);
             }
             catch
             {
@@ -31,11 +33,14 @@ namespace ScheduleX.Web.Services.TT
         }
 
         public async Task<List<Semester>> GetSemesters(
-            int courseId)
+     int courseId,
+     int academicTermId)
         {
             try
             {
-                return await _repo.GetSemestersAsync(courseId);
+                return await _repo.GetSemestersAsync(
+                    courseId,
+                    academicTermId);
             }
             catch
             {

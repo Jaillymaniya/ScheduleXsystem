@@ -238,10 +238,15 @@
     private bool isEditMode = false;
 
     private int loggedInUserId;
-
+    private async Task ReloadData()
+    {
+        await LoadDropdowns();
+        await LoadData();
+        await InvokeAsync(StateHasChanged);
+    }
     protected override async Task OnInitializedAsync()
     {
-        SessionState.OnChange += StateHasChanged;
+        SessionState.OnChange += ReloadData;
 
         var authState =
             await AuthStateProvider
@@ -269,18 +274,38 @@
             semesters = new List<Semester>();
             return;
         }
+        int termId = SessionState.AcademicTermId ?? 0;
+
+        if (termId == 0)
+        {
+            semesters = new();
+            return;
+        }
 
         semesters =
-            await DivisionRepo.GetSemestersByCourseAsync(courseId);
+            await DivisionRepo.GetSemestersByCourseAsync(
+                courseId,
+                termId);
     }
 
     // LOAD TABLE
 
     private async Task LoadData()
     {
+        if (!SessionState.AcademicYearId.HasValue ||
+    !SessionState.CourseId.HasValue ||
+    !SessionState.AcademicTermId.HasValue)
+        {
+            divisions = new();
+            return;
+        }
+
         divisions =
            await DivisionRepo.GetAllAsync(
-    loggedInUserId);
+               loggedInUserId,
+               SessionState.AcademicYearId.Value,
+               SessionState.CourseId.Value,
+               SessionState.AcademicTermId.Value);
     }
 
     // ADD
@@ -436,6 +461,6 @@
 
     public void Dispose()
     {
-        SessionState.OnChange -= StateHasChanged;
+        SessionState.OnChange -= ReloadData;
     }
 }

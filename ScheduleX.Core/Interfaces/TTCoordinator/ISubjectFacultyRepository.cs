@@ -7,7 +7,13 @@ namespace ScheduleX.Core.Interfaces.TTCoordinator
         // ================= DROPDOWNS =================
 
         Task<List<Semester>> GetSemestersAsync(
-            int courseId);
+      int courseId,
+      int academicTermId);
+
+        Task<List<SubjectFaculty>> GetAllAsync(
+            int academicYearId,
+            int courseId,
+            int academicTermId);
 
         Task<List<Division>> GetDivisionsAsync(
      int academicYearId,
@@ -35,9 +41,7 @@ namespace ScheduleX.Core.Interfaces.TTCoordinator
 
         // ================= TABLE =================
 
-        Task<List<SubjectFaculty>> GetAllAsync(
-            int academicYearId,
-            int courseId);
+       
 
         // ================= CRUD =================
 

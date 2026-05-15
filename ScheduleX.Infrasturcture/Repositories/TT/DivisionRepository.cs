@@ -29,8 +29,18 @@ namespace ScheduleX.Infrastructure.Repositories.TT
         //}
 
         public async Task<List<Division>> GetAllAsync(
-      int ttCoordinatorId)
+     int ttCoordinatorId,
+     int academicYearId,
+     int courseId,
+     int academicTermId)
         {
+            var term = await _context.AcademicTerms
+                .FirstOrDefaultAsync(x =>
+                    x.AcademicTermId == academicTermId);
+
+            if (term == null)
+                return new();
+
             return await _context.Divisions
 
                 .Include(x => x.AcademicYear)
@@ -40,7 +50,14 @@ namespace ScheduleX.Infrastructure.Repositories.TT
                 .Include(x => x.Course)
 
                 .Where(x =>
-                    x.TTCoordinatorId == ttCoordinatorId)
+                    x.TTCoordinatorId == ttCoordinatorId &&
+
+                    x.AcademicYearId == academicYearId &&
+
+                    x.CourseId == courseId &&
+
+                    x.Semester.SemesterPattern
+                        == term.SemesterPattern)
 
                 .OrderBy(x => x.DivisionName)
 
@@ -165,10 +182,23 @@ namespace ScheduleX.Infrastructure.Repositories.TT
             await _context.SaveChangesAsync();
         }
 
-        public async Task<List<Semester>> GetSemestersByCourseAsync(int courseId)
+        public async Task<List<Semester>>
+     GetSemestersByCourseAsync(
+         int courseId,
+         int academicTermId)
         {
+            var term = await _context.AcademicTerms
+                .FirstOrDefaultAsync(x =>
+                    x.AcademicTermId == academicTermId);
+
+            if (term == null)
+                return new();
+
             return await _context.Semesters
-                .Where(x => x.CourseId == courseId && x.IsActive)
+                .Where(x =>
+                    x.CourseId == courseId &&
+                    x.IsActive &&
+                    x.SemesterPattern == term.SemesterPattern)
                 .OrderBy(x => x.SemesterNo)
                 .ToListAsync();
         }

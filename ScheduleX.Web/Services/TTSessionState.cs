@@ -55,68 +55,161 @@
 //    }
 //}
 
+//============chnaged==========
+//namespace ScheduleX.Web.Services
+//{
+//    public class TTSessionState
+//    {
+//        public event Action? OnChange;
+
+//        private int? _academicYearId;
+
+//        public int? AcademicYearId
+//        {
+//            get => _academicYearId;
+//            set
+//            {
+//                _academicYearId = value;
+//                NotifyStateChanged();
+//            }
+//        }
+
+//        private string? _academicYearName;
+
+//        public string? AcademicYearName
+//        {
+//            get => _academicYearName;
+//            set
+//            {
+//                _academicYearName = value;
+//                NotifyStateChanged();
+//            }
+//        }
+
+//        private int? _courseId;
+
+//        public int? CourseId
+//        {
+//            get => _courseId;
+//            set
+//            {
+//                _courseId = value;
+//                NotifyStateChanged();
+//            }
+//        }
+
+//        private string? _courseName;
+
+//        public string? CourseName
+//        {
+//            get => _courseName;
+//            set
+//            {
+//                _courseName = value;
+//                NotifyStateChanged();
+//            }
+//        }
+//        // NEW TERM
+//        private int? _academicTermId;
+//        public int? AcademicTermId
+//        {
+//            get => _academicTermId;
+//            set
+//            {
+//                _academicTermId = value;
+//                NotifyStateChanged();
+//            }
+//        }
+
+//        private string? _termName;
+//        public string? TermName
+//        {
+//            get => _termName;
+//            set
+//            {
+//                _termName = value;
+//                NotifyStateChanged();
+//            }
+//        }
+//        private void NotifyStateChanged()
+//        {
+//            OnChange?.Invoke();
+//        }
+//    }
+//}
 namespace ScheduleX.Web.Services
 {
     public class TTSessionState
     {
-        public event Action? OnChange;
+        public event Func<Task>? OnChange;
 
         private int? _academicYearId;
-
         public int? AcademicYearId
         {
             get => _academicYearId;
             set
             {
+                if (_academicYearId == value)
+                    return;
+
                 _academicYearId = value;
-                NotifyStateChanged();
+                _ = NotifyStateChanged();
             }
         }
 
         private string? _academicYearName;
-
         public string? AcademicYearName
         {
             get => _academicYearName;
             set
             {
+                if (_academicYearName == value)
+                    return;
+
                 _academicYearName = value;
-                NotifyStateChanged();
+                _ = NotifyStateChanged();
             }
         }
 
         private int? _courseId;
-
         public int? CourseId
         {
             get => _courseId;
             set
             {
+                if (_courseId == value)
+                    return;
+
                 _courseId = value;
-                NotifyStateChanged();
+                _ = NotifyStateChanged();
             }
         }
 
         private string? _courseName;
-
         public string? CourseName
         {
             get => _courseName;
             set
             {
+                if (_courseName == value)
+                    return;
+
                 _courseName = value;
-                NotifyStateChanged();
+                _ = NotifyStateChanged();
             }
         }
-        // NEW TERM
+
         private int? _academicTermId;
         public int? AcademicTermId
         {
             get => _academicTermId;
             set
             {
+                if (_academicTermId == value)
+                    return;
+
                 _academicTermId = value;
-                NotifyStateChanged();
+                _ = NotifyStateChanged();
             }
         }
 
@@ -126,13 +219,18 @@ namespace ScheduleX.Web.Services
             get => _termName;
             set
             {
+                if (_termName == value)
+                    return;
+
                 _termName = value;
-                NotifyStateChanged();
+                _ = NotifyStateChanged();
             }
         }
-        private void NotifyStateChanged()
+
+        private async Task NotifyStateChanged()
         {
-            OnChange?.Invoke();
+            if (OnChange != null)
+                await OnChange.Invoke();
         }
     }
 }

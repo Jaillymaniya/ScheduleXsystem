@@ -368,15 +368,12 @@
 
     protected override async Task OnInitializedAsync()
     {
-        SessionState.OnChange += OnSessionChanged;
+        SessionState.OnChange += Reload;
 
         await LoadData();
     }
 
-    private void OnSessionChanged()
-    {
-        _ = Reload();
-    }
+    
 
     private async Task Reload()
     {
@@ -435,7 +432,7 @@
 
     public void Dispose()
     {
-        SessionState.OnChange -= OnSessionChanged;
+        SessionState.OnChange -= Reload;
     }
         
     private async Task<int> GetUserIdSafe()
