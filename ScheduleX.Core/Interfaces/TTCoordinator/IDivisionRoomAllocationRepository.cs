@@ -53,6 +53,7 @@ GetSemestersByCourseAsync(
     int courseId,
     int academicTermId);
 
+        Task<List<Semester>> GetSemestersByCourseAsync(int courseId);
 
         //    Task<bool> RoomAlreadyAllocatedAsync(
         //int semesterId,

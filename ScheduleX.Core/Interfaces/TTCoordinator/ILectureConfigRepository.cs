@@ -18,7 +18,8 @@ namespace ScheduleX.Core.Interfaces.TTCoordinator
         Task<List<Semester>> GetSemestersAsync(
     int userId,
     int courseId,
-    int academicYearId);
+    int academicYearId,
+    int academicTermId);
 
         Task AddAsync(SubjectLectureConfig entity);
 

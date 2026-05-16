@@ -729,6 +729,8 @@
 @using ScheduleX.Web.Services
 @inject TTSessionState SessionState
 @layout TTLayout
+@using Microsoft.EntityFrameworkCore
+
 
 @attribute [Authorize(Roles = "TTCoordinator")]
 
@@ -861,6 +863,9 @@
                             -
 
                             @room.Department.DepartmentName
+                            (
+                            @GetRoomTypeText(room.RoomType)
+                            )
 
                         </option>
                     }
@@ -1411,6 +1416,9 @@
     {
         try
         {
+
+            allocation.AcademicTermId = SessionState.AcademicTermId.Value;
+
             if (allocation.SemesterId == 0
                 || allocation.DivisionId == 0
                 || allocation.RoomId == 0)
@@ -1518,10 +1526,10 @@
 
             isEditMode = false;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             ShowToast(
-                ex.Message,
+                "Duplicate allocation not allowed",
                 true);
         }
     }
@@ -1651,5 +1659,15 @@
     public void Dispose()
     {
         SessionState.OnChange -= ReloadData;
+    }
+
+    private string GetRoomTypeText(RoomTypeEnum type)
+    {
+        return type switch
+        {
+            RoomTypeEnum.Classroom => "Classroom",
+            RoomTypeEnum.Lab => "Lab",
+            _ => "Unknown"
+        };
     }
 }

@@ -23,6 +23,38 @@
         <div>
             <h2>Lecture Configuration</h2>
             <p>Configure weekly theory and practical lectures subject-wise for the selected semester.</p>
+
+            <div class="selected-info">
+
+    <span>
+        Academic Year :
+        <b>
+            @(string.IsNullOrWhiteSpace(SessionState.AcademicYearName)
+                ? "Not Selected"
+                : SessionState.AcademicYearName)
+        </b>
+    </span>
+
+    <span>
+        Course :
+        <b>
+            @(string.IsNullOrWhiteSpace(SessionState.CourseName)
+                ? "Not Selected"
+                : SessionState.CourseName)
+        </b>
+    </span>
+
+    <span>
+        Term :
+        <b>
+            @(string.IsNullOrWhiteSpace(SessionState.TermName)
+                ? "Not Selected"
+                : SessionState.TermName)
+        </b>
+    </span>
+
+</div>
+
         </div>
 
         <div class="lecture-config-page">
@@ -411,7 +443,9 @@
             var academicYearId = SessionState.AcademicYearId ?? 0;
             var courseId = SessionState.CourseId ?? 0;
 
-            semesters = await Service.GetSemestersAsync(userId, courseId, academicYearId);
+            var academicTermId = SessionState.AcademicTermId ?? 0;
+
+            semesters = await Service.GetSemestersAsync(userId, courseId, academicYearId, academicTermId);
 
             selectedSemesterId = 0;
             subjectSemesters.Clear();

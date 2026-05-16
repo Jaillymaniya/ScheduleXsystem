@@ -85,33 +85,65 @@
     gap: 10px;
 }
 
-.cm-btn {
+/*.cm-btn {
     border: none;
     border-radius: 8px;
     padding: 10px 12px;
     font-weight: 700;
     cursor: pointer;
+}*/
+
+.cm-btn {
+    border: none;
+    border-radius: 7px;
+    padding: 6px 10px;
+    font-weight: 600;
+    font-size: 12px;
+    cursor: pointer;
+    transition: 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
 }
 
 .cm-btn-primary {
     background: #22c55e;
-    color: #fff;
+    color: white;
 }
 
+
+    .cm-btn-primary:hover {
+        background: #16a34a;
+    }
+
+/* edit button */
 .cm-btn-light {
     background: #f3f4f6;
     color: #111827;
 }
 
+    .cm-btn-light:hover {
+        background: #e5e7eb;
+    }
+
+/* deactivate */
 .cm-btn-danger {
     background: #ef4444;
-    color: #fff;
+    color: white;
 }
+
+    .cm-btn-danger:hover {
+        background: #dc2626;
+    }
 
 .cm-btn-success {
     background: #16a34a;
-    color: #fff;
+    color: white;
 }
+
+    .cm-btn-success:hover {
+        background: #15803d;
+    }
 
 .cm-card {
     background: #fff;
@@ -334,3 +366,31 @@
         box-shadow: 0 4px 12px rgba(34, 197, 94, 0.2);
         transform: translateY(-1px);
     }
+
+.cm-modal-lg {
+    width: 900px; /* increase width */
+    max-width: 95vw; /* responsive on small screens */
+    max-height: 90vh; /* prevent overflow */
+    overflow-y: auto; /* scroll if content is long */
+    padding: 25px;
+}
+
+/* keep buttons in one row */
+.cm-table td.cm-right {
+    white-space: nowrap;
+}
+
+    /* force buttons to stay inline */
+    .cm-table td.cm-right .cm-btn {
+        display: inline-flex;
+        width: auto;
+        margin-left: 6px;
+    }
+
+/* optional: better spacing group */
+.cm-action-group {
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+    flex-wrap: wrap;
+}
