@@ -1,4 +1,723 @@
-﻿@page "/tt/academic/division-room-allocation"
+﻿@* @page "/tt/academic/division-room-allocation" *@
+
+@* @using Microsoft.AspNetCore.Authorization *@
+@* @using Microsoft.AspNetCore.Components.Authorization *@
+@* @using ScheduleX.Core.Entities *@
+@* @using ScheduleX.Core.Interfaces.TTCoordinator *@
+@* @using System.Security.Claims *@
+@* @inject NavigationManager Nav *@
+@* @using ScheduleX.Web.Components.Layout.tt *@
+@* @using ScheduleX.Web.Services *@
+@* @inject TTSessionState SessionState *@
+@* @layout TTLayout *@
+
+@* @attribute [Authorize(Roles = "TTCoordinator")] *@
+
+@* @inject IDivisionRoomAllocationRepository AllocationRepo *@
+@* @inject AuthenticationStateProvider AuthStateProvider *@
+
+@* <link href="/css/tt/division-room-allocation.css" *@
+@*       rel="stylesheet" /> *@
+
+@* <div class="allocation-page"> *@
+
+@*     <h1 class="page-title"> *@
+@*         Division Room Allocation *@
+@*     </h1> *@
+
+@*     <div class="lecture-config-page"> *@
+
+@*         <div class="btn-section"> *@
+
+@*             <button type="button" *@
+@*                     class="back-btn" *@
+@*                     @onclick="GoBack"> *@
+
+@*                 <i class="fas fa-arrow-left"></i> *@
+
+@*                 Back *@
+
+@*             </button> *@
+
+@*             <button type="button" *@
+@*                     class="back-btn" *@
+@*                     @onclick="GoNext"> *@
+
+@*                 <i class="fas fa-arrow-right"></i> *@
+
+@*                 Next *@
+
+@*             </button> *@
+
+@*         </div> *@
+@*     </div> *@
+
+@*     <br /> *@
+
+@*     <!-- FORM --> *@
+
+@*     <div class="allocation-form-card"> *@
+
+@*         <div class="allocation-grid"> *@
+
+@*             <!-- SEMESTER --> *@
+
+@*             <div class="form-group"> *@
+
+@*                 <label> *@
+@*                     Semester *@
+@*                 </label> *@
+
+@*                 <select class="form-control" *@
+@*                         @onchange="OnSemesterChanged"> *@
+
+@*                     <option value="0"> *@
+@*                         Select Semester *@
+@*                     </option> *@
+
+@*                     @foreach (var semester in semesters) *@
+@*                     { *@
+@*                         <option value="@semester.SemesterId"> *@
+
+@*                             Semester *@
+@*                             @semester.SemesterNo *@
+
+@*                         </option> *@
+@*                     } *@
+
+@*                 </select> *@
+
+@*             </div> *@
+
+@*             <!-- DIVISION --> *@
+
+@*             <div class="form-group"> *@
+
+@*                 <label> *@
+@*                     Division *@
+@*                 </label> *@
+
+@*                 <select class="form-control" *@
+@*                         @bind="allocation.DivisionId"> *@
+
+@*                     <option value="0"> *@
+@*                         Select Division *@
+@*                     </option> *@
+
+@*                     @foreach (var division in filteredDivisions) *@
+@*                     { *@
+@*                         <option value="@division.DivisionId"> *@
+
+@*                             @division.DivisionName *@
+
+@*                         </option> *@
+@*                     } *@
+
+@*                 </select> *@
+
+@*             </div> *@
+
+@*             <!-- ROOM --> *@
+
+@*             <div class="form-group"> *@
+
+@*                 <label> *@
+@*                     Room *@
+@*                 </label> *@
+
+@*                 <select class="form-control" *@
+@*                         @bind="allocation.RoomId"> *@
+
+@*                     <option value="0"> *@
+@*                         Select Room *@
+@*                     </option> *@
+
+@*                     @foreach (var room in rooms) *@
+@*                     { *@
+@*                         <option value="@room.RoomId"> *@
+
+@*                             @room.RoomName *@
+
+@*                             - *@
+
+@*                             @room.Department.DepartmentName *@
+
+@*                         </option> *@
+@*                     } *@
+
+@*                 </select> *@
+
+@*             </div> *@
+
+@*         </div> *@
+
+@*         <!-- BUTTON --> *@
+@*         @if (!isEditMode) *@
+@*         { *@
+@*             <button class="add-btn" *@
+@*                     @onclick="SaveAllocation"> *@
+
+@*                 Add Allocation *@
+
+@*             </button> *@
+@*         } *@
+@*         else *@
+@*         { *@
+@*             <div class="btn-group-custom"> *@
+
+@*                 <button class="update-btn" *@
+@*                         @onclick="SaveAllocation"> *@
+
+@*                     Update Allocation *@
+
+@*                 </button> *@
+
+@*                 <button class="cancel-btn" *@
+@*                         @onclick="CancelEdit"> *@
+
+@*                     Cancel *@
+
+@*                 </button> *@
+
+@*             </div> *@
+@*         } *@
+
+@*     </div> *@
+
+@*     <!-- TABLE --> *@
+
+@*     <div class="allocation-table-card"> *@
+
+@*         <table class="allocation-table"> *@
+
+@*             <thead> *@
+
+@*                 <tr> *@
+
+@*                     <th> *@
+@*                         Semester *@
+@*                     </th> *@
+
+@*                     <th> *@
+@*                         Division *@
+@*                     </th> *@
+
+@*                     <th> *@
+@*                         Room *@
+@*                     </th> *@
+
+@*                     <th> *@
+@*                         Department *@
+@*                     </th> *@
+
+@*                     <th> *@
+@*                         Actions *@
+@*                     </th> *@
+
+@*                 </tr> *@
+
+@*             </thead> *@
+
+@*             <tbody> *@
+
+@*                 @if (allocations.Any()) *@
+@*                 { *@
+@*                     @foreach (var item in allocations) *@
+@*                     { *@
+@*                         <tr> *@
+
+@*                             <td> *@
+
+@*                                 Semester *@
+@*                                 @item.Semester.SemesterNo *@
+
+@*                             </td> *@
+
+@*                             <td> *@
+
+@*                                 @item.Division.DivisionName *@
+
+@*                             </td> *@
+
+@*                             <td> *@
+
+@*                                 @item.Room.RoomName *@
+
+@*                             </td> *@
+
+@*                             <td> *@
+
+@*                                 @item.Room.Department.DepartmentName *@
+
+@*                             </td> *@
+
+@*                             <td> *@
+
+@*                                 <button class="edit-btn" *@
+@*                                         @onclick="() => *@
+@*                                         EditAllocation(item.AllocationId)"> *@
+
+@*                                     Edit *@
+
+@*                                 </button> *@
+
+@*                                 <button class="delete-btn" *@
+@*                                         @onclick="() => *@
+@*                                         DeleteAllocation(item.AllocationId)"> *@
+
+@*                                     Delete *@
+
+@*                                 </button> *@
+
+@*                             </td> *@
+
+@*                         </tr> *@
+@*                     } *@
+@*                 } *@
+@*                 else *@
+@*                 { *@
+@*                     <tr> *@
+
+@*                         <td colspan="5" *@
+@*                             class="no-data"> *@
+
+@*                             No allocation found *@
+
+@*                         </td> *@
+
+@*                     </tr> *@
+@*                 } *@
+
+@*             </tbody> *@
+
+@*         </table> *@
+
+@*     </div> *@
+
+@* </div> *@
+
+@* @if (showToast) *@
+@* { *@
+@*     <div class="custom-toast *@
+@*          @(isErrorToast *@
+@*             ? "error-toast" *@
+@*             : "success-toast")"> *@
+
+@*         @toastMessage *@
+
+@*     </div> *@
+@* } *@
+
+@* @code { *@
+
+@*     private List<DivisionRoomAllocation> *@
+@*         allocations = new(); *@
+
+@*     private List<Semester> *@
+@*         semesters = new(); *@
+
+@*     private List<Division> *@
+@*         divisions = new(); *@
+
+@*     private List<Division> *@
+@*         filteredDivisions = new(); *@
+
+@*     private List<Room> *@
+@*         rooms = new(); *@
+
+@*     private DivisionRoomAllocation *@
+@*         allocation = new(); *@
+
+@*     private bool isEditMode = false; *@
+
+@*     private int editId; *@
+
+@*     private int LoggedInUserId; *@
+
+@*     private string toastMessage = ""; *@
+
+@*     private bool showToast = false; *@
+
+@*     private bool isErrorToast = false; *@
+
+@*     private async Task ReloadData() *@
+@*     { *@
+@*         await OnInitializedAsync(); *@
+
+@*         await InvokeAsync(StateHasChanged); *@
+@*     } *@
+
+@*     protected override async Task OnInitializedAsync() *@
+@*     { *@
+@*         SessionState.OnChange += ReloadData; *@
+
+@*         var authState = *@
+@*             await AuthStateProvider *@
+@*             .GetAuthenticationStateAsync(); *@
+
+@*         var user = authState.User; *@
+
+@*         LoggedInUserId = *@
+@*             Convert.ToInt32( *@
+@*                 user.FindFirst( *@
+@*                     ClaimTypes.NameIdentifier)?.Value); *@
+
+@*         var courseId = *@
+@*             SessionState.CourseId; *@
+
+@*         if (courseId == null || courseId == 0) *@
+@*             return; *@
+
+@*         var termId = *@
+@*             SessionState.AcademicTermId; *@
+
+@*         if (termId == null || termId == 0) *@
+@*             return; *@
+
+@*         // SEMESTERS FILTERED BY TERM *@
+
+@*         semesters = *@
+@*             await AllocationRepo *@
+@*             .GetSemestersByCourseAsync( *@
+@*                 courseId.Value, *@
+@*                 termId.Value); *@
+
+@*         // DIVISIONS *@
+
+@*         divisions = *@
+@*             await AllocationRepo *@
+@*             .GetDivisionsAsync( *@
+@*                 LoggedInUserId); *@
+
+@*         // ROOMS *@
+
+@*         rooms = *@
+@*             await AllocationRepo *@
+@*             .GetRoomsAsync( *@
+@*                 LoggedInUserId); *@
+
+@*         // TABLE FILTERED *@
+
+@*         allocations = *@
+@*             await AllocationRepo *@
+@*             .GetAllAsync( *@
+
+@*                 LoggedInUserId, *@
+
+@*                 SessionState.AcademicYearId ?? 0, *@
+
+@*                 SessionState.CourseId ?? 0, *@
+
+@*                 SessionState.AcademicTermId ?? 0); *@
+@*     } *@
+
+@*     private void OnSemesterChanged( *@
+@*         ChangeEventArgs e) *@
+@*     { *@
+@*         allocation.SemesterId = *@
+@*             Convert.ToInt32(e.Value); *@
+
+@*         filteredDivisions = *@
+@*             divisions *@
+
+@*             .Where(x => *@
+@*                 x.SemesterId *@
+@*                 == allocation.SemesterId) *@
+
+@*             .ToList(); *@
+@*     } *@
+
+@*     // private async Task SaveAllocation() *@
+@*     // { *@
+@*     //     try *@
+@*     //     { *@
+@*     //         if (allocation.SemesterId == 0 *@
+@*     //             || allocation.DivisionId == 0 *@
+@*     //             || allocation.RoomId == 0) *@
+@*     //         { *@
+@*     //             ShowToast( *@
+@*     //                 "Please select all fields", *@
+@*     //                 true); *@
+
+@*     //             return; *@
+@*     //         } *@
+
+@*     //         bool roomExists = *@
+@*     //             await AllocationRepo *@
+@*     //             .RoomAlreadyAllocatedAsync( *@
+@*     //                 allocation.SemesterId, *@
+@*     //                 allocation.RoomId, *@
+@*     //                 editId); *@
+
+@*     //         if (roomExists) *@
+@*     //         { *@
+@*     //             ShowToast( *@
+@*     //                 "Room already assigned", *@
+@*     //                 true); *@
+
+@*     //             return; *@
+@*     //         } *@
+
+@*     //         if (!isEditMode) *@
+@*     //         { *@
+@*     //             await AllocationRepo *@
+@*     //                 .AddAsync(allocation); *@
+@*     //         } *@
+@*     //         else *@
+@*     //         { *@
+@*     //             await AllocationRepo *@
+@*     //                 .UpdateAsync(allocation); *@
+@*     //         } *@
+
+@*     //         await AllocationRepo *@
+@*     //             .SaveAsync(); *@
+
+@*     //         ShowToast( *@
+@*     //             isEditMode *@
+@*     //             ? "Allocation updated successfully" *@
+@*     //             : "Allocation added successfully", *@
+@*     //             false); *@
+
+@*     //         allocations = *@
+@*     //             await AllocationRepo *@
+@*     //             .GetAllAsync( *@
+
+@*     //                 LoggedInUserId, *@
+
+@*     //                 SessionState.AcademicYearId ?? 0, *@
+
+@*     //                 SessionState.CourseId ?? 0, *@
+
+@*     //                 SessionState.AcademicTermId ?? 0); *@
+
+@*     //         allocation = *@
+@*     //             new DivisionRoomAllocation(); *@
+
+@*     //         filteredDivisions = *@
+@*     //             new(); *@
+
+@*     //         isEditMode = false; *@
+@*     //     } *@
+@*     //     catch (Exception) *@
+@*     //     { *@
+@*     //         ShowToast( *@
+@*     //             "Duplicate allocation not allowed", *@
+@*     //             true); *@
+@*     //     } *@
+@*     // } *@
+
+
+@*     private async Task SaveAllocation() *@
+@*     { *@
+@*         try *@
+@*         { *@
+@*             allocation.AcademicTermId = *@
+@*                 SessionState.AcademicTermId ?? 0; *@
+
+@*             if (allocation.SemesterId == 0 *@
+@*                 || allocation.DivisionId == 0 *@
+@*                 || allocation.RoomId == 0) *@
+@*             { *@
+@*                 ShowToast( *@
+@*                     "Please select all fields", *@
+@*                     true); *@
+
+@*                 return; *@
+@*             } *@
+
+@*             // bool roomExists = *@
+@*             //     await AllocationRepo *@
+@*             //     .RoomAlreadyAllocatedAsync( *@
+@*             //         allocation.SemesterId, *@
+@*             //         allocation.RoomId, *@
+@*             //         editId); *@
+@*             bool roomExists = *@
+@*     await AllocationRepo *@
+@*     .RoomAlreadyAllocatedAsync( *@
+@*         allocation.RoomId, *@
+@*         editId); *@
+
+@*             // if (roomExists) *@
+@*             // { *@
+@*             //     ShowToast( *@
+@*             //         "Room already assigned", *@
+@*             //         true); *@
+
+@*             //     return; *@
+@*             // } *@
+
+@*             if (roomExists) *@
+@*             { *@
+@*                 var existingAllocation = *@
+@*                     await AllocationRepo *@
+@*                     .GetRoomAllocationAsync( *@
+@*                         allocation.RoomId); *@
+
+@*                 ShowToast( *@
+@*                     $"Room already allocated in Semester {existingAllocation?.Semester?.SemesterNo}", *@
+@*                     true); *@
+
+@*                 return; *@
+@*             } *@
+
+@*             if (!isEditMode) *@
+@*             { *@
+@*                 await AllocationRepo *@
+@*                     .AddAsync(allocation); *@
+@*             } *@
+@*             else *@
+@*             { *@
+@*                 await AllocationRepo *@
+@*                     .UpdateAsync(allocation); *@
+@*             } *@
+
+@*             await AllocationRepo *@
+@*                 .SaveAsync(); *@
+
+@*             ShowToast( *@
+@*                 isEditMode *@
+@*                 ? "Allocation updated successfully" *@
+@*                 : "Allocation added successfully", *@
+@*                 false); *@
+
+@*             allocations = *@
+@*                 await AllocationRepo *@
+@*                 .GetAllAsync( *@
+
+@*                     LoggedInUserId, *@
+
+@*                     SessionState.AcademicYearId ?? 0, *@
+
+@*                     SessionState.CourseId ?? 0, *@
+
+@*                     SessionState.AcademicTermId ?? 0); *@
+
+@*             allocation = *@
+@*                 new DivisionRoomAllocation(); *@
+
+@*             filteredDivisions = *@
+@*                 new(); *@
+
+@*             isEditMode = false; *@
+@*         } *@
+@*         catch (Exception ex) *@
+@*         { *@
+@*             ShowToast( *@
+@*                 ex.Message, *@
+@*                 true); *@
+@*         } *@
+@*     } *@
+
+@*     private async Task EditAllocation( *@
+@*         int id) *@
+@*     { *@
+@*         var data = *@
+@*             await AllocationRepo *@
+@*             .GetByIdAsync(id); *@
+
+@*         if (data != null) *@
+@*         { *@
+@*             allocation = data; *@
+
+@*             filteredDivisions = *@
+@*                 divisions *@
+
+@*                 .Where(x => *@
+@*                     x.SemesterId *@
+@*                     == allocation.SemesterId) *@
+
+@*                 .ToList(); *@
+
+@*             editId = id; *@
+
+@*             isEditMode = true; *@
+@*         } *@
+@*     } *@
+
+@*     private async Task DeleteAllocation( *@
+@*         int id) *@
+@*     { *@
+@*         await AllocationRepo *@
+@*             .DeleteAsync(id); *@
+
+@*         await AllocationRepo *@
+@*             .SaveAsync(); *@
+
+@*         allocations = *@
+@*             await AllocationRepo *@
+@*             .GetAllAsync( *@
+
+@*                 LoggedInUserId, *@
+
+@*                 SessionState.AcademicYearId ?? 0, *@
+
+@*                 SessionState.CourseId ?? 0, *@
+
+@*                 SessionState.AcademicTermId ?? 0); *@
+
+@*         ShowToast( *@
+@*             "Allocation deleted successfully", *@
+@*             false); *@
+@*     } *@
+
+@*     private void CancelEdit() *@
+@*     { *@
+@*         allocation = *@
+@*             new DivisionRoomAllocation(); *@
+
+@*         filteredDivisions = *@
+@*             new(); *@
+
+@*         isEditMode = false; *@
+@*     } *@
+
+@*     private async void ShowToast( *@
+@*         string message, *@
+@*         bool isError) *@
+@*     { *@
+@*         toastMessage = message; *@
+
+@*         isErrorToast = isError; *@
+
+@*         showToast = true; *@
+
+@*         StateHasChanged(); *@
+
+@*         await Task.Delay(3000); *@
+
+@*         showToast = false; *@
+
+@*         await InvokeAsync( *@
+@*             StateHasChanged); *@
+@*     } *@
+
+@*     void GoBack() *@
+@*     { *@
+@*         try *@
+@*         { *@
+@*             Nav.NavigateTo( *@
+@*                 "/tt/academic/subject-mapping"); *@
+@*         } *@
+@*         catch *@
+@*         { *@
+@*         } *@
+@*     } *@
+
+@*     void GoNext() *@
+@*     { *@
+@*         Nav.NavigateTo("/tt/Configuration/schedule-configuration"); *@
+@*     } *@
+
+@*     public void Dispose() *@
+@*     { *@
+@*         SessionState.OnChange -= ReloadData; *@
+@*     } *@
+@* } *@
+
+
+
+
+@page "/tt/academic/division-room-allocation"
 
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
@@ -53,7 +772,8 @@
 
         </div>
     </div>
-    <br/>
+
+    <br />
 
     <!-- FORM -->
 
@@ -108,17 +828,6 @@
                     @foreach (var division
                     in filteredDivisions)
                     {
-                        @* <option value="@division.DivisionId"> *@
-
-                        @*     @division.DivisionName *@
-
-                        @*     - *@
-
-                        @*     Semester *@
-                        @*     @division.Semester.SemesterNo *@
-
-                        @* </option> *@
-
                         <option value="@division.DivisionId">
 
                             @division.DivisionName
@@ -325,6 +1034,49 @@
     </div>
 }
 
+@if (showDeallocateModal)
+{
+    <div class="modal-overlay">
+
+        <div class="custom-modal">
+
+            <h3>
+                Room Already Allocated
+            </h3>
+
+            <p>
+                Room already allocated in
+                @oldSemesterName
+            </p>
+
+            <p>
+                Do you want to deallocate
+                and reallocate?
+            </p>
+
+            <div class="modal-btn-group">
+
+                <button class="confirm-btn"
+                        @onclick="ConfirmDeallocation">
+
+                    Yes
+
+                </button>
+
+                <button class="cancel-btn"
+                        @onclick="CloseModal">
+
+                    No
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+}
+
 @code {
 
     private List<DivisionRoomAllocation>
@@ -357,43 +1109,81 @@
 
     private bool isErrorToast = false;
 
+    private bool showDeallocateModal = false;
 
+    private int oldAllocationId = 0;
+
+    private string oldSemesterName = "";
 
     protected override async Task OnInitializedAsync()
     {
-        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        SessionState.OnChange += ReloadData;
+
+        var authState =
+            await AuthStateProvider
+            .GetAuthenticationStateAsync();
+
         var user = authState.User;
 
         LoggedInUserId =
-            Convert.ToInt32(user.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            Convert.ToInt32(
+                user.FindFirst(
+                    ClaimTypes.NameIdentifier)?.Value);
 
-        var courseId = SessionState.CourseId;
-
-        if (courseId == null || courseId == 0)
-            return;
-
-        var academicYearId =
-    SessionState.AcademicYearId;
-
-var termId =
-    SessionState.AcademicTermId;
-
-if (academicYearId == null ||
-    termId == null)
-    return;
-
-semesters = await AllocationRepo
-    .GetSemestersByCourseAndTermAsync(
-        courseId.Value,
-        academicYearId.Value,
-        termId.Value);
-
-        divisions = await AllocationRepo.GetDivisionsAsync(LoggedInUserId);
-        rooms = await AllocationRepo.GetRoomsAsync(LoggedInUserId);
-        allocations = await AllocationRepo.GetAllAsync(LoggedInUserId);
+        await ReloadData();
     }
 
+    private async Task ReloadData()
+    {
+        var courseId =
+            SessionState.CourseId;
 
+        var termId =
+            SessionState.AcademicTermId;
+
+        if (courseId == null
+            || termId == null)
+        {
+            semesters = new();
+            return;
+        }
+
+        semesters =
+            await AllocationRepo
+            .GetSemestersByCourseAsync(
+                courseId.Value,
+                termId.Value);
+
+        divisions =
+            await AllocationRepo
+            .GetDivisionsAsync(
+                LoggedInUserId);
+
+        rooms =
+            await AllocationRepo
+            .GetRoomsAsync(
+                LoggedInUserId);
+
+        allocations =
+            await AllocationRepo
+            .GetAllAsync(
+
+                LoggedInUserId,
+
+                SessionState.AcademicYearId ?? 0,
+
+                SessionState.CourseId ?? 0,
+
+                SessionState.AcademicTermId ?? 0);
+
+        allocation =
+            new DivisionRoomAllocation();
+
+        filteredDivisions =
+            new();
+
+        await InvokeAsync(StateHasChanged);
+    }
 
     private void OnSemesterChanged(
         ChangeEventArgs e)
@@ -411,72 +1201,215 @@ semesters = await AllocationRepo
             .ToList();
     }
 
+    // private async Task SaveAllocation()
+    // {
+    //     try
+    //     {
+    //         if (allocation.SemesterId == 0
+    //             || allocation.DivisionId == 0
+    //             || allocation.RoomId == 0)
+    //         {
+    //             ShowToast(
+    //                 "Please select all fields",
+    //                 true);
+
+    //             return;
+    //         }
+
+    //         var existingAllocation =
+    //             await AllocationRepo
+    //             .GetRoomAllocationAsync(
+    //                 allocation.RoomId);
+
+    //         if (existingAllocation != null
+    //             &&
+    //             existingAllocation.SemesterId
+    //             != allocation.SemesterId
+    //             &&
+    //             existingAllocation.AllocationId
+    //             != editId)
+    //         {
+    //             oldAllocationId =
+    //                 existingAllocation.AllocationId;
+
+    //             oldSemesterName =
+    //                 $"Semester {existingAllocation.Semester.SemesterNo}";
+
+    //             showDeallocateModal = true;
+
+    //             StateHasChanged();
+
+    //             return;
+    //         }
+
+    //         bool roomExists =
+    //             await AllocationRepo
+    //             .RoomAlreadyAllocatedAsync(
+    //                 allocation.SemesterId,
+    //                 allocation.RoomId,
+    //                 editId);
+
+    //         if (roomExists)
+    //         {
+    //             ShowToast(
+    //                 "Room already assigned in this semester",
+    //                 true);
+
+    //             return;
+    //         }
+
+    //         allocation.AcademicTermId =
+    //             SessionState.AcademicTermId ?? 0;
+
+    //         if (!isEditMode)
+    //         {
+    //             await AllocationRepo
+    //                 .AddAsync(allocation);
+    //         }
+    //         else
+    //         {
+    //             await AllocationRepo
+    //                 .UpdateAsync(allocation);
+    //         }
+
+    //         await AllocationRepo
+    //             .SaveAsync();
+
+    //         ShowToast(
+    //             isEditMode
+    //             ? "Allocation updated successfully"
+    //             : "Allocation added successfully",
+    //             false);
+
+    //         await ReloadData();
+
+    //         isEditMode = false;
+    //     }
+    //     catch (Exception ex)
+    //     {
+    //         ShowToast(
+    //             ex.Message,
+    //             true);
+    //     }
+    // }
 
 
     // private async Task SaveAllocation()
     // {
-    //     if (allocation.SemesterId == 0
-    //         || allocation.DivisionId == 0
-    //         || allocation.RoomId == 0)
+    //     try
     //     {
+    //         if (allocation.SemesterId == 0
+    //             || allocation.DivisionId == 0
+    //             || allocation.RoomId == 0)
+    //         {
+    //             ShowToast(
+    //                 "Please select all fields",
+    //                 true);
+
+    //             return;
+    //         }
+
+          
+
+    //         =========================
+    //         ROOM CHECK
+    //         =========================
+
+    //         var existingAllocation =
+    //             await AllocationRepo
+    //             .GetRoomAllocationAsync(
+    //                 allocation.RoomId);
+
+    //         if (existingAllocation != null
+    //             &&
+    //             existingAllocation.SemesterId
+    //             != allocation.SemesterId
+    //             &&
+    //             existingAllocation.AllocationId
+    //             != editId)
+    //         {
+    //             oldAllocationId =
+    //                 existingAllocation.AllocationId;
+
+    //             oldSemesterName =
+    //                 $"Semester {existingAllocation.Semester.SemesterNo}";
+
+    //             showDeallocateModal = true;
+
+    //             StateHasChanged();
+
+    //             return;
+    //         }
+
+    //         =========================
+    //         DIVISION CLASH CHECK
+    //         =========================
+
+    //         bool divisionExists =
+    //             await AllocationRepo
+    //             .DivisionAlreadyAllocatedAsync(
+    //                 allocation.DivisionId,
+    //                 editId);
+
+    //         if (divisionExists)
+    //         {
+    //             ShowToast(
+    //                 "This division already has room allocated",
+    //                 true);
+
+    //             return;
+    //         }
+    //         SAME SEMESTER ROOM CHECK
+
+    //         bool roomExists =
+    //             await AllocationRepo
+    //             .RoomAlreadyAllocatedAsync(
+    //                 allocation.SemesterId,
+    //                 allocation.RoomId,
+    //                 editId);
+
+    //         if (roomExists)
+    //         {
+    //             ShowToast(
+    //                 "Room already assigned in this semester",
+    //                 true);
+
+    //             return;
+    //         }
+
+    //         allocation.AcademicTermId =
+    //             SessionState.AcademicTermId ?? 0;
+
+    //         if (!isEditMode)
+    //         {
+    //             await AllocationRepo
+    //                 .AddAsync(allocation);
+    //         }
+    //         else
+    //         {
+    //             await AllocationRepo
+    //                 .UpdateAsync(allocation);
+    //         }
+
+    //         await AllocationRepo.SaveAsync();
+
     //         ShowToast(
-    //             "Please select all fields",
-    //             true);
-
-    //         return;
-    //     }
-
-    //     bool roomExists =
-    //         await AllocationRepo
-    //         .RoomAlreadyAllocatedAsync(
-    //             allocation.RoomId,
-    //             editId);
-
-    //     if (roomExists)
-    //     {
-    //         ShowToast(
-    //             "Room already allocated",
-    //             true);
-
-    //         return;
-    //     }
-
-    //     if (!isEditMode)
-    //     {
-    //         await AllocationRepo
-    //             .AddAsync(allocation);
-
-    //         ShowToast(
-    //             "Allocation added successfully",
+    //             isEditMode
+    //             ? "Allocation updated successfully"
+    //             : "Allocation added successfully",
     //             false);
+
+    //         await ReloadData();
+
+    //         isEditMode = false;
     //     }
-    //     else
+    //     catch (Exception ex)
     //     {
-    //         await AllocationRepo
-    //             .UpdateAsync(allocation);
-
     //         ShowToast(
-    //             "Allocation updated successfully",
-    //             false);
+    //             ex.Message,
+    //             true);
     //     }
-
-    //     await AllocationRepo
-    //         .SaveAsync();
-
-    //     allocations =
-    //         await AllocationRepo
-    //         .GetAllAsync(
-    //             LoggedInUserId);
-
-    //     allocation =
-    //         new DivisionRoomAllocation();
-
-    //     filteredDivisions =
-    //         new();
-
-    //     isEditMode = false;
     // }
-
 
 
     private async Task SaveAllocation()
@@ -497,29 +1430,77 @@ semesters = await AllocationRepo
                 return;
             }
 
-     //        bool roomExists =
-     // await AllocationRepo
-     // .RoomAlreadyAllocatedAsync(
-     //     allocation.SemesterId,
-     //     allocation.RoomId,
-     //     editId);
+            // =========================
+            // SAME DIVISION CHECK
+            // =========================
 
-            bool roomExists =
-           await AllocationRepo
-           .RoomAlreadyAllocatedAsync(
-               allocation.SemesterId,
-               allocation.RoomId,
-               editId);
+            bool divisionExists =
+                await AllocationRepo
+                .DivisionAlreadyAllocatedAsync(
+                    allocation.DivisionId,
+                    editId);
 
-            if (roomExists)
+            if (divisionExists)
             {
                 ShowToast(
-                    "Room already assigned",
+                    "Division already has room allocated",
                     true);
 
                 return;
             }
 
+            // =========================
+            // ROOM CHECK OTHER SEMESTER
+            // =========================
+
+            var existingAllocation =
+                await AllocationRepo
+                .GetRoomAllocationAsync(
+                    allocation.RoomId);
+
+            if (existingAllocation != null
+                &&
+                existingAllocation.SemesterId
+                != allocation.SemesterId
+                &&
+                existingAllocation.AllocationId
+                != editId)
+            {
+                oldAllocationId =
+                    existingAllocation.AllocationId;
+
+                oldSemesterName =
+                    $"Semester {existingAllocation.Semester.SemesterNo}";
+
+                showDeallocateModal = true;
+
+                StateHasChanged();
+
+                return;
+            }
+
+            // =========================
+            // SAME SEMESTER ROOM CHECK
+            // =========================
+
+            bool roomExists =
+                await AllocationRepo
+                .RoomAlreadyAllocatedAsync(
+                    allocation.SemesterId,
+                    allocation.RoomId,
+                    editId);
+
+            if (roomExists)
+            {
+                ShowToast(
+                    "Room already assigned in this semester",
+                    true);
+
+                return;
+            }
+
+            allocation.AcademicTermId =
+                SessionState.AcademicTermId ?? 0;
 
             if (!isEditMode)
             {
@@ -541,36 +1522,48 @@ semesters = await AllocationRepo
                 : "Allocation added successfully",
                 false);
 
-            allocations =
-                await AllocationRepo
-                .GetAllAsync(
-                    LoggedInUserId);
-
-            allocation =
-                new DivisionRoomAllocation();
-
-            filteredDivisions =
-                new();
+            await ReloadData();
 
             isEditMode = false;
         }
-        // catch (Exception)
-        // {
-        //     ShowToast(
-        //         "Duplicate allocation not allowed",
-        //         true);
-        // }
-        catch (DbUpdateException ex)
+        catch (Exception)
         {
-            var msg = ex.InnerException?.Message ?? ex.Message;
-            ShowToast(msg, true);
-        }
-        catch (Exception ex)
-        {
-            ShowToast(ex.Message, true);
+            ShowToast(
+                "Duplicate allocation not allowed",
+                true);
         }
     }
 
+    private async Task ConfirmDeallocation()
+    {
+        await AllocationRepo
+            .DeleteAsync(oldAllocationId);
+
+        await AllocationRepo
+            .SaveAsync();
+
+        allocation.AcademicTermId =
+            SessionState.AcademicTermId ?? 0;
+
+        await AllocationRepo
+            .AddAsync(allocation);
+
+        await AllocationRepo
+            .SaveAsync();
+
+        await ReloadData();
+
+        showDeallocateModal = false;
+
+        ShowToast(
+            "Room reallocated successfully",
+            false);
+    }
+
+    private void CloseModal()
+    {
+        showDeallocateModal = false;
+    }
 
     private async Task EditAllocation(
         int id)
@@ -598,8 +1591,6 @@ semesters = await AllocationRepo
         }
     }
 
-
-
     private async Task DeleteAllocation(
         int id)
     {
@@ -609,17 +1600,12 @@ semesters = await AllocationRepo
         await AllocationRepo
             .SaveAsync();
 
-        allocations =
-            await AllocationRepo
-            .GetAllAsync(
-                LoggedInUserId);
+        await ReloadData();
 
         ShowToast(
             "Allocation deleted successfully",
             false);
     }
-
-
 
     private void CancelEdit()
     {
@@ -631,8 +1617,6 @@ semesters = await AllocationRepo
 
         isEditMode = false;
     }
-
-
 
     private async void ShowToast(
         string message,
@@ -668,7 +1652,13 @@ semesters = await AllocationRepo
 
     void GoNext()
     {
-        Nav.NavigateTo("/tt/Configuration/schedule-configuration");
+        Nav.NavigateTo(
+            "/tt/Configuration/schedule-configuration");
+    }
+
+    public void Dispose()
+    {
+        SessionState.OnChange -= ReloadData;
     }
 
     private string GetRoomTypeText(RoomTypeEnum type)

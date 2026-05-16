@@ -12,8 +12,8 @@ using ScheduleX.Infrastructure.Data;
 namespace ScheduleX.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260507145858_UpdateRoomUnique")]
-    partial class UpdateRoomUnique
+    [Migration("20260515053328_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -156,6 +156,55 @@ namespace ScheduleX.Infrastructure.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
+                });
+
+            modelBuilder.Entity("ScheduleX.Core.Entities.AcademicTerm", b =>
+                {
+                    b.Property<int>("AcademicTermId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AcademicTermId"));
+
+                    b.Property<int>("AcademicYearId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CourseId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateOnly?>("EndDate")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("IsCurrent")
+                        .HasColumnType("bit");
+
+                    b.Property<byte>("SemesterPattern")
+                        .HasColumnType("tinyint");
+
+                    b.Property<DateOnly?>("StartDate")
+                        .HasColumnType("date");
+
+                    b.Property<byte>("Status")
+                        .HasColumnType("tinyint");
+
+                    b.Property<byte>("TermType")
+                        .HasColumnType("tinyint");
+
+                    b.HasKey("AcademicTermId");
+
+                    b.HasIndex("CourseId");
+
+                    b.HasIndex("AcademicYearId", "CourseId", "IsCurrent")
+                        .IsUnique()
+                        .HasFilter("[IsCurrent] = 1");
+
+                    b.HasIndex("AcademicYearId", "CourseId", "TermType")
+                        .IsUnique();
+
+                    b.ToTable("TblAcademicTerm", (string)null);
                 });
 
             modelBuilder.Entity("ScheduleX.Core.Entities.AcademicYear", b =>
@@ -353,6 +402,9 @@ namespace ScheduleX.Infrastructure.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AllocationId"));
 
+                    b.Property<int>("AcademicTermId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -376,12 +428,15 @@ namespace ScheduleX.Infrastructure.Migrations
 
                     b.HasKey("AllocationId");
 
-                    b.HasIndex("DivisionId")
+                    b.HasIndex("DivisionId");
+
+                    b.HasIndex("RoomId")
                         .IsUnique();
 
-                    b.HasIndex("RoomId");
-
                     b.HasIndex("SemesterId");
+
+                    b.HasIndex("AcademicTermId", "DivisionId")
+                        .IsUnique();
 
                     b.ToTable("TblDivisionRoomAllocation", (string)null);
                 });
@@ -570,8 +625,8 @@ namespace ScheduleX.Infrastructure.Migrations
                     b.Property<int>("LectureDurationMin")
                         .HasColumnType("int");
 
-                    b.Property<byte>("LecturesPerDay")
-                        .HasColumnType("tinyint");
+                    b.Property<int>("LecturesPerDay")
+                        .HasColumnType("int");
 
                     b.Property<TimeOnly>("StartTime")
                         .HasColumnType("time");
@@ -609,6 +664,9 @@ namespace ScheduleX.Infrastructure.Migrations
 
                     b.Property<int>("SemesterNo")
                         .HasColumnType("int");
+
+                    b.Property<byte>("SemesterPattern")
+                        .HasColumnType("tinyint");
 
                     b.HasKey("SemesterId");
 
@@ -674,8 +732,8 @@ namespace ScheduleX.Infrastructure.Migrations
 
                     b.Property<string>("SubjectName")
                         .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
 
                     b.Property<int>("TheoryCredits")
                         .HasColumnType("int");
@@ -906,8 +964,8 @@ namespace ScheduleX.Infrastructure.Migrations
                     b.Property<TimeOnly>("EndTime")
                         .HasColumnType("time");
 
-                    b.Property<byte>("SlotNo")
-                        .HasColumnType("tinyint");
+                    b.Property<int>("SlotNo")
+                        .HasColumnType("int");
 
                     b.Property<byte>("SlotType")
                         .HasColumnType("tinyint");
@@ -932,6 +990,9 @@ namespace ScheduleX.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("BatchId"));
+
+                    b.Property<int>("AcademicTermId")
+                        .HasColumnType("int");
 
                     b.Property<int>("AcademicYearId")
                         .HasColumnType("int");
@@ -974,6 +1035,8 @@ namespace ScheduleX.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("BatchId");
+
+                    b.HasIndex("AcademicTermId");
 
                     b.HasIndex("AcademicYearId");
 
@@ -1272,6 +1335,25 @@ namespace ScheduleX.Infrastructure.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("ScheduleX.Core.Entities.AcademicTerm", b =>
+                {
+                    b.HasOne("ScheduleX.Core.Entities.AcademicYear", "AcademicYear")
+                        .WithMany("AcademicTerms")
+                        .HasForeignKey("AcademicYearId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("ScheduleX.Core.Entities.Course", "Course")
+                        .WithMany("AcademicTerms")
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AcademicYear");
+
+                    b.Navigation("Course");
+                });
+
             modelBuilder.Entity("ScheduleX.Core.Entities.BreakRule", b =>
                 {
                     b.HasOne("ScheduleX.Core.Entities.ScheduleConfig", "ScheduleConfig")
@@ -1330,6 +1412,12 @@ namespace ScheduleX.Infrastructure.Migrations
 
             modelBuilder.Entity("ScheduleX.Core.Entities.DivisionRoomAllocation", b =>
                 {
+                    b.HasOne("ScheduleX.Core.Entities.AcademicTerm", "AcademicTerm")
+                        .WithMany("DivisionRoomAllocations")
+                        .HasForeignKey("AcademicTermId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("ScheduleX.Core.Entities.Division", "Division")
                         .WithMany("DivisionRoomAllocations")
                         .HasForeignKey("DivisionId")
@@ -1347,6 +1435,8 @@ namespace ScheduleX.Infrastructure.Migrations
                         .HasForeignKey("SemesterId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("AcademicTerm");
 
                     b.Navigation("Division");
 
@@ -1626,6 +1716,12 @@ namespace ScheduleX.Infrastructure.Migrations
 
             modelBuilder.Entity("ScheduleX.Core.Entities.TimeTableBatch", b =>
                 {
+                    b.HasOne("ScheduleX.Core.Entities.AcademicTerm", "AcademicTerm")
+                        .WithMany("TimeTableBatches")
+                        .HasForeignKey("AcademicTermId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("ScheduleX.Core.Entities.AcademicYear", "AcademicYear")
                         .WithMany("TimeTableBatches")
                         .HasForeignKey("AcademicYearId")
@@ -1666,6 +1762,8 @@ namespace ScheduleX.Infrastructure.Migrations
                         .HasForeignKey("TemplateId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
+
+                    b.Navigation("AcademicTerm");
 
                     b.Navigation("AcademicYear");
 
@@ -1760,8 +1858,17 @@ namespace ScheduleX.Infrastructure.Migrations
                     b.Navigation("Department");
                 });
 
+            modelBuilder.Entity("ScheduleX.Core.Entities.AcademicTerm", b =>
+                {
+                    b.Navigation("DivisionRoomAllocations");
+
+                    b.Navigation("TimeTableBatches");
+                });
+
             modelBuilder.Entity("ScheduleX.Core.Entities.AcademicYear", b =>
                 {
+                    b.Navigation("AcademicTerms");
+
                     b.Navigation("Divisions");
 
                     b.Navigation("ScheduleConfigs");
@@ -1782,6 +1889,8 @@ namespace ScheduleX.Infrastructure.Migrations
 
             modelBuilder.Entity("ScheduleX.Core.Entities.Course", b =>
                 {
+                    b.Navigation("AcademicTerms");
+
                     b.Navigation("ScheduleConfigs");
 
                     b.Navigation("Semesters");
