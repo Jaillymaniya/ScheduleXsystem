@@ -2,7 +2,7 @@
 
 namespace ScheduleX.Web.DTOs
 {
-    public class GenerateResultDto
+    public class ViewTimetableResultDto
     {
         public bool Success { get; set; }
 
@@ -12,8 +12,10 @@ namespace ScheduleX.Web.DTOs
 
         public string? Base64 { get; set; }
 
-        public List<PreviewDto> Preview { get; set; } = new();
+        public TemplateStyle TemplateStyle { get; set; } = new();
 
-        public TemplateStyle? TemplateStyle { get; set; }
+        public List<ViewBatchCardDto> Batches { get; set; } = new();
+
+        public List<DivisionPreviewGroupDto> Groups { get; set; } = new();
     }
 }

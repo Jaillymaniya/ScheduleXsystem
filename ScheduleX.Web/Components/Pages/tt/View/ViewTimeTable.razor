@@ -1,0 +1,294 @@
+﻿@page "/tt/view"
+@using ScheduleX.Web.Components.Layout.tt
+@layout TTLayout
+@attribute [Authorize(Roles = "TTCoordinator")]
+
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Authorization
+@using Microsoft.JSInterop
+@using ScheduleX.Web.DTOs
+@using ScheduleX.Web.Services
+@using ScheduleX.Web.Services.TT.TimeTable
+
+@inject AuthenticationStateProvider AuthProvider
+@inject TTSessionState TTSessionState
+@inject IViewTimetableService ViewService
+@inject IJSRuntime JS
+
+<link href="/css/tt/tt-view.css" rel="stylesheet" />
+<PageTitle>View Timetable</PageTitle>
+
+<div class="ttv-page">
+
+    <!-- HEADER -->
+    <div class="ttv-header">
+        <div>
+            <h2>Generated Timetables</h2>
+            <p>View, preview, download, or delete generated timetable batches</p>
+        </div>
+    </div>
+
+    <!-- SESSION INFO -->
+    <div class="ttv-session-card">
+
+        <div class="ttv-session-item">
+            <label>Academic Year</label>
+            <div class="ttv-session-value">
+                @TTSessionState.AcademicYearName
+            </div>
+        </div>
+
+        <div class="ttv-session-item">
+            <label>Course</label>
+            <div class="ttv-session-value">
+                @TTSessionState.CourseName
+            </div>
+        </div>
+
+        <div class="ttv-session-item">
+            <label>Term</label>
+            <div class="ttv-session-value">
+                @TTSessionState.TermName
+            </div>
+        </div>
+
+        <div>
+            <button class="ttv-btn-primary"
+                    @onclick="LoadBatches">
+                Load Timetables
+            </button>
+        </div>
+
+    </div>
+
+    <!-- BATCHES -->
+    @if (Batches.Any())
+    {
+        <div class="ttv-batch-grid">
+
+            @foreach (var batch in Batches)
+            {
+                <div class="ttv-batch-card @(SelectedBatchId == batch.BatchId ? "ttv-batch-card-active" : "")"
+                     @onclick="() => SelectBatch(batch.BatchId)">
+
+                    <div class="ttv-batch-title">
+                        @batch.Course
+                    </div>
+
+                    <div class="ttv-batch-meta">
+                        @batch.AcademicYear
+                    </div>
+
+                    <div class="ttv-batch-meta">
+                        @batch.Term
+                    </div>
+
+                    <div class="ttv-batch-meta">
+                        Template: @batch.TemplateName
+                    </div>
+
+                    <div class="ttv-batch-meta">
+                        Divisions: @batch.TotalDivisions
+                    </div>
+
+                    <div class="ttv-batch-date">
+                        @batch.CreatedAt.ToString("dd MMM yyyy hh:mm tt")
+                    </div>
+
+                </div>
+            }
+
+        </div>
+    }
+
+    <!-- DIVISION PILLS -->
+    @if (PreviewGroups.Any())
+    {
+        <div class="ttv-pill-wrap">
+
+            @foreach (var pill in PreviewGroups)
+            {
+                <button class="ttv-pill @(SelectedDivisionKey == pill.Key ? "ttv-pill-active" : "")"
+                        @onclick="() => SelectDivision(pill.Key)">
+                    @pill.Semester - @pill.Division
+                </button>
+            }
+
+        </div>
+    }
+
+    <!-- ACTION BAR -->
+    @if (SelectedBatchId > 0)
+    {
+        <div class="ttv-action-bar">
+
+            <button class="ttv-btn-success"
+                    @onclick="DownloadExcel">
+                Download Excel
+            </button>
+
+            <button class="ttv-btn-danger"
+                    @onclick="DeleteBatch">
+                Delete Timetable
+            </button>
+
+        </div>
+    }
+
+    <!-- PREVIEW -->
+    @if (SelectedEntries.Any())
+    {
+        <ViewTimetablePreviewGrid Data="SelectedEntries"
+                                  Style="CurrentStyle" />
+    }
+
+</div>
+
+@code {
+    private int CurrentUserId;
+    private int SelectedBatchId;
+    private string SelectedDivisionKey = "";
+
+    private List<ViewBatchCardDto> Batches = new();
+    private List<DivisionPreviewGroupDto> PreviewGroups = new();
+    private List<PreviewDto> SelectedEntries = new();
+
+    private Models.Template.TemplateStyle CurrentStyle = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        var auth = await AuthProvider.GetAuthenticationStateAsync();
+        var user = auth.User;
+
+        var id = user.FindFirst(ClaimTypes.NameIdentifier);
+
+        if (id != null)
+        {
+            CurrentUserId = int.Parse(id.Value);
+        }
+
+        TTSessionState.OnChange += HandleSessionChanged;
+    }
+
+    private async Task HandleSessionChanged()
+    {
+        Batches.Clear();
+        PreviewGroups.Clear();
+        SelectedEntries.Clear();
+        SelectedBatchId = 0;
+        SelectedDivisionKey = "";
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadBatches()
+    {
+        if (!TTSessionState.AcademicYearId.HasValue ||
+            !TTSessionState.CourseId.HasValue ||
+            !TTSessionState.AcademicTermId.HasValue)
+        {
+            return;
+        }
+
+        var result = await ViewService.GetBatchesAsync(
+            new LoadViewTimetableRequestDto
+                {
+                    UserId = CurrentUserId,
+                    AcademicYearId = TTSessionState.AcademicYearId.Value,
+                    CourseId = TTSessionState.CourseId.Value,
+                    AcademicTermId = TTSessionState.AcademicTermId.Value
+                });
+
+        Batches = result.Batches;
+
+        PreviewGroups.Clear();
+        SelectedEntries.Clear();
+    }
+
+    private async Task SelectBatch(int batchId)
+    {
+        SelectedBatchId = batchId;
+
+        PreviewGroups.Clear();
+        SelectedEntries.Clear();
+        SelectedDivisionKey = "";
+
+        StateHasChanged();
+
+        var result = await ViewService.GetBatchPreviewAsync(
+            batchId,
+            CurrentUserId);
+
+        if (!result.Success)
+        {
+            Console.WriteLine(result.Message);
+            return;
+        }
+
+        PreviewGroups = result.Groups ?? new();
+        CurrentStyle = result.TemplateStyle ?? new();
+
+        if (PreviewGroups.Any())
+        {
+            var first = PreviewGroups.First();
+
+            SelectedDivisionKey = first.Key;
+            SelectedEntries = first.Entries ?? new();
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void SelectDivision(string key)
+    {
+        SelectedDivisionKey = key;
+
+        var selected = PreviewGroups
+            .FirstOrDefault(x => x.Key == key);
+
+        if (selected != null)
+        {
+            SelectedEntries = selected.Entries;
+        }
+    }
+
+    private async Task DownloadExcel()
+    {
+        var result = await ViewService.DownloadBatchAsync(
+            SelectedBatchId,
+            CurrentUserId);
+
+        if (!result.Success || string.IsNullOrWhiteSpace(result.Base64))
+            return;
+
+        await JS.InvokeVoidAsync(
+            "downloadFile",
+            "Timetable.xlsx",
+            result.Base64);
+    }
+
+    private async Task DeleteBatch()
+    {
+        var deleted = await ViewService.DeleteBatchAsync(
+            SelectedBatchId,
+            CurrentUserId);
+
+        if (!deleted)
+            return;
+
+        Batches.RemoveAll(x => x.BatchId == SelectedBatchId);
+
+        PreviewGroups.Clear();
+        SelectedEntries.Clear();
+
+        SelectedBatchId = 0;
+        SelectedDivisionKey = "";
+
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        TTSessionState.OnChange -= HandleSessionChanged;
+    }
+}

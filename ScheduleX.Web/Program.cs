@@ -30,6 +30,7 @@ using ScheduleX.Web.Services.TT;
 using ScheduleX.Web.Services.TimeTable;
 using ScheduleX.Infrastructure.Repositories.TTCoordinator;
 using ScheduleX.Web.Services.Excel;
+using ScheduleX.Web.Services.TT.TimeTable;
 var builder = WebApplication.CreateBuilder(args);
 
 // ================= DB =================
@@ -157,11 +158,11 @@ builder.Services.AddScoped<ChangePasswordService>();
 //builder.Services.AddScoped<ITTCoordinatorService, TTCoordinatorService>();
 
 builder.Services.AddScoped<ITimetableRepository, TimetableRepository>();
+builder.Services.AddScoped<IViewTimetableRepository, ViewTimetableRepository>();
 
-
-builder.Services.AddScoped<IExcelService, ExcelService>();
 builder.Services.AddScoped<ITimeTableService, TimeTableService>();
-
+builder.Services.AddScoped<IViewTimetableService, ViewTimetableService>();
+builder.Services.AddScoped<IExcelService, ExcelService>();
 
 builder.Services.AddScoped<TimeTableTemplateService>();
 

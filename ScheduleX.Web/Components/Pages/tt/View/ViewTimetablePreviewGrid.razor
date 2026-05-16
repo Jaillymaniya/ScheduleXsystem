@@ -1,0 +1,178 @@
+﻿@using ScheduleX.Web.DTOs
+@using ScheduleX.Web.Models.Template
+
+@if (Data == null || !Data.Any())
+{
+    <div class="ttv-preview-empty">
+        No timetable preview available
+    </div>
+}
+else
+{
+    <div class="ttv-preview-wrapper"
+         style="
+            background:@Style.BodyBg;
+            color:@Style.BodyText;">
+
+        <div class="ttv-preview-grid"
+             style="
+                border-color:@Style.BorderColor; 
+grid-template-columns: 150px repeat(@Days.Count, minmax(180px, 1fr));">
+
+            <!-- HEADER -->
+            <div class="ttv-cell ttv-head"
+                 style="
+                    background:@Style.HeaderBg;
+                    color:@Style.HeaderText;
+                    border-color:@Style.BorderColor;
+                    text-align:@Style.TitleAlign;">
+                Time
+            </div>
+
+            @foreach (var day in Days)
+            {
+                <div class="ttv-cell ttv-head"
+                     style="
+                        background:@Style.HeaderBg;
+                        color:@Style.HeaderText;
+                        border-color:@Style.BorderColor;
+                        text-align:@Style.TitleAlign;">
+                    @GetDayName(day)
+                </div>
+            }
+
+            <!-- ROWS -->
+            @foreach (var slot in Slots)
+            {
+                var slotItem = Data.FirstOrDefault(x => x.SlotNo == slot);
+
+                <div class="ttv-cell ttv-time"
+                     style="
+                        background:@Style.BodyBg;
+                        color:@Style.BodyText;
+                        border-color:@Style.BorderColor;">
+                    @(slotItem?.SlotTime ?? $"Slot {slot}")
+                </div>
+
+                @foreach (var day in Days)
+                {
+                    var item = Data.FirstOrDefault(x =>
+                    x.DayOfWeek == day &&
+                    x.SlotNo == slot);
+
+                    <div class="ttv-cell"
+                         style="
+                            border-color:@Style.BorderColor;
+                            padding:@Style.CellPadding;
+                            font-size:@Style.FontSize;
+                            text-align:@Style.TitleAlign;
+                            background:@GetCellBackground(item);
+                            color:@GetCellText(item);">
+
+                        @if (item != null)
+                        {
+                            <div class="ttv-slot-title">
+                                @item.Subject
+                            </div>
+
+                            @if (Style.ShowFaculty &&
+                           !string.IsNullOrWhiteSpace(item.Faculty) &&
+                           !item.IsBreak &&
+                           !item.IsSelfStudy)
+                            {
+                                <div class="ttv-slot-sub">
+                                    @item.Faculty
+                                </div>
+                            }
+
+                            @if (Style.ShowRoom &&
+                           !string.IsNullOrWhiteSpace(item.Room) &&
+                           !item.IsBreak)
+                            {
+                                <div class="ttv-slot-sub">
+                                    @item.Room
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="ttv-slot-title">
+                                Free
+                            </div>
+                        }
+                    </div>
+                }
+            }
+
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public List<PreviewDto> Data { get; set; } = new();
+
+    [Parameter]
+    public TemplateStyle Style { get; set; } = new();
+
+    private List<int> Days =>
+        Data.Select(x => x.DayOfWeek)
+            .Distinct()
+            .OrderBy(x => x)
+            .ToList();
+
+    private List<int> Slots =>
+        Data.Select(x => x.SlotNo)
+            .Distinct()
+            .OrderBy(x => x)
+            .ToList();
+
+    private string GetDayName(int day)
+    {
+        return day switch
+        {
+            1 => "Monday",
+            2 => "Tuesday",
+            3 => "Wednesday",
+            4 => "Thursday",
+            5 => "Friday",
+            6 => "Saturday",
+            7 => "Sunday",
+            _ => ""
+        };
+    }
+
+    private string GetCellBackground(PreviewDto? item)
+    {
+        if (item == null)
+            return "#f8fafc";
+
+        if (item.IsBreak)
+            return "#fde68a";
+
+        if (item.IsProject)
+            return "#d1fae5";
+
+        if (item.IsSelfStudy)
+            return "#ede9fe";
+
+        return Style.BodyBg;
+    }
+
+    private string GetCellText(PreviewDto? item)
+    {
+        if (item == null)
+            return "#64748b";
+
+        if (item.IsBreak)
+            return "#111827";
+
+        if (item.IsProject)
+            return "#111827";
+
+        if (item.IsSelfStudy)
+            return "#111827";
+
+        return Style.BodyText;
+    }
+}
