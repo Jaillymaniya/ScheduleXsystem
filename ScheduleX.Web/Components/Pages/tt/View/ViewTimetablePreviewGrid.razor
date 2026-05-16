@@ -3,24 +3,24 @@
 
 @if (Data == null || !Data.Any())
 {
-    <div class="ttv-preview-empty">
+    <div class="view-tt-preview-empty">
         No timetable preview available
     </div>
 }
 else
 {
-    <div class="ttv-preview-wrapper"
+    <div class="view-tt-preview-wrapper"
          style="
             background:@Style.BodyBg;
             color:@Style.BodyText;">
 
-        <div class="ttv-preview-grid"
+        <div class="view-tt-preview-grid"
              style="
-                border-color:@Style.BorderColor; 
-grid-template-columns: 150px repeat(@Days.Count, minmax(180px, 1fr));">
+                border-color:@Style.BorderColor;
+                grid-template-columns: 150px repeat(@Days.Count, minmax(180px, 1fr));">
 
             <!-- HEADER -->
-            <div class="ttv-cell ttv-head"
+            <div class="view-tt-cell view-tt-head"
                  style="
                     background:@Style.HeaderBg;
                     color:@Style.HeaderText;
@@ -31,7 +31,7 @@ grid-template-columns: 150px repeat(@Days.Count, minmax(180px, 1fr));">
 
             @foreach (var day in Days)
             {
-                <div class="ttv-cell ttv-head"
+                <div class="view-tt-cell view-tt-head"
                      style="
                         background:@Style.HeaderBg;
                         color:@Style.HeaderText;
@@ -46,7 +46,7 @@ grid-template-columns: 150px repeat(@Days.Count, minmax(180px, 1fr));">
             {
                 var slotItem = Data.FirstOrDefault(x => x.SlotNo == slot);
 
-                <div class="ttv-cell ttv-time"
+                <div class="view-tt-cell view-tt-time"
                      style="
                         background:@Style.BodyBg;
                         color:@Style.BodyText;
@@ -60,7 +60,7 @@ grid-template-columns: 150px repeat(@Days.Count, minmax(180px, 1fr));">
                     x.DayOfWeek == day &&
                     x.SlotNo == slot);
 
-                    <div class="ttv-cell"
+                    <div class="view-tt-cell"
                          style="
                             border-color:@Style.BorderColor;
                             padding:@Style.CellPadding;
@@ -71,7 +71,7 @@ grid-template-columns: 150px repeat(@Days.Count, minmax(180px, 1fr));">
 
                         @if (item != null)
                         {
-                            <div class="ttv-slot-title">
+                            <div class="view-tt-slot-title">
                                 @item.Subject
                             </div>
 
@@ -80,7 +80,7 @@ grid-template-columns: 150px repeat(@Days.Count, minmax(180px, 1fr));">
                            !item.IsBreak &&
                            !item.IsSelfStudy)
                             {
-                                <div class="ttv-slot-sub">
+                                <div class="view-tt-slot-sub">
                                     @item.Faculty
                                 </div>
                             }
@@ -89,14 +89,14 @@ grid-template-columns: 150px repeat(@Days.Count, minmax(180px, 1fr));">
                            !string.IsNullOrWhiteSpace(item.Room) &&
                            !item.IsBreak)
                             {
-                                <div class="ttv-slot-sub">
+                                <div class="view-tt-slot-sub">
                                     @item.Room
                                 </div>
                             }
                         }
                         else
                         {
-                            <div class="ttv-slot-title">
+                            <div class="view-tt-slot-title">
                                 Free
                             </div>
                         }

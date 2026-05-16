@@ -14,14 +14,15 @@
 @inject TTSessionState TTSessionState
 @inject IViewTimetableService ViewService
 @inject IJSRuntime JS
+<link href="/css/tt/tt-tt-view.css" rel="stylesheet" />
 
-<link href="/css/tt/tt-view.css" rel="stylesheet" />
+
 <PageTitle>View Timetable</PageTitle>
 
-<div class="ttv-page">
+<div class="view-tt">
 
     <!-- HEADER -->
-    <div class="ttv-header">
+    <div class="view-tt-header">
         <div>
             <h2>Generated Timetables</h2>
             <p>View, preview, download, or delete generated timetable batches</p>
@@ -29,31 +30,32 @@
     </div>
 
     <!-- SESSION INFO -->
-    <div class="ttv-session-card">
+    <div class="view-tt-session-card">
 
-        <div class="ttv-session-item">
+        <div class="view-tt-session-item">
             <label>Academic Year</label>
-            <div class="ttv-session-value">
+            <div class="view-tt-session-value">
                 @TTSessionState.AcademicYearName
             </div>
         </div>
 
-        <div class="ttv-session-item">
+        <div class="view-tt-session-item">
             <label>Course</label>
-            <div class="ttv-session-value">
+            <div class="view-tt-session-value">
                 @TTSessionState.CourseName
             </div>
         </div>
 
-        <div class="ttv-session-item">
+        <div class="view-tt-session-item">
             <label>Term</label>
-            <div class="ttv-session-value">
+            <div class="view-tt-session-value">
                 @TTSessionState.TermName
             </div>
         </div>
 
         <div>
-            <button class="ttv-btn-primary"
+            <button type="button"
+                    class="view-tt-btn-primary"
                     @onclick="LoadBatches">
                 Load Timetables
             </button>
@@ -64,34 +66,34 @@
     <!-- BATCHES -->
     @if (Batches.Any())
     {
-        <div class="ttv-batch-grid">
+        <div class="view-tt-batch-grid">
 
             @foreach (var batch in Batches)
             {
-                <div class="ttv-batch-card @(SelectedBatchId == batch.BatchId ? "ttv-batch-card-active" : "")"
+                <div class="view-tt-batch-card @(SelectedBatchId == batch.BatchId ? "view-tt-batch-card-active" : "")"
                      @onclick="() => SelectBatch(batch.BatchId)">
 
-                    <div class="ttv-batch-title">
+                    <div class="view-tt-batch-title">
                         @batch.Course
                     </div>
 
-                    <div class="ttv-batch-meta">
+                    <div class="view-tt-batch-meta">
                         @batch.AcademicYear
                     </div>
 
-                    <div class="ttv-batch-meta">
+                    <div class="view-tt-batch-meta">
                         @batch.Term
                     </div>
 
-                    <div class="ttv-batch-meta">
+                    <div class="view-tt-batch-meta">
                         Template: @batch.TemplateName
                     </div>
 
-                    <div class="ttv-batch-meta">
+                    <div class="view-tt-batch-meta">
                         Divisions: @batch.TotalDivisions
                     </div>
 
-                    <div class="ttv-batch-date">
+                    <div class="view-tt-batch-date">
                         @batch.CreatedAt.ToString("dd MMM yyyy hh:mm tt")
                     </div>
 
@@ -104,11 +106,12 @@
     <!-- DIVISION PILLS -->
     @if (PreviewGroups.Any())
     {
-        <div class="ttv-pill-wrap">
+        <div class="view-tt-pill-wrap">
 
             @foreach (var pill in PreviewGroups)
             {
-                <button class="ttv-pill @(SelectedDivisionKey == pill.Key ? "ttv-pill-active" : "")"
+                <button type="button"
+                        class="view-tt-pill @(SelectedDivisionKey == pill.Key ? "view-tt-pill-active" : "")"
                         @onclick="() => SelectDivision(pill.Key)">
                     @pill.Semester - @pill.Division
                 </button>
@@ -120,14 +123,16 @@
     <!-- ACTION BAR -->
     @if (SelectedBatchId > 0)
     {
-        <div class="ttv-action-bar">
+        <div class="view-tt-action-bar">
 
-            <button class="ttv-btn-success"
+            <button type="button"
+                    class="view-tt-btn-success"
                     @onclick="DownloadExcel">
                 Download Excel
             </button>
 
-            <button class="ttv-btn-danger"
+            <button type="button"
+                    class="view-tt-btn-danger"
                     @onclick="DeleteBatch">
                 Delete Timetable
             </button>
