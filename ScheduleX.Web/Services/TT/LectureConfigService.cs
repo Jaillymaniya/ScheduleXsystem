@@ -15,9 +15,10 @@ namespace ScheduleX.Web.Services.TT
         public Task<List<Semester>> GetSemestersAsync(
     int userId,
     int courseId,
-    int academicYearId)
+    int academicYearId,
+    int academicTermId)
         {
-            return _repo.GetSemestersAsync(userId, courseId, academicYearId);
+            return _repo.GetSemestersAsync(userId, courseId, academicYearId, academicTermId);
         }
 
         public Task<List<SubjectSemester>> GetSubjectsAsync(int semesterId, int academicYearId)

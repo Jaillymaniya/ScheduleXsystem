@@ -40,7 +40,11 @@ namespace ScheduleX.Core.Interfaces.TTCoordinator
         //int allocationId = 0);
 
 
-        Task<List<Semester>> GetSemestersByCourseAsync(int courseId);
+        Task<List<Semester>>
+GetSemestersByCourseAndTermAsync(
+    int courseId,
+    int academicYearId,
+    int academicTermId);
 
         Task<bool> RoomAlreadyAllocatedAsync(
     int semesterId,
