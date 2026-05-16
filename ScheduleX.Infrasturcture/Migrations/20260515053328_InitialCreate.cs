@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ScheduleX.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class IdentityInit : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -33,8 +33,6 @@ namespace ScheduleX.Infrastructure.Migrations
                     AcademicYearId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     YearName = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    StartDate = table.Column<DateOnly>(type: "date", nullable: false),
-                    EndDate = table.Column<DateOnly>(type: "date", nullable: false),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
@@ -134,7 +132,7 @@ namespace ScheduleX.Infrastructure.Migrations
                     Email = table.Column<string>(type: "nvarchar(120)", maxLength: 120, nullable: true),
                     Phone = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
                     IsExternal = table.Column<bool>(type: "bit", nullable: false),
-                    MaxLecturesPerDay = table.Column<byte>(type: "tinyint", nullable: true),
+                    MaxLecturesPerDay = table.Column<int>(type: "int", nullable: true),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
@@ -143,30 +141,6 @@ namespace ScheduleX.Infrastructure.Migrations
                     table.PrimaryKey("PK_TblFaculty", x => x.FacultyId);
                     table.ForeignKey(
                         name: "FK_TblFaculty_TblDepartment_DepartmentId",
-                        column: x => x.DepartmentId,
-                        principalTable: "TblDepartment",
-                        principalColumn: "DepartmentId",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "TblRoom",
-                columns: table => new
-                {
-                    RoomId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    DepartmentId = table.Column<int>(type: "int", nullable: false),
-                    RoomName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
-                    RoomType = table.Column<byte>(type: "tinyint", nullable: false),
-                    Capacity = table.Column<int>(type: "int", nullable: false),
-                    IsActive = table.Column<bool>(type: "bit", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_TblRoom", x => x.RoomId);
-                    table.ForeignKey(
-                        name: "FK_TblRoom_TblDepartment_DepartmentId",
                         column: x => x.DepartmentId,
                         principalTable: "TblDepartment",
                         principalColumn: "DepartmentId",
@@ -211,6 +185,39 @@ namespace ScheduleX.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "TblAcademicTerm",
+                columns: table => new
+                {
+                    AcademicTermId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    AcademicYearId = table.Column<int>(type: "int", nullable: false),
+                    CourseId = table.Column<int>(type: "int", nullable: false),
+                    TermType = table.Column<byte>(type: "tinyint", nullable: false),
+                    SemesterPattern = table.Column<byte>(type: "tinyint", nullable: false),
+                    Status = table.Column<byte>(type: "tinyint", nullable: false),
+                    IsCurrent = table.Column<bool>(type: "bit", nullable: false),
+                    StartDate = table.Column<DateOnly>(type: "date", nullable: true),
+                    EndDate = table.Column<DateOnly>(type: "date", nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TblAcademicTerm", x => x.AcademicTermId);
+                    table.ForeignKey(
+                        name: "FK_TblAcademicTerm_TblAcademicYear_AcademicYearId",
+                        column: x => x.AcademicYearId,
+                        principalTable: "TblAcademicYear",
+                        principalColumn: "AcademicYearId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_TblAcademicTerm_TblCourse_CourseId",
+                        column: x => x.CourseId,
+                        principalTable: "TblCourse",
+                        principalColumn: "CourseId",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "TblScheduleConfig",
                 columns: table => new
                 {
@@ -223,7 +230,7 @@ namespace ScheduleX.Infrastructure.Migrations
                     EndTime = table.Column<TimeOnly>(type: "time", nullable: false),
                     LectureDurationMin = table.Column<int>(type: "int", nullable: false),
                     WorkingDaysMask = table.Column<int>(type: "int", nullable: false),
-                    LecturesPerDay = table.Column<byte>(type: "tinyint", nullable: false),
+                    LecturesPerDay = table.Column<int>(type: "int", nullable: false),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
@@ -257,7 +264,8 @@ namespace ScheduleX.Infrastructure.Migrations
                     SemesterId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     CourseId = table.Column<int>(type: "int", nullable: false),
-                    SemesterNo = table.Column<byte>(type: "tinyint", nullable: false),
+                    SemesterNo = table.Column<int>(type: "int", nullable: false),
+                    SemesterPattern = table.Column<byte>(type: "tinyint", nullable: false),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
@@ -279,7 +287,7 @@ namespace ScheduleX.Infrastructure.Migrations
                     SubjectId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     CourseId = table.Column<int>(type: "int", nullable: false),
-                    SubjectName = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
+                    SubjectName = table.Column<string>(type: "nvarchar(300)", maxLength: 300, nullable: false),
                     SubjectCode = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: true),
                     TheoryCredits = table.Column<int>(type: "int", nullable: false),
                     PracticalCredits = table.Column<int>(type: "int", nullable: false),
@@ -436,6 +444,37 @@ namespace ScheduleX.Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "TblRoom",
+                columns: table => new
+                {
+                    RoomId = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    DepartmentId = table.Column<int>(type: "int", nullable: false),
+                    RoomName = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    RoomType = table.Column<byte>(type: "tinyint", nullable: false),
+                    Capacity = table.Column<int>(type: "int", nullable: false),
+                    TTCoordinatorId = table.Column<int>(type: "int", nullable: true),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_TblRoom", x => x.RoomId);
+                    table.ForeignKey(
+                        name: "FK_TblRoom_TblDepartment_DepartmentId",
+                        column: x => x.DepartmentId,
+                        principalTable: "TblDepartment",
+                        principalColumn: "DepartmentId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_TblRoom_TblUser_TTCoordinatorId",
+                        column: x => x.TTCoordinatorId,
+                        principalTable: "TblUser",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "TblTTCoordinatorCourse",
                 columns: table => new
                 {
@@ -443,6 +482,7 @@ namespace ScheduleX.Infrastructure.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     UserId = table.Column<int>(type: "int", nullable: false),
                     CourseId = table.Column<int>(type: "int", nullable: false),
+                    IsActive = table.Column<bool>(type: "bit", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
@@ -493,6 +533,7 @@ namespace ScheduleX.Infrastructure.Migrations
                     BatchId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     AcademicYearId = table.Column<int>(type: "int", nullable: false),
+                    AcademicTermId = table.Column<int>(type: "int", nullable: false),
                     CreatedByUserId = table.Column<int>(type: "int", nullable: false),
                     DepartmentId = table.Column<int>(type: "int", nullable: false),
                     CourseId = table.Column<int>(type: "int", nullable: false),
@@ -509,6 +550,12 @@ namespace ScheduleX.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_TblTimeTableBatch", x => x.BatchId);
+                    table.ForeignKey(
+                        name: "FK_TblTimeTableBatch_TblAcademicTerm_AcademicTermId",
+                        column: x => x.AcademicTermId,
+                        principalTable: "TblAcademicTerm",
+                        principalColumn: "AcademicTermId",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_TblTimeTableBatch_TblAcademicYear_AcademicYearId",
                         column: x => x.AcademicYearId,
@@ -581,10 +628,12 @@ namespace ScheduleX.Infrastructure.Migrations
                     DivisionId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     AcademicYearId = table.Column<int>(type: "int", nullable: false),
+                    CourseId = table.Column<int>(type: "int", nullable: false),
                     SemesterId = table.Column<int>(type: "int", nullable: false),
                     DivisionName = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     StudentStrength = table.Column<int>(type: "int", nullable: false),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
+                    TTCoordinatorId = table.Column<int>(type: "int", nullable: true),
                     CreatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
@@ -597,10 +646,22 @@ namespace ScheduleX.Infrastructure.Migrations
                         principalColumn: "AcademicYearId",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
+                        name: "FK_TblDivision_TblCourse_CourseId",
+                        column: x => x.CourseId,
+                        principalTable: "TblCourse",
+                        principalColumn: "CourseId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
                         name: "FK_TblDivision_TblSemester_SemesterId",
                         column: x => x.SemesterId,
                         principalTable: "TblSemester",
                         principalColumn: "SemesterId",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_TblDivision_TblUser_TTCoordinatorId",
+                        column: x => x.TTCoordinatorId,
+                        principalTable: "TblUser",
+                        principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                 });
 
@@ -610,6 +671,7 @@ namespace ScheduleX.Infrastructure.Migrations
                 {
                     SubjectSemesterId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    AcademicYearId = table.Column<int>(type: "int", nullable: false),
                     SubjectId = table.Column<int>(type: "int", nullable: false),
                     SemesterId = table.Column<int>(type: "int", nullable: false),
                     IsActive = table.Column<bool>(type: "bit", nullable: false),
@@ -618,6 +680,12 @@ namespace ScheduleX.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_TblSubjectSemester", x => x.SubjectSemesterId);
+                    table.ForeignKey(
+                        name: "FK_TblSubjectSemester_TblAcademicYear_AcademicYearId",
+                        column: x => x.AcademicYearId,
+                        principalTable: "TblAcademicYear",
+                        principalColumn: "AcademicYearId",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_TblSubjectSemester_TblSemester_SemesterId",
                         column: x => x.SemesterId,
@@ -639,7 +707,7 @@ namespace ScheduleX.Infrastructure.Migrations
                     TimeSlotId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     ConfigId = table.Column<int>(type: "int", nullable: false),
-                    SlotNo = table.Column<byte>(type: "tinyint", nullable: false),
+                    SlotNo = table.Column<int>(type: "int", nullable: false),
                     StartTime = table.Column<TimeOnly>(type: "time", nullable: false),
                     EndTime = table.Column<TimeOnly>(type: "time", nullable: false),
                     SlotType = table.Column<byte>(type: "tinyint", nullable: false),
@@ -696,6 +764,7 @@ namespace ScheduleX.Infrastructure.Migrations
                 {
                     AllocationId = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
+                    AcademicTermId = table.Column<int>(type: "int", nullable: false),
                     SemesterId = table.Column<int>(type: "int", nullable: false),
                     DivisionId = table.Column<int>(type: "int", nullable: false),
                     RoomId = table.Column<int>(type: "int", nullable: false),
@@ -707,6 +776,12 @@ namespace ScheduleX.Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_TblDivisionRoomAllocation", x => x.AllocationId);
+                    table.ForeignKey(
+                        name: "FK_TblDivisionRoomAllocation_TblAcademicTerm_AcademicTermId",
+                        column: x => x.AcademicTermId,
+                        principalTable: "TblAcademicTerm",
+                        principalColumn: "AcademicTermId",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_TblDivisionRoomAllocation_TblDivision_DivisionId",
                         column: x => x.DivisionId,
@@ -944,6 +1019,24 @@ namespace ScheduleX.Infrastructure.Migrations
                 column: "SemesterId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_TblAcademicTerm_AcademicYearId_CourseId_IsCurrent",
+                table: "TblAcademicTerm",
+                columns: new[] { "AcademicYearId", "CourseId", "IsCurrent" },
+                unique: true,
+                filter: "[IsCurrent] = 1");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TblAcademicTerm_AcademicYearId_CourseId_TermType",
+                table: "TblAcademicTerm",
+                columns: new[] { "AcademicYearId", "CourseId", "TermType" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TblAcademicTerm_CourseId",
+                table: "TblAcademicTerm",
+                column: "CourseId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_TblBreakRule_ConfigId_AfterLectureNo",
                 table: "TblBreakRule",
                 columns: new[] { "ConfigId", "AfterLectureNo" },
@@ -981,9 +1074,16 @@ namespace ScheduleX.Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_TblDivision_AcademicYearId",
+                name: "IX_TblDivision_AcademicYearId_CourseId_SemesterId_DivisionName_TTCoordinatorId",
                 table: "TblDivision",
-                column: "AcademicYearId");
+                columns: new[] { "AcademicYearId", "CourseId", "SemesterId", "DivisionName", "TTCoordinatorId" },
+                unique: true,
+                filter: "[TTCoordinatorId] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TblDivision_CourseId",
+                table: "TblDivision",
+                column: "CourseId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TblDivision_SemesterId_DivisionName",
@@ -992,15 +1092,26 @@ namespace ScheduleX.Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_TblDivision_TTCoordinatorId",
+                table: "TblDivision",
+                column: "TTCoordinatorId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TblDivisionRoomAllocation_AcademicTermId_DivisionId",
+                table: "TblDivisionRoomAllocation",
+                columns: new[] { "AcademicTermId", "DivisionId" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_TblDivisionRoomAllocation_DivisionId",
                 table: "TblDivisionRoomAllocation",
-                column: "DivisionId",
-                unique: true);
+                column: "DivisionId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TblDivisionRoomAllocation_RoomId",
                 table: "TblDivisionRoomAllocation",
-                column: "RoomId");
+                column: "RoomId",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_TblDivisionRoomAllocation_SemesterId",
@@ -1036,15 +1147,21 @@ namespace ScheduleX.Infrastructure.Migrations
                 column: "FacultyId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_TblRoom_DepartmentId",
+                name: "IX_TblRoom_DepartmentId_RoomName",
                 table: "TblRoom",
-                column: "DepartmentId");
+                columns: new[] { "DepartmentId", "RoomName" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_TblRoom_RoomName",
                 table: "TblRoom",
                 column: "RoomName",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TblRoom_TTCoordinatorId",
+                table: "TblRoom",
+                column: "TTCoordinatorId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TblScheduleConfig_AcademicYearId",
@@ -1138,6 +1255,11 @@ namespace ScheduleX.Infrastructure.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_TblSubjectSemester_AcademicYearId",
+                table: "TblSubjectSemester",
+                column: "AcademicYearId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_TblSubjectSemester_SemesterId",
                 table: "TblSubjectSemester",
                 column: "SemesterId");
@@ -1158,6 +1280,11 @@ namespace ScheduleX.Infrastructure.Migrations
                 table: "TblTimeSlot",
                 columns: new[] { "ConfigId", "SlotNo" },
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_TblTimeTableBatch_AcademicTermId",
+                table: "TblTimeTableBatch",
+                column: "AcademicTermId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TblTimeTableBatch_AcademicYearId",
@@ -1373,6 +1500,9 @@ namespace ScheduleX.Infrastructure.Migrations
 
             migrationBuilder.DropTable(
                 name: "TblBreakRule");
+
+            migrationBuilder.DropTable(
+                name: "TblAcademicTerm");
 
             migrationBuilder.DropTable(
                 name: "TblTimeTableTemplate");

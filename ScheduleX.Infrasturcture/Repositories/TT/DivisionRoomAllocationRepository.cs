@@ -176,9 +176,43 @@ namespace ScheduleX.Infrastructure.Repositories.TT
             _context = context;
         }
 
+        //public async Task<List<DivisionRoomAllocation>>
+        //GetAllAsync(int ttCoordinatorId)
+        //{
+        //    return await _context
+        //        .DivisionRoomAllocations
+
+        //        .Include(x => x.Semester)
+
+        //        .Include(x => x.Division)
+
+        //        .Include(x => x.Room)
+        //            .ThenInclude(x => x.Department)
+
+        //        .Where(x =>
+        //            x.Division.TTCoordinatorId
+        //            == ttCoordinatorId)
+
+        //        .OrderByDescending(x =>
+        //            x.AllocationId)
+
+        //        .ToListAsync();
+        //}
+
         public async Task<List<DivisionRoomAllocation>>
-        GetAllAsync(int ttCoordinatorId)
+GetAllAsync(
+    int ttCoordinatorId,
+    int academicYearId,
+    int courseId,
+    int academicTermId)
         {
+            var term = await _context.AcademicTerms
+                .FirstOrDefaultAsync(x =>
+                    x.AcademicTermId == academicTermId);
+
+            if (term == null)
+                return new();
+
             return await _context
                 .DivisionRoomAllocations
 
@@ -190,8 +224,24 @@ namespace ScheduleX.Infrastructure.Repositories.TT
                     .ThenInclude(x => x.Department)
 
                 .Where(x =>
+
                     x.Division.TTCoordinatorId
-                    == ttCoordinatorId)
+                    == ttCoordinatorId
+
+                    &&
+
+                    x.Division.AcademicYearId
+                    == academicYearId
+
+                    &&
+
+                    x.Division.CourseId
+                    == courseId
+
+                    &&
+
+                    x.Semester.SemesterPattern
+                    == term.SemesterPattern)
 
                 .OrderByDescending(x =>
                     x.AllocationId)
@@ -312,6 +362,29 @@ namespace ScheduleX.Infrastructure.Repositories.TT
         //}
 
 
+        //        public async Task<bool>
+        //RoomAlreadyAllocatedAsync(
+        //    int semesterId,
+        //    int roomId,
+        //    int allocationId = 0)
+        //        {
+        //            return await _context
+        //                .DivisionRoomAllocations
+
+        //                .AnyAsync(x =>
+
+        //                    x.SemesterId == semesterId
+
+        //                    &&
+
+        //                    x.RoomId == roomId
+
+        //                    &&
+
+        //                    x.AllocationId != allocationId);
+        //        }
+
+
         public async Task<bool>
 RoomAlreadyAllocatedAsync(
     int semesterId,
@@ -333,7 +406,6 @@ RoomAlreadyAllocatedAsync(
 
                     x.AllocationId != allocationId);
         }
-
 
         public async Task AddAsync(
             DivisionRoomAllocation allocation)
@@ -395,12 +467,55 @@ DivisionAlreadyAllocatedAsync(
             await _context.SaveChangesAsync();
         }
 
-        public async Task<List<Semester>> GetSemestersByCourseAsync(int courseId)
+        //public async Task<List<Semester>> GetSemestersByCourseAsync(int courseId)
+        //{
+        //    return await _context.Semesters
+        //        .Where(x => x.CourseId == courseId)
+        //        .OrderBy(x => x.SemesterNo)
+        //        .ToListAsync();
+        //}
+
+
+
+        public async Task<List<Semester>>
+GetSemestersByCourseAsync(
+    int courseId,
+    int academicTermId)
         {
+            var term = await _context.AcademicTerms
+                .FirstOrDefaultAsync(x =>
+                    x.AcademicTermId == academicTermId);
+
+            if (term == null)
+                return new();
+
             return await _context.Semesters
-                .Where(x => x.CourseId == courseId)
+
+                .Where(x =>
+
+                    x.CourseId == courseId
+
+                    &&
+
+                    x.SemesterPattern
+                    == term.SemesterPattern)
+
                 .OrderBy(x => x.SemesterNo)
+
                 .ToListAsync();
+        }
+
+
+        public async Task<DivisionRoomAllocation?>
+GetRoomAllocationAsync(int roomId)
+        {
+            return await _context
+                .DivisionRoomAllocations
+
+                .Include(x => x.Semester)
+
+                .FirstOrDefaultAsync(x =>
+                    x.RoomId == roomId);
         }
     }
 }
