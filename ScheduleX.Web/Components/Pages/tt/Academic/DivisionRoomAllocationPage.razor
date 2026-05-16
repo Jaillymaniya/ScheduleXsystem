@@ -10,6 +10,8 @@
 @using ScheduleX.Web.Services
 @inject TTSessionState SessionState
 @layout TTLayout
+@using Microsoft.EntityFrameworkCore
+
 
 @attribute [Authorize(Roles = "TTCoordinator")]
 
@@ -152,6 +154,9 @@
                             -
 
                             @room.Department.DepartmentName
+                            (
+                            @GetRoomTypeText(room.RoomType)
+                            )
 
                         </option>
                     }
@@ -367,8 +372,22 @@
         if (courseId == null || courseId == 0)
             return;
 
-        // 🔥 Load sequentially (SAFE for Blazor)
-        semesters = await AllocationRepo.GetSemestersByCourseAsync(courseId.Value);
+        var academicYearId =
+    SessionState.AcademicYearId;
+
+var termId =
+    SessionState.AcademicTermId;
+
+if (academicYearId == null ||
+    termId == null)
+    return;
+
+semesters = await AllocationRepo
+    .GetSemestersByCourseAndTermAsync(
+        courseId.Value,
+        academicYearId.Value,
+        termId.Value);
+
         divisions = await AllocationRepo.GetDivisionsAsync(LoggedInUserId);
         rooms = await AllocationRepo.GetRoomsAsync(LoggedInUserId);
         allocations = await AllocationRepo.GetAllAsync(LoggedInUserId);
@@ -464,6 +483,9 @@
     {
         try
         {
+
+            allocation.AcademicTermId = SessionState.AcademicTermId.Value;
+
             if (allocation.SemesterId == 0
                 || allocation.DivisionId == 0
                 || allocation.RoomId == 0)
@@ -532,11 +554,20 @@
 
             isEditMode = false;
         }
-        catch (Exception)
+        // catch (Exception)
+        // {
+        //     ShowToast(
+        //         "Duplicate allocation not allowed",
+        //         true);
+        // }
+        catch (DbUpdateException ex)
         {
-            ShowToast(
-                "Duplicate allocation not allowed",
-                true);
+            var msg = ex.InnerException?.Message ?? ex.Message;
+            ShowToast(msg, true);
+        }
+        catch (Exception ex)
+        {
+            ShowToast(ex.Message, true);
         }
     }
 
@@ -638,5 +669,15 @@
     void GoNext()
     {
         Nav.NavigateTo("/tt/Configuration/schedule-configuration");
+    }
+
+    private string GetRoomTypeText(RoomTypeEnum type)
+    {
+        return type switch
+        {
+            RoomTypeEnum.Classroom => "Classroom",
+            RoomTypeEnum.Lab => "Lab",
+            _ => "Unknown"
+        };
     }
 }
