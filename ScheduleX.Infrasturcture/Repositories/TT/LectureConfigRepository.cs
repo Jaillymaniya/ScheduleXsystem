@@ -83,15 +83,38 @@ namespace ScheduleX.Infrastructure.Repositories.TT
         public async Task<List<Semester>> GetSemestersAsync(
     int userId,
     int courseId,
-    int academicYearId)
+    int academicYearId,
+    int academicTermId)
         {
+            //return await _context.Semesters
+            //    .AsNoTracking()
+            //    .Where(x =>
+            //        x.CourseId == courseId &&
+            //        x.IsActive)
+            //    .OrderBy(x => x.SemesterNo)
+            //    .ToListAsync();
+
+            // GET TERM
+            var term = await _context.AcademicTerms
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x =>
+                    x.AcademicTermId == academicTermId &&
+                    x.AcademicYearId == academicYearId &&
+                    x.CourseId == courseId);
+
+            if (term == null)
+                return new List<Semester>();
+
+            // FILTER SEMESTERS USING PATTERN
             return await _context.Semesters
                 .AsNoTracking()
                 .Where(x =>
                     x.CourseId == courseId &&
+                    x.SemesterPattern == term.SemesterPattern &&
                     x.IsActive)
                 .OrderBy(x => x.SemesterNo)
                 .ToListAsync();
+
         }
 
 
