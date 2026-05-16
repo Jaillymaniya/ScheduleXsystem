@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using ScheduleX.Core.Entities;
 using ScheduleX.Core.Interfaces.TTCoordinator;
 using ScheduleX.Infrastructure.Data;
@@ -8,10 +9,29 @@ namespace ScheduleX.Infrastructure.Repositories.TT
     public class ViewTimetableRepository : IViewTimetableRepository
     {
         private readonly AppDbContext _context;
+        private readonly IConfiguration _configuration;
 
-        public ViewTimetableRepository(AppDbContext context)
+        public ViewTimetableRepository(AppDbContext context, IConfiguration configuration)
         {
             _context = context;
+            _configuration = configuration;
+        }
+
+        public async Task<TimeTableBatch?> GetBatchWithTemplateAsync(int batchId, int userId)
+        {
+            // 1. Manually build the DbContextOptions on the fly
+            var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
+            var connectionString = _configuration.GetConnectionString("DefaultConnection");
+            optionsBuilder.UseSqlServer(connectionString);
+
+            // 2. Create a totally isolated instance of your context just for this query
+            using var isolatedContext = new AppDbContext(optionsBuilder.Options);
+
+            // 3. Run the query using the isolated context instance
+            return await isolatedContext.TimeTableBatches
+                .Include(x => x.TimeTableTemplate)
+                // Add any other .Include() calls your original method had here
+                .SingleOrDefaultAsync(x => x.BatchId == batchId && x.CreatedByUserId == userId);
         }
 
         public async Task<List<TimeTableBatch>> GetCoordinatorBatchesAsync(
@@ -35,22 +55,24 @@ namespace ScheduleX.Infrastructure.Repositories.TT
                 .ToListAsync();
         }
 
-        public async Task<TimeTableBatch?> GetBatchWithTemplateAsync(
-            int batchId,
-            int userId)
-        {
-            return await _context.TimeTableBatches
-                .Include(x => x.TimeTableTemplate)
-                .FirstOrDefaultAsync(x =>
-                    x.BatchId == batchId &&
-                    x.CreatedByUserId == userId);
-        }
+        //public async Task<TimeTableBatch?> GetBatchWithTemplateAsync(
+        //    int batchId,
+        //    int userId)
+        //{
+        //    return await _context.TimeTableBatches
+        //        .Include(x => x.TimeTableTemplate)
+        //        .FirstOrDefaultAsync(x =>
+        //            x.BatchId == batchId &&
+        //            x.CreatedByUserId == userId);
+        //}
 
         public async Task<List<TimeTableEntry>> GetEntriesByBatchAsync(
             int batchId,
             int userId)
         {
             return await _context.TimeTableEntries
+                .Include(x => x.TimeSlot)
+                    .ThenInclude(x => x.BreakRule)
                 .Include(x => x.TimeTableBatch)
                 .Include(x => x.TimeSlot)
                 .Include(x => x.Semester)
@@ -82,6 +104,7 @@ namespace ScheduleX.Infrastructure.Repositories.TT
         {
             return await _context.TimeTableEntries
                 .Include(x => x.TimeSlot)
+                    .ThenInclude(x => x.BreakRule)
                 .Include(x => x.Semester)
                 .Include(x => x.Division)
                 .Include(x => x.Room)

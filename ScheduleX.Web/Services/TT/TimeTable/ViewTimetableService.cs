@@ -156,8 +156,48 @@ namespace ScheduleX.Web.Services.TT.TimeTable
             };
         }
 
+        //    private PreviewDto MapPreview(TimeTableEntry x)
+        //    {
+        //        return new PreviewDto
+        //        {
+        //            EntryId = x.EntryId,
+        //            DayOfWeek = x.DayOfWeek,
+        //            SlotNo = x.TimeSlot?.SlotNo ?? 0,
+        //            SlotTime = x.TimeSlot != null
+        //                ? $"{x.TimeSlot.StartTime:hh\\:mm} - {x.TimeSlot.EndTime:hh\\:mm}"
+        //                : "",
+        //            Subject =
+        //x.EntryType == EntryTypeEnum.Break
+        //    ? (x.TimeSlot?.BreakRule?.BreakName ?? "Break")
+        //    : x.EntryType == EntryTypeEnum.Free
+        //        ? "Free"
+        //        : x.SubjectSemester?.Subject?.SubjectName ?? "",
+        //            Faculty = x.SubjectSemester?
+        //                .SubjectFaculties?
+        //                .FirstOrDefault(f => f.DivisionId == x.DivisionId)?
+        //                .Faculty?
+        //                .FacultyName ?? "",
+        //            Room = x.Room?.RoomName ?? "",
+        //            Division = x.Division?.DivisionName ?? "",
+        //            Semester = $"Semester {x.Semester?.SemesterNo}",
+        //            EntryType = x.EntryType.ToString(),
+        //            IsBreak = x.EntryType == EntryTypeEnum.Break,
+        //            IsProject = false,
+        //            IsSelfStudy = x.EntryType == EntryTypeEnum.Free
+        //        };
+        //    }
         private PreviewDto MapPreview(TimeTableEntry x)
         {
+            bool isBreak = x.EntryType == EntryTypeEnum.Break;
+
+            // Safely check if the subject name represents a project
+            string subjectName = x.SubjectSemester?.Subject?.SubjectName ?? "";
+            bool isProjectSubject = subjectName.Contains("project", StringComparison.OrdinalIgnoreCase)
+                                 || subjectName.Contains("(pw)", StringComparison.OrdinalIgnoreCase);
+
+            bool isProject = x.EntryType == EntryTypeEnum.Free && isProjectSubject;
+            bool isSelfStudy = x.EntryType == EntryTypeEnum.Free && !isProjectSubject;
+
             return new PreviewDto
             {
                 EntryId = x.EntryId,
@@ -166,11 +206,14 @@ namespace ScheduleX.Web.Services.TT.TimeTable
                 SlotTime = x.TimeSlot != null
                     ? $"{x.TimeSlot.StartTime:hh\\:mm} - {x.TimeSlot.EndTime:hh\\:mm}"
                     : "",
-                Subject = x.EntryType == EntryTypeEnum.Break
-                    ? "Break"
-                    : x.EntryType == EntryTypeEnum.Free
-                        ? "Free"
-                        : x.SubjectSemester?.Subject?.SubjectName ?? "",
+
+                // Dynamic Subject text resolution
+                Subject = isBreak
+                    ? (x.TimeSlot?.BreakRule?.BreakName ?? "BREAK")
+                    : (x.EntryType == EntryTypeEnum.Free
+                        ? (isProject ? "PROJECT" : "SELF STUDY")
+                        : subjectName),
+
                 Faculty = x.SubjectSemester?
                     .SubjectFaculties?
                     .FirstOrDefault(f => f.DivisionId == x.DivisionId)?
@@ -180,9 +223,10 @@ namespace ScheduleX.Web.Services.TT.TimeTable
                 Division = x.Division?.DivisionName ?? "",
                 Semester = $"Semester {x.Semester?.SemesterNo}",
                 EntryType = x.EntryType.ToString(),
-                IsBreak = x.EntryType == EntryTypeEnum.Break,
-                IsProject = false,
-                IsSelfStudy = x.EntryType == EntryTypeEnum.Free
+
+                IsBreak = isBreak,
+                IsProject = isProject,
+                IsSelfStudy = isSelfStudy
             };
         }
 

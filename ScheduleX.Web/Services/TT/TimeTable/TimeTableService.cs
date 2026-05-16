@@ -218,6 +218,7 @@
 //    }
 //}
 //for edit
+
 using ScheduleX.Core.Entities;
 using ScheduleX.Core.Interfaces.TTCoordinator;
 using ScheduleX.Infrastructure.Data;
@@ -398,8 +399,12 @@ namespace ScheduleX.Web.Services.TimeTable
 
         private string GetSubjectName(TimeTableEntry e)
         {
+            //if (e.EntryType == EntryTypeEnum.Break)
+            //    return "Break";
             if (e.EntryType == EntryTypeEnum.Break)
-                return "Break";
+            {
+                return e.TimeSlot?.BreakRule?.BreakName ?? "Break";
+            }
 
             if (e.EntryType == EntryTypeEnum.Free)
             {

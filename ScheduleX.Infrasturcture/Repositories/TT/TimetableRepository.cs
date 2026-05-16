@@ -535,9 +535,20 @@ namespace ScheduleX.Infrastructure.Repositories.TTCoordinator
 
             var workingDays = GetWorkingDays(config.WorkingDaysMask);
 
-            var lectureSlots = config.TimeSlots
-                .Where(IsLectureSlot)
-                .OrderBy(x => x.SlotNo)
+            //var lectureSlots = config.TimeSlots
+            //    .Where(IsLectureSlot)
+            //    .OrderBy(x => x.SlotNo)
+            //    .ToList();
+            var allSlots = config.TimeSlots
+    .OrderBy(x => x.SlotNo)
+    .ToList();
+
+            var lectureSlots = allSlots
+    .Where(x => x.SlotType == SlotTypeEnum.Lecture)
+    .ToList();
+
+            var breakSlots = allSlots
+                .Where(x => x.SlotType == SlotTypeEnum.Break)
                 .ToList();
 
             if (!lectureSlots.Any())
@@ -649,8 +660,11 @@ namespace ScheduleX.Infrastructure.Repositories.TTCoordinator
                                     var blockId = Guid.NewGuid();
                                     byte part = 1;
 
+
+
                                     foreach (var slot in candidateSlots)
                                     {
+
                                         result.Add(new TimeTableEntry
                                         {
                                             BatchId = batch.BatchId,
@@ -666,6 +680,11 @@ namespace ScheduleX.Infrastructure.Repositories.TTCoordinator
                                             BlockPart = part++
                                         });
                                     }
+
+                                    // ❗ BREAK AFTER BLOCK (not inside loop)
+                                    //var nextSlot = lectureSlots
+                                    //    .FirstOrDefault(x => x.SlotNo == candidateSlots.Last().SlotNo + 1);
+                                    
 
                                     remainingPractical =
                                         (byte)(remainingPractical - size);
@@ -729,6 +748,9 @@ namespace ScheduleX.Infrastructure.Repositories.TTCoordinator
 
                             foreach (var slot in lectureSlots)
                             {
+                                if (slot.SlotType == SlotTypeEnum.Break)
+                                    continue;
+
                                 if (!CanAssignTheorySlot(
                                     result,
                                     batch.BatchId,
@@ -781,6 +803,39 @@ namespace ScheduleX.Infrastructure.Repositories.TTCoordinator
                 divisions,
                 subjectSemesters,
                 config);
+
+            // BREAK SLOT AUTO-FILL (USE EXISTING allSlots VARIABLE)
+            //var breakSlots = allSlots
+            //    .Where(x => x.SlotType == SlotTypeEnum.Break)
+            //    .ToList();
+
+            foreach (var division in divisions)
+            {
+                foreach (var day in workingDays)
+                {
+                    foreach (var slot in breakSlots)
+                    {
+                        bool exists = result.Any(x =>
+                            x.BatchId == batch.BatchId &&
+                            x.DivisionId == division.DivisionId &&
+                            x.DayOfWeek == day &&
+                            x.TimeSlotId == slot.TimeSlotId);
+
+                        if (!exists)
+                        {
+                            result.Add(new TimeTableEntry
+                            {
+                                BatchId = batch.BatchId,
+                                SemesterId = division.SemesterId,
+                                DivisionId = division.DivisionId,
+                                DayOfWeek = day,
+                                TimeSlotId = slot.TimeSlotId,
+                                EntryType = EntryTypeEnum.Break
+                            });
+                        }
+                    }
+                }
+            }
 
             return result;
         }
@@ -1196,6 +1251,7 @@ namespace ScheduleX.Infrastructure.Repositories.TTCoordinator
 
             try
             {
+
                 await _context.SaveChangesAsync();
                 return (true, "Entries swapped successfully.");
             }

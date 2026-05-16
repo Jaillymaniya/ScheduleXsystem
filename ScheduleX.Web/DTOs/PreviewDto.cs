@@ -37,5 +37,7 @@
         public bool IsProject { get; set; }
 
         public bool IsSelfStudy { get; set; }
+
+
     }
 }

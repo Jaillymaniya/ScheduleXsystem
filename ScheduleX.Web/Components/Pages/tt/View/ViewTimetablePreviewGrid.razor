@@ -71,23 +71,39 @@ else
 
                         @if (item != null)
                         {
-                            <div class="view-tt-slot-title">
-                                @item.Subject
-                            </div>
+                            if (item.IsBreak)
+                            {
+                                <div class="view-tt-slot-title" style="font-weight: bold;">
+                                    @item.Subject.ToUpper()
+                                </div>
+                            }
+                            else if (item.IsSelfStudy)
+                            {
+                                <div class="view-tt-slot-title">
+                                    FREE / SELF STUDY
+                                </div>
+                            }
+                            else if (item.IsProject)
+                            {
+                                <div class="view-tt-slot-title">
+                                    PROJECT
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="view-tt-slot-title">
+                                    @item.Subject
+                                </div>
+                            }
 
-                            @if (Style.ShowFaculty &&
-                           !string.IsNullOrWhiteSpace(item.Faculty) &&
-                           !item.IsBreak &&
-                           !item.IsSelfStudy)
+                            @if (Style.ShowFaculty && !string.IsNullOrWhiteSpace(item.Faculty) && !item.IsBreak && !item.IsSelfStudy)
                             {
                                 <div class="view-tt-slot-sub">
                                     @item.Faculty
                                 </div>
                             }
 
-                            @if (Style.ShowRoom &&
-                           !string.IsNullOrWhiteSpace(item.Room) &&
-                           !item.IsBreak)
+                            @if (Style.ShowRoom && !string.IsNullOrWhiteSpace(item.Room) && !item.IsBreak)
                             {
                                 <div class="view-tt-slot-sub">
                                     @item.Room
