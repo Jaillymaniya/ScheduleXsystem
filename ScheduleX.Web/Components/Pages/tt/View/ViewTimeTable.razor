@@ -14,8 +14,8 @@
 @inject TTSessionState TTSessionState
 @inject IViewTimetableService ViewService
 @inject IJSRuntime JS
-<link href="/css/tt/tt-tt-view.css" rel="stylesheet" />
 
+<link href="/css/tt/tt-tt-view.css" rel="stylesheet" />
 
 <PageTitle>View Timetable</PageTitle>
 
@@ -25,42 +25,8 @@
     <div class="view-tt-header">
         <div>
             <h2>Generated Timetables</h2>
-            <p>View, preview, download, or delete generated timetable batches</p>
+            <p>Click any timetable batch to preview, download, or delete it</p>
         </div>
-    </div>
-
-    <!-- SESSION INFO -->
-    <div class="view-tt-session-card">
-
-        <div class="view-tt-session-item">
-            <label>Academic Year</label>
-            <div class="view-tt-session-value">
-                @TTSessionState.AcademicYearName
-            </div>
-        </div>
-
-        <div class="view-tt-session-item">
-            <label>Course</label>
-            <div class="view-tt-session-value">
-                @TTSessionState.CourseName
-            </div>
-        </div>
-
-        <div class="view-tt-session-item">
-            <label>Term</label>
-            <div class="view-tt-session-value">
-                @TTSessionState.TermName
-            </div>
-        </div>
-
-        <div>
-            <button type="button"
-                    class="view-tt-btn-primary"
-                    @onclick="LoadBatches">
-                Load Timetables
-            </button>
-        </div>
-
     </div>
 
     <!-- BATCHES -->
@@ -102,9 +68,15 @@
 
         </div>
     }
+    else
+    {
+        <div class="view-tt-empty">
+            No generated timetable batches found.
+        </div>
+    }
 
     <!-- DIVISION PILLS -->
-    @if (PreviewGroups.Any())
+    @if (ShowPreview && PreviewGroups.Any())
     {
         <div class="view-tt-pill-wrap">
 
@@ -121,7 +93,7 @@
     }
 
     <!-- ACTION BAR -->
-    @if (SelectedBatchId > 0)
+    @if (ShowPreview && SelectedBatchId > 0)
     {
         <div class="view-tt-action-bar">
 
@@ -137,11 +109,17 @@
                 Delete Timetable
             </button>
 
+            <button type="button"
+                    class="view-tt-btn-close"
+                    @onclick="ClosePreview">
+                Close Preview
+            </button>
+
         </div>
     }
 
     <!-- PREVIEW -->
-    @if (SelectedEntries.Any())
+    @if (ShowPreview && SelectedEntries.Any())
     {
         <ViewTimetablePreviewGrid Data="SelectedEntries"
                                   Style="CurrentStyle" />
@@ -153,7 +131,9 @@
     private int CurrentUserId;
     private int SelectedBatchId;
     private string SelectedDivisionKey = "";
-
+    private bool ShowPreview = false;
+    private bool IsLoading = false;
+    private bool IsDownloading = false;
     private List<ViewBatchCardDto> Batches = new();
     private List<DivisionPreviewGroupDto> PreviewGroups = new();
     private List<PreviewDto> SelectedEntries = new();
@@ -173,15 +153,16 @@
         }
 
         TTSessionState.OnChange += HandleSessionChanged;
+        await LoadBatches();
     }
 
     private async Task HandleSessionChanged()
     {
+        ClosePreview();
+
         Batches.Clear();
-        PreviewGroups.Clear();
-        SelectedEntries.Clear();
-        SelectedBatchId = 0;
-        SelectedDivisionKey = "";
+
+        await LoadBatches();
 
         await InvokeAsync(StateHasChanged);
     }
@@ -192,6 +173,7 @@
             !TTSessionState.CourseId.HasValue ||
             !TTSessionState.AcademicTermId.HasValue)
         {
+            Batches.Clear();
             return;
         }
 
@@ -204,52 +186,57 @@
                     AcademicTermId = TTSessionState.AcademicTermId.Value
                 });
 
-        Batches = result.Batches;
-
-        PreviewGroups.Clear();
-        SelectedEntries.Clear();
+        Batches = result.Batches ?? new List<ViewBatchCardDto>();
     }
 
     private async Task SelectBatch(int batchId)
     {
-        SelectedBatchId = batchId;
-
-        PreviewGroups.Clear();
-        SelectedEntries.Clear();
-        SelectedDivisionKey = "";
-
-        StateHasChanged();
-
-        var result = await ViewService.GetBatchPreviewAsync(
-            batchId,
-            CurrentUserId);
-
-        if (!result.Success)
-        {
-            Console.WriteLine(result.Message);
+        if (IsLoading)
             return;
-        }
 
-        PreviewGroups = result.Groups ?? new();
-        CurrentStyle = result.TemplateStyle ?? new();
+        IsLoading = true;
 
-        if (PreviewGroups.Any())
+        try
         {
-            var first = PreviewGroups.First();
+            SelectedBatchId = batchId;
 
-            SelectedDivisionKey = first.Key;
-            SelectedEntries = first.Entries ?? new();
+            PreviewGroups.Clear();
+            SelectedEntries.Clear();
+            SelectedDivisionKey = "";
+            ShowPreview = false;
+
+            StateHasChanged();
+
+            var result = await ViewService.GetBatchPreviewAsync(
+                batchId,
+                CurrentUserId);
+
+            if (!result.Success)
+                return;
+
+            PreviewGroups = result.Groups ?? new();
+            CurrentStyle = result.TemplateStyle ?? new();
+
+            if (PreviewGroups.Any())
+            {
+                var first = PreviewGroups.First();
+
+                SelectedDivisionKey = first.Key;
+                SelectedEntries = first.Entries ?? new();
+                ShowPreview = true;
+            }
         }
-
-        await InvokeAsync(StateHasChanged);
+        finally
+        {
+            IsLoading = false;
+        }
     }
 
     private void SelectDivision(string key)
     {
         SelectedDivisionKey = key;
 
-        var selected = PreviewGroups
-            .FirstOrDefault(x => x.Key == key);
+        var selected = PreviewGroups.FirstOrDefault(x => x.Key == key);
 
         if (selected != null)
         {
@@ -257,19 +244,41 @@
         }
     }
 
+    private void ClosePreview()
+    {
+        ShowPreview = false;
+        SelectedBatchId = 0;
+        SelectedDivisionKey = "";
+
+        PreviewGroups.Clear();
+        SelectedEntries.Clear();
+    }
+
     private async Task DownloadExcel()
     {
-        var result = await ViewService.DownloadBatchAsync(
-            SelectedBatchId,
-            CurrentUserId);
-
-        if (!result.Success || string.IsNullOrWhiteSpace(result.Base64))
+        if (IsDownloading)
             return;
 
-        await JS.InvokeVoidAsync(
-            "downloadFile",
-            "Timetable.xlsx",
-            result.Base64);
+        IsDownloading = true;
+
+        try
+        {
+            var result = await ViewService.DownloadBatchAsync(
+                SelectedBatchId,
+                CurrentUserId);
+
+            if (!result.Success || string.IsNullOrWhiteSpace(result.Base64))
+                return;
+
+            await JS.InvokeVoidAsync(
+                "downloadFile",
+                "Timetable.xlsx",
+                result.Base64);
+        }
+        finally
+        {
+            IsDownloading = false;
+        }
     }
 
     private async Task DeleteBatch()
@@ -283,11 +292,7 @@
 
         Batches.RemoveAll(x => x.BatchId == SelectedBatchId);
 
-        PreviewGroups.Clear();
-        SelectedEntries.Clear();
-
-        SelectedBatchId = 0;
-        SelectedDivisionKey = "";
+        ClosePreview();
 
         StateHasChanged();
     }
