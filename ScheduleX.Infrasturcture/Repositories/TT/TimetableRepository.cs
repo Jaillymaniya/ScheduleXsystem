@@ -534,7 +534,6 @@ namespace ScheduleX.Infrastructure.Repositories.TTCoordinator
             var result = new List<TimeTableEntry>();
 
             var practicalLoadPerDay = new Dictionary<byte, int>();
-
             
 
             var workingDays = GetWorkingDays(config.WorkingDaysMask);
@@ -625,7 +624,7 @@ namespace ScheduleX.Infrastructure.Repositories.TTCoordinator
                                 remainingPractical);
 
                         foreach (var day in randomizedDays
-    .OrderBy(d => practicalLoadPerDay[d]))
+                            .OrderBy(d => practicalLoadPerDay[d]))
                         {
                             if (HasSubjectOnDay(
                                 result,
@@ -843,12 +842,12 @@ namespace ScheduleX.Infrastructure.Repositories.TTCoordinator
             return result;
         }
         private bool HasSubjectOnDay(
-    List<TimeTableEntry> entries,
-    int batchId,
-    int divisionId,
-    byte day,
-    int subjectSemesterId,
-    int? teachingType = null) // Added teaching type filter
+            List<TimeTableEntry> entries,
+            int batchId,
+            int divisionId,
+            byte day,
+            int subjectSemesterId,
+            int? teachingType = null) // Added teaching type filter
         {
             return entries.Any(x =>
                 x.BatchId == batchId &&
@@ -874,36 +873,22 @@ namespace ScheduleX.Infrastructure.Repositories.TTCoordinator
 
             return true;
         }
-        //private bool AreConsecutiveSlots(List<TimeSlot> slots)
-        //{
-        //    if (!slots.Any())
-        //        return false;
 
-        //    var ordered = slots.OrderBy(x => x.SlotNo).ToList();
-
-        //    for (int i = 1; i < ordered.Count; i++)
-        //    {
-        //        if (ordered[i].SlotNo != ordered[i - 1].SlotNo + 1)
-        //            return false;
-        //    }
-
-        //    return true;
-        //}
 
         private bool CanAssignPracticalBlock(
-     List<TimeTableEntry> entries,
-     int batchId,
-     Division division,
-     byte day,
-     List<TimeSlot> slots,
-     SubjectSemester subject,
-     SubjectFaculty faculty,
-     List<SubjectRoomConfig> roomConfigs,
-     List<FacultyAvailability> facultyAvailability,
-     List<ExternalFacultyPermission> externalPermissions,
-     List<DivisionRoomAllocation> roomAllocations,
-     List<Room> allRooms,
-     out Room? selectedRoom)
+         List<TimeTableEntry> entries,
+         int batchId,
+         Division division,
+         byte day,
+         List<TimeSlot> slots,
+         SubjectSemester subject,
+         SubjectFaculty faculty,
+         List<SubjectRoomConfig> roomConfigs,
+         List<FacultyAvailability> facultyAvailability,
+         List<ExternalFacultyPermission> externalPermissions,
+         List<DivisionRoomAllocation> roomAllocations,
+         List<Room> allRooms,
+         out Room? selectedRoom)
         {
             selectedRoom = null;
 
@@ -1105,10 +1090,10 @@ namespace ScheduleX.Infrastructure.Repositories.TTCoordinator
             if (roomConfig?.PreferredRoomType != null)
             {
                 var preferred = allRooms
-    .Where(x =>
-        x.RoomType == roomConfig.PreferredRoomType &&
-        x.Capacity >= division.StudentStrength)
-    .ToList();
+                .Where(x =>
+                    x.RoomType == roomConfig.PreferredRoomType &&
+                    x.Capacity >= division.StudentStrength)
+                .ToList();
 
                 foreach (var room in preferred)
                 {
@@ -1199,15 +1184,15 @@ namespace ScheduleX.Infrastructure.Repositories.TTCoordinator
             }
         }//keep
         public async Task<(bool Success, string Message)> SwapEntriesAsync(
-    int entryId1,
-    int entryId2,
-    int userId)
+            int entryId1,
+            int entryId2,
+            int userId)
         {
             var entry1 = await _context.TimeTableEntries
-    .Include(x => x.TimeTableBatch)
-        .ThenInclude(x => x.Course)
-    .Include(x => x.TimeSlot)
-    .FirstOrDefaultAsync(x => x.EntryId == entryId1);
+            .Include(x => x.TimeTableBatch)
+                .ThenInclude(x => x.Course)
+            .Include(x => x.TimeSlot)
+                .FirstOrDefaultAsync(x => x.EntryId == entryId1);
 
             var entry2 = await _context.TimeTableEntries
                 .Include(x => x.TimeTableBatch)
