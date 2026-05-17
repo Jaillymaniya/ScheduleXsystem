@@ -11,7 +11,7 @@ namespace ScheduleX.Web.DTOs
         public int BatchId { get; set; }
 
         public string? Base64 { get; set; }
-
+            
         public List<PreviewDto> Preview { get; set; } = new();
 
         public TemplateStyle? TemplateStyle { get; set; }

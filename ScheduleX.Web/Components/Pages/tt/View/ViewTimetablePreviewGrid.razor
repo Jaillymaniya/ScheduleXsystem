@@ -160,35 +160,64 @@ else
 
     private string GetCellBackground(PreviewDto? item)
     {
+        // if (item == null)
+        //     return "#f8fafc";
+
+
+        // if (item.IsBreak)
+        //     return "#fde68a";
+
+        // if (item.IsProject)
+        //     return "#d1fae5";
+
+        // if (item.IsSelfStudy)
+        //     return "#ede9fe";
+
+        // return Style.BodyBg;
         if (item == null)
             return "#f8fafc";
 
+        // BREAK = Yellow
         if (item.IsBreak)
             return "#fde68a";
 
+        // PROJECT = Cyan
         if (item.IsProject)
-            return "#d1fae5";
+            return "#cffafe";
 
+        // SELF STUDY = Purple
         if (item.IsSelfStudy)
             return "#ede9fe";
 
-        return Style.BodyBg;
+        // LAB = Green
+        if (item.IsLab)
+            return "#bbf7d0";
+
+        // THEORY = White
+        return "#ffffff";
     }
 
     private string GetCellText(PreviewDto? item)
     {
+        // if (item == null)
+        //     return "#64748b";
+
+        // if (item.IsBreak)
+        //     return "#111827";
+
+        // if (item.IsProject)
+        //     return "#111827";
+
+        // if (item.IsSelfStudy)
+        //     return "#111827";
+            
+        // return Style.BodyText;
         if (item == null)
             return "#64748b";
 
-        if (item.IsBreak)
-            return "#111827";
+        if (item.IsLab)
+            return "#166534";
 
-        if (item.IsProject)
-            return "#111827";
-
-        if (item.IsSelfStudy)
-            return "#111827";
-
-        return Style.BodyText;
+        return "#111827";
     }
 }

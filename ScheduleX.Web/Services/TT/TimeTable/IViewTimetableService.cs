@@ -22,5 +22,7 @@ namespace ScheduleX.Web.Services.TT.TimeTable
             int batchId,
             int userId
         );
+
+        
     }
 }

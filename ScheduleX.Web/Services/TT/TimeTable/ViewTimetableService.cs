@@ -192,6 +192,11 @@ namespace ScheduleX.Web.Services.TT.TimeTable
 
             // Safely check if the subject name represents a project
             string subjectName = x.SubjectSemester?.Subject?.SubjectName ?? "";
+
+            Console.WriteLine(
+    $"Subject: {subjectName} | Category: {x.SubjectSemester?.Subject?.SubjectCategory}"
+);
+
             bool isProjectSubject = subjectName.Contains("project", StringComparison.OrdinalIgnoreCase)
                                  || subjectName.Contains("(pw)", StringComparison.OrdinalIgnoreCase);
 
@@ -226,7 +231,9 @@ namespace ScheduleX.Web.Services.TT.TimeTable
 
                 IsBreak = isBreak,
                 IsProject = isProject,
-                IsSelfStudy = isSelfStudy
+                IsSelfStudy = isSelfStudy,
+                IsLab = IsLab(x),
+                IsTheory = !IsLab(x)
             };
         }
 
@@ -257,6 +264,19 @@ namespace ScheduleX.Web.Services.TT.TimeTable
             return await _repo.DeleteBatchAsync(
                 batchId,
                 userId);
+        }
+
+        private bool IsLab(TimeTableEntry e)
+        {
+            // ✅ FIX: Determine slot type dynamically using RoomType instead of the overarching Subject Category
+            if (e.Room != null)
+            {
+                return e.Room.RoomType == RoomTypeEnum.Lab;
+            }
+
+            // Fallback comparison if Room compilation hasn't evaluated yet
+            var category = e.SubjectSemester?.Subject?.SubjectCategory;
+            return category == SubjectCategoryEnum.Practical;
         }
     }
 }

@@ -710,25 +710,19 @@ namespace ScheduleX.Infrastructure.Repositories.TTCoordinator
                 foreach (var subject in semesterSubjects)
                 {
                     var lectureConfig = semesterLectureConfigs
-                        .FirstOrDefault(x =>
-                            x.SubjectSemesterId == subject.SubjectSemesterId);
+                        .FirstOrDefault(x => x.SubjectSemesterId == subject.SubjectSemesterId);
 
-                    if (lectureConfig == null)
-                        continue;
-
-                    if (lectureConfig.TheoryLecturesPerWeek <= 0)
+                    if (lectureConfig == null || lectureConfig.TheoryLecturesPerWeek <= 0)
                         continue;
 
                     var theoryFaculty = divisionFacultyMappings
-                        .FirstOrDefault(x =>
-                            x.SubjectSemesterId == subject.SubjectSemesterId &&
-                            x.TeachingType == SubjectCategoryEnum.Theory);
+                        .FirstOrDefault(x => x.SubjectSemesterId == subject.SubjectSemesterId &&
+                                            x.TeachingType == SubjectCategoryEnum.Theory);
 
                     if (theoryFaculty == null)
                         continue;
 
-                    byte remainingTheory =
-                        lectureConfig.TheoryLecturesPerWeek;
+                    byte remainingTheory = lectureConfig.TheoryLecturesPerWeek;
 
                     while (remainingTheory > 0)
                     {
@@ -736,12 +730,8 @@ namespace ScheduleX.Infrastructure.Repositories.TTCoordinator
 
                         foreach (var day in randomizedDays)
                         {
-                            if (HasSubjectOnDay(
-                                result,
-                                batch.BatchId,
-                                division.DivisionId,
-                                day,
-                                subject.SubjectSemesterId))
+                            // ✅ FIX: Allow theory on the same day as practicals by specifying category validation
+                            if (HasSubjectOnDay(result, batch.BatchId, division.DivisionId, day, subject.SubjectSemesterId, (int)SubjectCategoryEnum.Theory))
                             {
                                 continue;
                             }
@@ -792,7 +782,7 @@ namespace ScheduleX.Infrastructure.Repositories.TTCoordinator
                         }
 
                         if (!allocated)
-                            break;
+                            break; // Break loop if slot configuration can't find an open room
                     }
                 }
             }
@@ -844,13 +834,15 @@ namespace ScheduleX.Infrastructure.Repositories.TTCoordinator
     int batchId,
     int divisionId,
     byte day,
-    int subjectSemesterId)
+    int subjectSemesterId,
+    int? teachingType = null) // Added teaching type filter
         {
             return entries.Any(x =>
                 x.BatchId == batchId &&
                 x.DivisionId == divisionId &&
                 x.DayOfWeek == day &&
-                x.SubjectSemesterId == subjectSemesterId);
+                x.SubjectSemesterId == subjectSemesterId &&
+                (teachingType == null || _context.SubjectFaculties.Any(sf => sf.FacultyId == x.FacultyId && (int)sf.TeachingType == teachingType)));
         }
         private bool AreConsecutiveSlots(List<TimeSlot> slots)
         {

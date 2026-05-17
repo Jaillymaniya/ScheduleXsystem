@@ -38,6 +38,10 @@
 
         public bool IsSelfStudy { get; set; }
 
+        public bool IsLab { get; set; }
+
+        public bool IsTheory { get; set; }
+
 
     }
 }
