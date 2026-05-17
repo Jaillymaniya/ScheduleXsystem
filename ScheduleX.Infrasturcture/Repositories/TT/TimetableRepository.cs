@@ -533,7 +533,16 @@ namespace ScheduleX.Infrastructure.Repositories.TTCoordinator
         {
             var result = new List<TimeTableEntry>();
 
+            var practicalLoadPerDay = new Dictionary<byte, int>();
+
+            
+
             var workingDays = GetWorkingDays(config.WorkingDaysMask);
+
+            foreach (var day in workingDays)
+            {
+                practicalLoadPerDay[day] = 0;
+            }
 
             //var lectureSlots = config.TimeSlots
             //    .Where(IsLectureSlot)
@@ -615,7 +624,8 @@ namespace ScheduleX.Infrastructure.Repositories.TTCoordinator
                                 configuredBlockSize,
                                 remainingPractical);
 
-                        foreach (var day in randomizedDays)
+                        foreach (var day in randomizedDays
+    .OrderBy(d => practicalLoadPerDay[d]))
                         {
                             if (HasSubjectOnDay(
                                 result,
@@ -681,10 +691,13 @@ namespace ScheduleX.Infrastructure.Repositories.TTCoordinator
                                         });
                                     }
 
+                                    // ADD THIS
+                                    practicalLoadPerDay[day] += size;
+
                                     // ❗ BREAK AFTER BLOCK (not inside loop)
                                     //var nextSlot = lectureSlots
                                     //    .FirstOrDefault(x => x.SlotNo == candidateSlots.Last().SlotNo + 1);
-                                    
+
 
                                     remainingPractical =
                                         (byte)(remainingPractical - size);
