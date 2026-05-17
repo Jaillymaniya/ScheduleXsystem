@@ -168,6 +168,9 @@ builder.Services.AddScoped<TimeTableTemplateService>();
 
 builder.Services.AddScoped<ITTCoordinatorService, TTCoordinatorService>();
 
+builder.Services.AddScoped<TTOverviewService>();
+
+
 builder.Services.AddScoped<ProfileService>();
 
 builder.Services.AddDistributedMemoryCache();
