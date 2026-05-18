@@ -1,0 +1,231 @@
+﻿/* =========================
+   TT OVERVIEW PAGE
+========================= */
+
+.tt-overview {
+    width: 100%;
+    padding: 6px;
+    box-sizing: border-box;
+}
+
+    .tt-overview *,
+    .tt-overview *::before,
+    .tt-overview *::after {
+        box-sizing: border-box;
+    }
+
+    /* =========================
+   HEADER
+========================= */
+
+    .tt-overview .tt-overview-page-head {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 18px;
+        margin-bottom: 26px;
+    }
+
+    .tt-overview .tt-overview-h2 {
+        margin: 0;
+        font-size: 30px;
+        font-weight: 800;
+        color: var(--text);
+    }
+
+    .tt-overview .tt-overview-muted {
+        margin: 8px 0 0 0;
+        color: var(--muted);
+        font-size: 15px;
+    }
+
+    .tt-overview .tt-overview-head-actions {
+        display: flex;
+        gap: 12px;
+    }
+
+    .tt-overview .tt-overview-btn {
+        border: 1px solid var(--border);
+        background: rgba(255,255,255,0.04);
+        color: var(--text);
+        padding: 11px 18px;
+        border-radius: 14px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 700;
+        transition: all 0.2s ease;
+    }
+
+        .tt-overview .tt-overview-btn:hover {
+            transform: translateY(-2px);
+            background: rgba(255,255,255,0.08);
+        }
+
+    .tt-overview .tt-overview-btn-primary {
+        background: rgba(34,197,94,0.14);
+        border-color: rgba(34,197,94,0.32);
+    }
+
+        .tt-overview .tt-overview-btn-primary:hover {
+            background: rgba(34,197,94,0.20);
+        }
+
+    /* =========================
+   KPI GRID
+========================= */
+
+    .tt-overview .tt-overview-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+        margin-bottom: 24px;
+    }
+
+    .tt-overview .tt-overview-card {
+        background: linear-gradient(180deg, var(--panel) 0%, var(--panel2) 100%);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 20px;
+        min-height: 170px;
+        box-shadow: 0 10px 28px rgba(0,0,0,0.22);
+        transition: all 0.2s ease;
+    }
+
+        .tt-overview .tt-overview-card.clickable {
+            cursor: pointer;
+        }
+
+            .tt-overview .tt-overview-card.clickable:hover {
+                transform: translateY(-4px);
+                border-color: rgba(59,130,246,0.30);
+            }
+
+    .tt-overview .tt-overview-card-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+
+    .tt-overview .tt-overview-card-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--text);
+    }
+
+    .tt-overview .tt-overview-metric {
+        font-size: 42px;
+        font-weight: 800;
+        color: var(--text);
+        line-height: 1;
+    }
+
+    .tt-overview .tt-overview-card-sub {
+        margin-top: 14px;
+        font-size: 15px;
+        color: var(--muted);
+    }
+
+    /* =========================
+   PROGRESS CARD
+========================= */
+
+    .tt-overview .tt-overview-progress-card {
+        background: linear-gradient(180deg, var(--panel) 0%, var(--panel2) 100%);
+        border: 1px solid var(--border);
+        border-radius: 22px;
+        padding: 24px;
+        box-shadow: 0 10px 28px rgba(0,0,0,0.22);
+    }
+
+    .tt-overview .tt-overview-progress-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 18px;
+    }
+
+        .tt-overview .tt-overview-progress-head h3 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .tt-overview .tt-overview-progress-head span {
+            font-size: 18px;
+            font-weight: 800;
+            color: #22c55e;
+        }
+
+    .tt-overview .tt-overview-progress-bar {
+        width: 100%;
+        height: 12px;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.08);
+        overflow: hidden;
+        margin-bottom: 24px;
+    }
+
+    .tt-overview .tt-overview-progress-fill {
+        height: 100%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #22c55e, #4ade80);
+        transition: width 0.4s ease;
+    }
+
+    .tt-overview .tt-overview-progress-list {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+    }
+
+    .tt-overview .tt-overview-progress-item {
+        padding: 14px 16px;
+        border-radius: 14px;
+        border: 1px solid var(--border);
+        background: rgba(255,255,255,0.03);
+        color: var(--muted);
+        font-size: 15px;
+        font-weight: 600;
+    }
+
+        .tt-overview .tt-overview-progress-item.done {
+            color: #86efac;
+            border-color: rgba(34,197,94,0.24);
+            background: rgba(34,197,94,0.08);
+        }
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 1100px) {
+    .tt-overview .tt-overview-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .tt-overview .tt-overview-progress-list {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 760px) {
+    .tt-overview .tt-overview-page-head {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .tt-overview .tt-overview-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .tt-overview .tt-overview-head-actions {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .tt-overview .tt-overview-btn {
+        width: 100%;
+    }
+}

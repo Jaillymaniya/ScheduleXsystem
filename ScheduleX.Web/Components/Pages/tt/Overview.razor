@@ -1,103 +1,13 @@
-﻿@* @page "/tt/overview" *@
+﻿
+
+@* @page "/tt/overview" *@
 @* @layout ScheduleX.Web.Components.Layout.tt.TTLayout *@
-@* @using Microsoft.AspNetCore.Authorization *@
-@* @attribute [Authorize(Roles = "TTCoordinator")] *@
 @* @inject NavigationManager Nav *@
-@* @using Microsoft.EntityFrameworkCore *@
-@* @using ScheduleX.Core.Entities *@
-@* @using ScheduleX.Infrastructure.Data *@
-@* @inject AppDbContext _context *@
-
-@* <link href="css/tt.css" rel="stylesheet" /> *@
-@* <link href="css/tt/tt-overview.css" rel="stylesheet" /> *@
-
-@* <div class="tt-overview"> *@
-
-@*     <div class="tt-page-head"> *@
-@*         <div> *@
-@*             <h2 class="tt-h2">Overview</h2> *@
-@*             <p class="tt-muted">Your complete timetable workflow at one place.</p> *@
-@*         </div> *@
-
-@*         <div class="tt-head-actions"> *@
-@*             <button class="tt-btn" @onclick="@(() => Nav.NavigateTo("/tt/settings"))"> *@
-@*                 Configure Settings *@
-@*             </button> *@
-
-@*             <button class="tt-btn primary" @onclick="@(() => Nav.NavigateTo("/tt/generate"))"> *@
-@*                 Generate Now *@
-@*             </button> *@
-@*         </div> *@
-@*     </div> *@
-
-@*     <div class="tt-grid-4"> *@
-
-@*         <div class="tt-card clickable" @onclick="@(() => Nav.NavigateTo("/tt/faculty"))"> *@
-@*             <div class="tt-card-top"> *@
-@*                 <div class="tt-card-title">Faculty</div> *@
-@*                 <div class="tt-pill">FR8</div> *@
-@*             </div> *@
-@*             @* <div class="tt-muted">Available: @availableFaculty</div> *@ 
-@*             <div class="tt-muted"> *@
-@*                 Total Active: @totalFaculty | Available: @availableFaculty *@
-@*             </div> *@
-@*         </div> *@
-
-@*         <div class="tt-card clickable" @onclick="@(() => Nav.NavigateTo("/tt/subjects"))"> *@
-@*             <div class="tt-card-top"> *@
-@*                 <div class="tt-card-title">Subjects</div> *@
-@*                 <div class="tt-pill">FR9</div> *@
-@*             </div> *@
-@*             <div class="tt-muted"> *@
-@*                 Total Active Subjects: @totalSubjects *@
-@*             </div> *@
-@*         </div> *@
-
-@*         <div class="tt-card clickable" @onclick="@(() => Nav.NavigateTo("/tt/rooms"))"> *@
-@*             <div class="tt-card-top"> *@
-@*                 <div class="tt-card-title">Rooms / Labs</div> *@
-@*                 <div class="tt-pill">FR10</div> *@
-@*             </div> *@
-@*             <div class="tt-muted"> *@
-@*                 Total Active Rooms/Labs: @totalRooms *@
-@*             </div> *@
-@*         </div> *@
-
-@*     </div> *@
-
-@* </div> *@
-
-@* @code { *@
-
-@*     int totalSemesters; *@
-@*     int totalFaculty; *@
-@*     int availableFaculty; *@
-@*     int totalSubjects; *@
-@*     int totalRooms; *@
-@*     int totalLabs; *@
-
-@*     protected override async Task OnInitializedAsync() *@
-@*     { *@
-@*         totalFaculty = await _context.Faculties *@
-@*             .Where(x => x.IsActive) *@
-@*             .CountAsync(); *@
-
-@*         totalSubjects = await _context.Subjects *@
-@*             .Where(x => x.IsActive) *@
-@*             .CountAsync(); *@
-
-@*         totalRooms = await _context.Rooms *@
-@*             .Where(x => x.IsActive) *@
-@*             .CountAsync(); *@
-
-@*         availableFaculty = await _context.Faculties *@
-@*             .Where(x => x.IsActive && *@
-@*                         x.FacultyAvailabilities.Any()) *@
-@*             .CountAsync(); *@
-@*     } *@
-@* } *@
-
-
+@* @inject TTOverviewService _overviewService *@
+@* @inject TTSessionState SessionState *@
+@* @using Microsoft.AspNetCore.Authorization *@
+@* @using ScheduleX.Web.Services *@
+@* @attribute [Authorize(Roles = "TTCoordinator")] *@
 @page "/tt/overview"
 @layout ScheduleX.Web.Components.Layout.tt.TTLayout
 @inject NavigationManager Nav
@@ -105,63 +15,163 @@
 @inject TTSessionState SessionState
 @using Microsoft.AspNetCore.Authorization
 @using ScheduleX.Web.Services
+@using ScheduleX.Web.DTOs
 @attribute [Authorize(Roles = "TTCoordinator")]
 
-
-<link href="css/tt.css" rel="stylesheet" />
-<link href="css/tt/tt-overview.css" rel="stylesheet" />
+<link href="/css/tt.css" rel="stylesheet" />
+<link href="/css/tt/tt-overview-page.css" rel="stylesheet" />
 
 <div class="tt-overview">
 
-    <div class="tt-page-head">
+    <!-- HEADER -->
+    <div class="tt-overview-page-head">
         <div>
-            <h2 class="tt-h2">Overview</h2>
-            <p class="tt-muted">Your complete timetable workflow at one place.</p>
+            <h2 class="tt-overview-h2">Coordinator Dashboard</h2>
+            <p class="tt-overview-muted">
+                Manage your complete timetable workflow from one place.
+            </p>
         </div>
 
-        <div class="tt-head-actions">
-            <button class="tt-btn" @onclick='() => Nav.NavigateTo("/tt/settings")'>
+        <div class="tt-overview-head-actions">
+            <button class="tt-overview-btn"
+                    @onclick='() => Nav.NavigateTo("/tt/Configuration/schedule-configuration")'>
                 Configure Settings
             </button>
 
-            <button class="tt-btn primary" @onclick='() => Nav.NavigateTo("/tt/generate")'>
-                Generate Now
+            <button class="tt-overview-btn tt-overview-btn-primary"
+                    @onclick='() => Nav.NavigateTo("/tt/Generate/generate")'>
+                Generate Timetable
             </button>
         </div>
     </div>
 
-    <div class="tt-grid-4">
+    <!-- KPI GRID -->
+    <div class="tt-overview-grid">
 
-        <div class="tt-card clickable" @onclick='() => Nav.NavigateTo("/tt/faculty")'>
-            <div class="tt-card-top">
-                <div class="tt-card-title">Faculty</div>
-                <div class="tt-pill">FR8</div>
+        <div class="tt-overview-card clickable"
+             @onclick='() => Nav.NavigateTo("/tt/subject-faculty")'>
+            <div class="tt-overview-card-top">
+                <div class="tt-overview-card-title">Faculty</div>
             </div>
-            <div class="tt-muted">
-                Total Active: @totalFaculty | Available: @availableFaculty
+
+            <div class="tt-overview-metric">@totalFaculty</div>
+
+            <div class="tt-overview-card-sub">
+                Available Today: @availableFaculty
             </div>
         </div>
 
-        <div class="tt-card clickable" @onclick='() => Nav.NavigateTo("/tt/subjects")'>
-            <div class="tt-card-top">
-                <div class="tt-card-title">Subjects</div>
-                <div class="tt-pill">FR9</div>
+        <div class="tt-overview-card clickable"
+             @onclick='() => Nav.NavigateTo("/tt/subject-semester")'>
+            <div class="tt-overview-card-top">
+                <div class="tt-overview-card-title">Subjects</div>
             </div>
-            <div class="tt-muted">
-                Total Active Subjects: @totalSubjects
+
+            <div class="tt-overview-metric">@totalSubjects</div>
+
+            <div class="tt-overview-card-sub">
+                Mapped Subjects
             </div>
         </div>
 
-        <div class="tt-card clickable" @onclick='() => Nav.NavigateTo("/tt/rooms")'>
-            <div class="tt-card-top">
-                <div class="tt-card-title">Rooms / Labs</div>
-                <div class="tt-pill">FR10</div>
+        <div class="tt-overview-card clickable"
+             @onclick='() => Nav.NavigateTo("/tt/academic/rooms")'>
+            <div class="tt-overview-card-top">
+                <div class="tt-overview-card-title">Rooms / Labs</div>
             </div>
-            <div class="tt-muted">
-                Total Active Rooms/Labs: @totalRooms
+
+            <div class="tt-overview-metric">@totalRooms</div>
+
+            <div class="tt-overview-card-sub">
+                Available Infrastructure
             </div>
         </div>
 
+        <div class="tt-overview-card clickable"
+             @onclick='() => Nav.NavigateTo("/tt/academic/divisions")'>
+            <div class="tt-overview-card-top">
+                <div class="tt-overview-card-title">Divisions</div>
+            </div>
+
+            <div class="tt-overview-metric">@totalDivisions</div>
+
+            <div class="tt-overview-card-sub">
+                Configured Divisions
+            </div>
+        </div>
+
+        <div class="tt-overview-card clickable"
+             @onclick='() => Nav.NavigateTo("/tt/Configuration/templates")'>
+            <div class="tt-overview-card-top">
+                <div class="tt-overview-card-title">Templates</div>
+            </div>
+
+            <div class="tt-overview-metric">@totalTemplates</div>
+
+            <div class="tt-overview-card-sub">
+                Saved Templates
+            </div>
+        </div>
+
+        <div class="tt-overview-card clickable"
+             @onclick='() => Nav.NavigateTo("/tt/view")'>
+            <div class="tt-overview-card-top">
+                <div class="tt-overview-card-title">Generated</div>
+            </div>
+
+            <div class="tt-overview-metric">@generatedCount</div>
+
+            <div class="tt-overview-card-sub">
+                This Term Timetables
+            </div>
+        </div>
+
+    </div>
+
+    <!-- PROGRESS -->
+    <div class="tt-overview-progress-card">
+        <div class="tt-overview-progress-head">
+            <h3>Setup Progress</h3>
+            <span>@progressPercent%</span>
+        </div>
+
+        <div class="tt-overview-progress-bar">
+            <div class="tt-overview-progress-fill"
+                 style="width:@($"{progressPercent}%")">
+            </div>
+        </div>
+
+        <div class="tt-overview-progress-list">
+
+            <div class="tt-overview-progress-item @(totalFaculty > 0 ? "done" : "")">
+                @(totalFaculty > 0 ? "✔" : "○") Faculty Added
+            </div>
+
+            <div class="tt-overview-progress-item @(totalSubjects > 0 ? "done" : "")">
+                @(totalSubjects > 0 ? "✔" : "○") Subjects Mapped
+            </div>
+
+            <div class="tt-overview-progress-item @(totalRooms > 0 ? "done" : "")">
+                @(totalRooms > 0 ? "✔" : "○") Rooms Configured
+            </div>
+
+            <div class="tt-overview-progress-item @(totalDivisions > 0 ? "done" : "")">
+                @(totalDivisions > 0 ? "✔" : "○") Divisions Created
+            </div>
+
+            <div class="tt-overview-progress-item @(hasScheduleConfig ? "done" : "")">
+                @(hasScheduleConfig ? "✔" : "○") Timetable Settings
+            </div>
+
+            <div class="tt-overview-progress-item @(totalTemplates > 0 ? "done" : "")">
+                @(totalTemplates > 0 ? "✔" : "○") Template Selected
+            </div>
+
+            <div class="tt-overview-progress-item @(generatedCount > 0 ? "done" : "")">
+                @(generatedCount > 0 ? "✔" : "○") Timetable Generated
+            </div>
+
+        </div>
     </div>
 
 </div>
@@ -172,19 +182,24 @@
     int availableFaculty;
     int totalSubjects;
     int totalRooms;
-    int totalSemesters;
+    int totalDivisions;
+    int totalTemplates;
+    int generatedCount;
+    bool hasScheduleConfig;
+    int progressPercent;
 
     private bool _isLoading;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         SessionState.OnChange += Reload;
+        await LoadData();
     }
 
     private async Task Reload()
     {
         await LoadData();
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
     }
 
     public void Dispose()
@@ -194,7 +209,8 @@
 
     private async Task LoadData()
     {
-        if (_isLoading) return;
+        if (_isLoading)
+            return;
 
         if (!SessionState.CourseId.HasValue ||
             !SessionState.AcademicTermId.HasValue ||
@@ -204,6 +220,11 @@
             availableFaculty = 0;
             totalSubjects = 0;
             totalRooms = 0;
+            totalDivisions = 0;
+            totalTemplates = 0;
+            generatedCount = 0;
+            hasScheduleConfig = false;
+            progressPercent = 0;
             return;
         }
 
@@ -221,6 +242,22 @@
             availableFaculty = result.AvailableFaculty;
             totalSubjects = result.TotalSubjects;
             totalRooms = result.TotalRooms;
+            totalDivisions = result.TotalDivisions;
+            totalTemplates = result.TotalTemplates;
+            generatedCount = result.GeneratedCount;
+            hasScheduleConfig = result.HasScheduleConfig;
+
+            int completed = 0;
+
+            if (totalFaculty > 0) completed++;
+            if (totalSubjects > 0) completed++;
+            if (totalRooms > 0) completed++;
+            if (totalDivisions > 0) completed++;
+            if (hasScheduleConfig) completed++;
+            if (totalTemplates > 0) completed++;
+            if (generatedCount > 0) completed++;
+
+            progressPercent = (completed * 100) / 7;
         }
         finally
         {

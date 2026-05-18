@@ -1,4 +1,4 @@
-﻿@* @page "/" *@
+﻿
 @page "/admin/overview"
 @attribute [Authorize(Roles = "Admin")]
 @layout ScheduleX.Web.Components.Layout.Admin.AdminLayout
@@ -11,64 +11,260 @@
 @inject AppDbContext _context
 @using Microsoft.EntityFrameworkCore
 
-
-
-<link href="/css/admin/admin-overview.css" rel="stylesheet" />
+<link href="/css/admin/admin-overview-page.css" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
 
-<div class="overview-container">
-    <div class="welcome-box">
-        <h2>Welcome, Admin</h2>
-        <p>Here's what's happening in your timetable system today</p>
+<div class="ad-overview-page">
+
+    <!-- WELCOME -->
+    <div class="ad-overview-welcome-box">
+        <div>
+            <h2>Welcome, Admin</h2>
+            <p>Here's what's happening in your timetable system today</p>
+        </div>
+
+       
     </div>
 
-    <div class="stats-cards">
-        <div class="stat-card">
-            <p>TOTAL DEPARTMENTS</p>
-            @* <h3>3</h3> *@
-            <h3>@totalDepartments</h3>
+    <!-- KPI CARDS -->
+    <div class="ad-overview-stats-grid">
+
+        <div class="ad-overview-stat-card ad-blue"
+             @onclick='() => Nav.NavigateTo("/admin/ttcoordinator")'>
+            <div class="ad-overview-card-icon">
+                <i class="fas fa-user-tie"></i>
+            </div>
+            <div>
+                <p>Timetable Coordinators</p>
+                <h3>@totalTTCoordinators</h3>
+                <span>Total Active Coordinators</span>
+            </div>
         </div>
-        <div class="stat-card">
-            <p>TOTAL FACULTY</p>
-            @* <h3>25</h3> *@
-            <h3>@totalTTCoordinators</h3>
+
+        <div class="ad-overview-stat-card ad-purple"
+             @onclick='() => Nav.NavigateTo("/admin/departments")'>
+            <div class="ad-overview-card-icon">
+                <i class="fas fa-building"></i>
+            </div>
+            <div>
+                <p>Departments</p>
+                <h3>@totalDepartments</h3>
+                <span>Configured Departments</span>
+            </div>
         </div>
-        <div class="stat-card">
-            <p>TOTAL COURSES</p>
-            @* <h3>12</h3> *@
-            <h3>@totalCourses</h3>
+
+        <div class="ad-overview-stat-card ad-green"
+             @onclick='() => Nav.NavigateTo("/admin/courses")'>
+            <div class="ad-overview-card-icon">
+                <i class="fas fa-graduation-cap"></i>
+            </div>
+            <div>
+                <p>Courses</p>
+                <h3>@totalCourses</h3>
+                <span>Active Courses</span>
+            </div>
         </div>
+
+        <div class="ad-overview-stat-card ad-orange"
+             @onclick='() => Nav.NavigateTo("/admin/faculty")'>
+            <div class="ad-overview-card-icon">
+                <i class="fas fa-chalkboard-teacher"></i>
+            </div>
+            <div>
+                <p>Faculty Members</p>
+                <h3>@totalFaculty</h3>
+                <span>Available Faculty</span>
+            </div>
+        </div>
+
+        <div class="ad-overview-stat-card ad-pink"
+             @onclick='() => Nav.NavigateTo("/admin/subjects")'>
+            <div class="ad-overview-card-icon">
+                <i class="fas fa-book-open"></i>
+            </div>
+            <div>
+                <p>Subjects</p>
+                <h3>@totalSubjects</h3>
+                <span>Total Active Subjects</span>
+            </div>
+        </div>
+
+        <div class="ad-overview-stat-card ad-dark"
+             @onclick='() => Nav.NavigateTo("/admin/academic-year")'>
+            <div class="ad-overview-card-icon">
+                <i class="fas fa-calendar-alt"></i>
+            </div>
+            <div>
+                <p>Academic Sessions</p>
+                <h3>@totalAcademicYears</h3>
+                <span>Configured Sessions</span>
+            </div>
+        </div>
+
     </div>
 
-    
+    <!-- CHARTS -->
+    <div class="ad-overview-chart-grid">
+
+        <div class="ad-overview-chart-card">
+            <h4>Department-wise Faculty Distribution</h4>
+
+            @foreach (var dept in departmentFacultyStats)
+            {
+                <div class="ad-overview-bar-row">
+                    <span>@dept.DepartmentName</span>
+
+                    <div class="ad-overview-bar-wrap">
+                        <div class="ad-overview-bar-fill"
+                             style="width:@dept.Width%">
+                        </div>
+                    </div>
+
+                    <strong>@dept.Count</strong>
+                </div>
+            }
+        </div>
+
+        <div class="ad-overview-chart-card">
+            <h4>Course-wise Subject Count</h4>
+
+            @foreach (var course in courseSubjectStats)
+            {
+                <div class="ad-overview-donut-row">
+                    <span>@course.CourseName</span>
+                    <strong>@course.Count Subjects</strong>
+                </div>
+            }
+        </div>
+
+    </div>
+    <!-- ALERTS -->
+    <div class="ad-overview-alert-card">
+        <h4>System Alerts</h4>
+
+        @if (alerts.Any())
+        {
+            @foreach (var alert in alerts)
+            {
+                <div class="ad-overview-alert-item">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>@alert</span>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="ad-overview-alert-item ad-overview-alert-success">
+                <i class="fas fa-check-circle"></i>
+                <span>All configurations look good.</span>
+            </div>
+        }
+    </div>
+
 </div>
 
 @code {
-  
-
     private int totalDepartments;
     private int totalTTCoordinators;
     private int totalCourses;
+    private int totalFaculty;
+    private int totalSubjects;
+    private int totalAcademicYears;
 
+    private List<DepartmentFacultyStat> departmentFacultyStats = new();
+    private List<CourseSubjectStat> courseSubjectStats = new();
+    private List<string> alerts = new();
 
     protected override async Task OnInitializedAsync()
     {
-        
-
-
-        // totalDepartments = await _context.Departments.CountAsync();
-        // totalFaculty = await _context.Faculties.CountAsync();
-        // totalCourses = await _context.Courses.CountAsync();
         totalDepartments = await _context.Departments
-                                     .Where(x => x.IsActive)
-                                     .CountAsync();
+            .Where(x => x.IsActive)
+            .CountAsync();
 
         totalTTCoordinators = await _context.Users
-        .Where(u => u.Role == UserRole.TTCoordinator && u.IsActive)
-        .CountAsync();
+            .Where(x => x.Role == UserRole.TTCoordinator && x.IsActive)
+            .CountAsync();
 
         totalCourses = await _context.Courses
-                                    .Where(x => x.IsActive)
-                                    .CountAsync();
+            .Where(x => x.IsActive)
+            .CountAsync();
+
+        totalFaculty = await _context.Faculties
+            .Where(x => x.IsActive)
+            .CountAsync();
+
+        totalSubjects = await _context.Subjects
+            .Where(x => x.IsActive)
+            .CountAsync();
+
+        totalAcademicYears = await _context.AcademicYears
+            .Where(x => x.IsActive)
+            .CountAsync();
+
+        var deptStats = await _context.Departments
+     .Where(d => d.IsActive)
+     .Select(d => new
+     {
+         DepartmentName = d.DepartmentName,
+         Count = d.Faculties.Count(f => f.IsActive)
+     })
+     .OrderByDescending(x => x.Count)
+     .Take(6)
+     .ToListAsync();
+
+        int maxDeptCount = deptStats.Any() ? deptStats.Max(x => x.Count) : 1;
+
+        departmentFacultyStats = deptStats
+            .Select(x => new DepartmentFacultyStat
+                {
+                    DepartmentName = x.DepartmentName,
+                    Count = x.Count,
+                    Width = maxDeptCount == 0 ? 0 : (x.Count * 100 / maxDeptCount)
+                })
+            .ToList();
+
+        courseSubjectStats = await _context.Courses
+            .Where(c => c.IsActive)
+            .Select(c => new CourseSubjectStat
+                {
+                    CourseName = c.CourseName,
+                    Count = c.Subjects.Count(s => s.IsActive)
+                })
+            .OrderByDescending(x => x.Count)
+            .Take(6)
+            .ToListAsync();
+
+        var coursesWithoutCoordinator = await _context.Courses
+            .Where(c => c.IsActive && !c.TTCoordinatorCourses.Any(x => x.IsActive))
+            .Select(c => c.CourseName)
+            .ToListAsync();
+
+        foreach (var course in coursesWithoutCoordinator)
+        {
+            alerts.Add($"No coordinator assigned to {course}");
+        }
+
+        var deptsWithoutFaculty = await _context.Departments
+            .Where(d => d.IsActive && !d.Faculties.Any(f => f.IsActive))
+            .Select(d => d.DepartmentName)
+            .ToListAsync();
+
+        foreach (var dept in deptsWithoutFaculty)
+        {
+            alerts.Add($"Missing faculty in {dept} department");
+        }
+    }
+
+    private class DepartmentFacultyStat
+    {
+        public string DepartmentName { get; set; } = "";
+        public int Count { get; set; }
+        public int Width { get; set; }
+    }
+
+    private class CourseSubjectStat
+    {
+        public string CourseName { get; set; } = "";
+        public int Count { get; set; }
     }
 }

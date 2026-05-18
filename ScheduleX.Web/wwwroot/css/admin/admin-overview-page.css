@@ -1,0 +1,318 @@
+﻿/* =========================
+   ADMIN OVERVIEW PAGE
+========================= */
+
+.ad-overview-page {
+    width: 100%;
+    padding: 24px;
+    background: #f8fafc;
+    min-height: 100vh;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.ad-overview-page *,
+.ad-overview-page *::before,
+.ad-overview-page *::after {
+    box-sizing: border-box;
+}
+
+/* =========================
+   WELCOME SECTION
+========================= */
+
+.ad-overview-page .ad-overview-welcome-box {
+    background: linear-gradient(135deg, #1e293b, #0f172a);
+    padding: 28px;
+    border-radius: 20px;
+    margin-bottom: 28px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+    box-shadow: 0 16px 36px rgba(15, 23, 42, 0.18);
+}
+
+.ad-overview-page .ad-overview-welcome-box h2 {
+    margin: 0;
+    font-size: 25px;
+    font-weight: 800;
+    color: white;
+}
+
+.ad-overview-page .ad-overview-welcome-box p {
+    margin: 8px 0 0 0;
+    color: #cbd5e1;
+    font-size: 10px;
+}
+
+
+
+
+/* =========================
+   KPI CARDS
+========================= */
+
+.ad-overview-page .ad-overview-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 22px;
+    margin-bottom: 28px;
+}
+
+.ad-overview-page .ad-overview-stat-card {
+    border-radius: 20px;
+    padding: 22px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    color: white;
+    box-shadow: 0 14px 30px rgba(0,0,0,0.10);
+    transition: all 0.2s ease;
+}
+
+.ad-overview-page .ad-overview-stat-card:hover {
+    transform: translateY(-4px);
+}
+
+    .ad-overview-page .ad-overview-card-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 18px;
+        background: rgba(255,255,255,0.45);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+    }
+
+.ad-overview-page .ad-overview-stat-card p {
+    margin: 0;
+    font-size: 13px;
+    opacity: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+}
+
+.ad-overview-page .ad-overview-stat-card h3 {
+    margin: 6px 0;
+    font-size: 32px;
+    font-weight: 800;
+}
+
+.ad-overview-page .ad-overview-stat-card span {
+    font-size: 13px;
+    opacity: 0.9;
+}
+    .ad-overview-page .ad-overview-stat-card {
+        cursor: pointer;
+        user-select: none;
+        transition: all 0.25s ease;
+    }
+
+        .ad-overview-page .ad-overview-stat-card:hover {
+            transform: translateY(-6px) scale(1.01);
+            box-shadow: 0 18px 35px rgba(0,0,0,0.12);
+        }
+
+        .ad-overview-page .ad-overview-stat-card:active {
+            transform: scale(0.98);
+        }
+
+/* CARD COLORS */
+
+    .ad-overview-page .ad-blue {
+        background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+        color: #1e3a8a;
+    }
+
+    .ad-overview-page .ad-purple {
+        background: linear-gradient(135deg, #ede9fe, #ddd6fe);
+        color: #5b21b6;
+    }
+
+    .ad-overview-page .ad-green {
+        background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+        color: #166534;
+    }
+
+    .ad-overview-page .ad-orange {
+        background: linear-gradient(135deg, #ffedd5, #fed7aa);
+        color: #9a3412;
+    }
+
+    .ad-overview-page .ad-pink {
+        background: linear-gradient(135deg, #fce7f3, #fbcfe8);
+        color: #9d174d;
+    }
+
+    .ad-overview-page .ad-dark {
+        background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+        color: #334155;
+    }
+
+/* =========================
+   CHART GRID
+========================= */
+
+.ad-overview-page .ad-overview-chart-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 22px;
+    margin-bottom: 28px;
+}
+
+.ad-overview-page .ad-overview-chart-card {
+    background: white;
+    padding: 24px;
+    border-radius: 20px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 10px 28px rgba(0,0,0,0.06);
+}
+
+.ad-overview-page .ad-overview-chart-card h4 {
+    margin: 0 0 20px 0;
+    font-size: 18px;
+    color: #111827;
+    font-weight: 700;
+}
+
+/* BAR CHART */
+
+.ad-overview-page .ad-overview-bar-row {
+    display: grid;
+    grid-template-columns: 90px 1fr 50px;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 14px;
+}
+
+.ad-overview-page .ad-overview-bar-row span {
+    font-size: 14px;
+    color: #374151;
+    font-weight: 600;
+}
+
+.ad-overview-page .ad-overview-bar-row strong {
+    text-align: right;
+    color: #111827;
+}
+
+.ad-overview-page .ad-overview-bar-wrap {
+    height: 12px;
+    border-radius: 999px;
+    background: #e5e7eb;
+    overflow: hidden;
+}
+
+.ad-overview-page .ad-overview-bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #2563eb, #60a5fa);
+}
+
+/* DONUT LIST */
+
+.ad-overview-page .ad-overview-donut-row {
+    padding: 14px 0;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.ad-overview-page .ad-overview-donut-row:last-child {
+    border-bottom: none;
+}
+
+.ad-overview-page .ad-overview-donut-row span {
+    color: #374151;
+    font-weight: 600;
+}
+
+.ad-overview-page .ad-overview-donut-row strong {
+    color: #111827;
+}
+
+/* =========================
+   ALERTS
+========================= */
+
+.ad-overview-page .ad-overview-alert-card {
+    background: white;
+    padding: 24px;
+    border-radius: 20px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 10px 28px rgba(0,0,0,0.06);
+}
+
+.ad-overview-page .ad-overview-alert-card h4 {
+    margin: 0 0 18px 0;
+    font-size: 18px;
+    color: #111827;
+    font-weight: 700;
+}
+
+.ad-overview-page .ad-overview-alert-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: #fff7ed;
+    color: #9a3412;
+    margin-bottom: 12px;
+    border: 1px solid #fed7aa;
+    font-weight: 600;
+}
+
+.ad-overview-page .ad-overview-alert-item i {
+    font-size: 16px;
+}
+
+.ad-overview-page .ad-overview-alert-success {
+    background: #ecfdf5;
+    color: #166534;
+    border-color: #bbf7d0;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 1200px) {
+    .ad-overview-page .ad-overview-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .ad-overview-page .ad-overview-chart-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 850px) {
+    .ad-overview-page .ad-overview-welcome-box {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .ad-overview-page .ad-overview-stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .ad-overview-page {
+        padding: 16px;
+    }
+
+    .ad-overview-page .ad-overview-quick-actions {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .ad-overview-page .ad-overview-quick-actions button {
+        width: 100%;
+        justify-content: center;
+    }
+}
