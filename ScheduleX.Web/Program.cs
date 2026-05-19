@@ -30,7 +30,7 @@ using ScheduleX.Web.Services.TT;
 using ScheduleX.Web.Services.TimeTable;
 using ScheduleX.Infrastructure.Repositories.TTCoordinator;
 using ScheduleX.Web.Services.Excel;
-using ScheduleX.Web.Services.TT.TimeTable;
+//using ScheduleX.Web.Services.TimeTable;
 var builder = WebApplication.CreateBuilder(args);
 
 // ================= DB =================

@@ -1183,72 +1183,287 @@ namespace ScheduleX.Infrastructure.Repositories.TTCoordinator
                 }
             }
         }//keep
+         //public async Task<(bool Success, string Message)> SwapEntriesAsync(
+         //    int entryId1,
+         //    int entryId2,
+         //    int userId)
+         //{
+         //    var entry1 = await _context.TimeTableEntries
+         //    .Include(x => x.TimeTableBatch)
+         //        .ThenInclude(x => x.Course)
+         //    .Include(x => x.TimeSlot)
+         //        .FirstOrDefaultAsync(x => x.EntryId == entryId1);
+
+        //    var entry2 = await _context.TimeTableEntries
+        //        .Include(x => x.TimeTableBatch)
+        //            .ThenInclude(x => x.Course)
+        //        .Include(x => x.TimeSlot)
+        //        .FirstOrDefaultAsync(x => x.EntryId == entryId2);
+
+        //    //if (entry1 == null || entry2 == null)
+        //    //{
+        //    //    return (false, "Entry not found.");
+        //    //}
+
+
+        //    if (entry1 == null || entry2 == null)
+        //    {
+        //        return (false, "Entry not found.");
+        //    }
+
+        //    // ❌ BREAK BLOCK
+        //    if (entry1.EntryType == EntryTypeEnum.Break ||
+        //        entry2.EntryType == EntryTypeEnum.Break)
+        //    {
+        //        return (false, "Break slot cannot be swapped.");
+        //    }
+
+        //    if (entry1.BatchId != entry2.BatchId)
+        //    {
+        //        return (false, "Entries must belong to same batch.");
+        //    }
+
+        //    var allowed = await _context.TTCoordinatorCourses
+        //        .AnyAsync(x =>
+        //            x.UserId == userId &&
+        //            x.CourseId == entry1.TimeTableBatch.CourseId &&
+        //            x.IsActive);
+
+        //    if (!allowed)
+        //    {
+        //        return (false, "Unauthorized action.");
+        //    }
+
+        //    //if (entry1.EntryType == EntryTypeEnum.Free ||
+        //    //    entry2.EntryType == EntryTypeEnum.Free)
+        //    //{
+        //    //    return (false, "Free entries cannot be swapped.");
+        //    //}
+
+        //    // ================= FACULTY CLASH CHECK =================
+
+        //    //bool clash1 = await _context.TimeTableEntries.AnyAsync(x =>
+        //    //    x.EntryId != entry1.EntryId &&
+        //    //    x.EntryId != entry2.EntryId &&
+        //    //    x.BatchId == entry1.BatchId &&
+        //    //    x.DayOfWeek == entry2.DayOfWeek &&
+        //    //    x.TimeSlotId == entry2.TimeSlotId &&
+        //    //    x.FacultyId == entry1.FacultyId &&
+        //    //    x.EntryType == EntryTypeEnum.Lecture);
+
+        //    //if (clash1)
+        //    //{
+        //    //    return (false,
+        //    //        $"Faculty clash for {entry1.SubjectSemester?.Subject?.SubjectName}");
+        //    //}
+
+        //    //bool clash2 = await _context.TimeTableEntries.AnyAsync(x =>
+        //    //    x.EntryId != entry1.EntryId &&
+        //    //    x.EntryId != entry2.EntryId &&
+        //    //    x.BatchId == entry1.BatchId &&
+        //    //    x.DayOfWeek == entry1.DayOfWeek &&
+        //    //    x.TimeSlotId == entry1.TimeSlotId &&
+        //    //    x.FacultyId == entry2.FacultyId &&
+        //    //    x.EntryType == EntryTypeEnum.Lecture);
+
+        //    //if (clash2)
+        //    //{
+        //    //    return (false,
+        //    //        $"Faculty clash for {entry2.SubjectSemester?.Subject?.SubjectName}");
+        //    //}
+
+
+
+        //    // ================= FACULTY CLASH CHECK =================
+
+        //    // ENTRY 1 -> NEW POSITION
+        //    if (entry1.EntryType == EntryTypeEnum.Lecture &&
+        //        entry1.FacultyId != null)
+        //    {
+        //        bool clash1 = await _context.TimeTableEntries.AnyAsync(x =>
+
+        //            x.EntryId != entry1.EntryId &&
+        //            x.EntryId != entry2.EntryId &&
+
+        //            x.EntryType == EntryTypeEnum.Lecture &&
+
+        //            x.FacultyId == entry1.FacultyId &&
+
+        //            x.DayOfWeek == entry2.DayOfWeek &&
+        //            x.TimeSlotId == entry2.TimeSlotId
+        //        );
+
+        //        if (clash1)
+        //        {
+        //            return (false,
+        //                $"Faculty clash");
+        //        }
+        //    }
+
+        //    // ENTRY 2 -> NEW POSITION
+        //    if (entry2.EntryType == EntryTypeEnum.Lecture &&
+        //        entry2.FacultyId != null)
+        //    {
+        //        bool clash2 = await _context.TimeTableEntries.AnyAsync(x =>
+
+        //            x.EntryId != entry1.EntryId &&
+        //            x.EntryId != entry2.EntryId &&
+
+        //            x.EntryType == EntryTypeEnum.Lecture &&
+
+        //            x.FacultyId == entry2.FacultyId &&
+
+        //            x.DayOfWeek == entry1.DayOfWeek &&
+        //            x.TimeSlotId == entry1.TimeSlotId
+        //        );
+
+        //        if (clash2)
+        //        {
+        //            return (false,
+        //                $"Faculty clash");
+        //        }
+        //    }
+
+        //    var tempDay = entry1.DayOfWeek;
+        //    var tempSlot = entry1.TimeSlotId;
+        //    var tempRoom = entry1.RoomId;
+
+        //    entry1.DayOfWeek = entry2.DayOfWeek;
+        //    entry1.TimeSlotId = entry2.TimeSlotId;
+        //    entry1.RoomId = entry2.RoomId;
+
+        //    entry2.DayOfWeek = tempDay;
+        //    entry2.TimeSlotId = tempSlot;
+        //    entry2.RoomId = tempRoom;
+
+        //    try
+        //    {
+
+        //        await _context.SaveChangesAsync();
+        //        return (true, "Entries swapped successfully.");
+        //    }
+        //    catch
+        //    {
+        //        return (false, "Swap failed due to conflict.");
+        //    }
+        //}
+
         public async Task<(bool Success, string Message)> SwapEntriesAsync(
-            int entryId1,
-            int entryId2,
-            int userId)
+     int entryId1,
+     int entryId2,
+     int userId)
         {
             var entry1 = await _context.TimeTableEntries
-            .Include(x => x.TimeTableBatch)
-                .ThenInclude(x => x.Course)
-            .Include(x => x.TimeSlot)
+                .Include(x => x.SubjectSemester)
+                    .ThenInclude(x => x.SubjectFaculties)
                 .FirstOrDefaultAsync(x => x.EntryId == entryId1);
 
             var entry2 = await _context.TimeTableEntries
-                .Include(x => x.TimeTableBatch)
-                    .ThenInclude(x => x.Course)
-                .Include(x => x.TimeSlot)
+                .Include(x => x.SubjectSemester)
+                    .ThenInclude(x => x.SubjectFaculties)
                 .FirstOrDefaultAsync(x => x.EntryId == entryId2);
+
+            // ================= ENTRY CHECK =================
 
             if (entry1 == null || entry2 == null)
             {
-                return (false, "Entry not found.");
+                return (false, "Entries not found");
             }
 
-            if (entry1.BatchId != entry2.BatchId)
+            // ================= BREAK BLOCK =================
+
+            if (entry1.EntryType == EntryTypeEnum.Break ||
+                entry2.EntryType == EntryTypeEnum.Break)
             {
-                return (false, "Entries must belong to same batch.");
+                return (false, "Break slot cannot be swapped");
             }
 
-            var allowed = await _context.TTCoordinatorCourses
-                .AnyAsync(x =>
-                    x.UserId == userId &&
-                    x.CourseId == entry1.TimeTableBatch.CourseId &&
-                    x.IsActive);
+            // ================= SAME DIVISION ONLY =================
 
-            if (!allowed)
+            if (entry1.DivisionId != entry2.DivisionId)
             {
-                return (false, "Unauthorized action.");
+                return (false, "Only same division swap allowed");
             }
 
-            if (entry1.EntryType == EntryTypeEnum.Free ||
-                entry2.EntryType == EntryTypeEnum.Free)
+            // ================= FACULTY CHECK =================
+
+            var faculty1 = entry2.SubjectSemester?
+                .SubjectFaculties?
+                .FirstOrDefault()?
+                .FacultyId;
+
+            var faculty2 = entry1.SubjectSemester?
+                .SubjectFaculties?
+                .FirstOrDefault()?
+                .FacultyId;
+
+            // entry2 faculty in entry1 slot
+            if (faculty1.HasValue)
             {
-                return (false, "Free entries cannot be swapped.");
+                var clash = await _context.TimeTableEntries.AnyAsync(x =>
+
+                    x.EntryId != entry1.EntryId &&
+
+                    x.DayOfWeek == entry1.DayOfWeek &&
+                    x.TimeSlotId == entry1.TimeSlotId &&
+
+                    x.SubjectSemester != null &&
+
+                    x.SubjectSemester.SubjectFaculties
+                        .Any(f => f.FacultyId == faculty1)
+
+                );
+
+                if (clash)
+                {
+                    return (false, "Faculty clash");
+                }
             }
 
-            var tempDay = entry1.DayOfWeek;
-            var tempSlot = entry1.TimeSlotId;
-            var tempRoom = entry1.RoomId;
-
-            entry1.DayOfWeek = entry2.DayOfWeek;
-            entry1.TimeSlotId = entry2.TimeSlotId;
-            entry1.RoomId = entry2.RoomId;
-
-            entry2.DayOfWeek = tempDay;
-            entry2.TimeSlotId = tempSlot;
-            entry2.RoomId = tempRoom;
-
-            try
+            // entry1 faculty in entry2 slot
+            if (faculty2.HasValue)
             {
+                var clash = await _context.TimeTableEntries.AnyAsync(x =>
 
-                await _context.SaveChangesAsync();
-                return (true, "Entries swapped successfully.");
+                    x.EntryId != entry2.EntryId &&
+
+                    x.DayOfWeek == entry2.DayOfWeek &&
+                    x.TimeSlotId == entry2.TimeSlotId &&
+
+                    x.SubjectSemester != null &&
+
+                    x.SubjectSemester.SubjectFaculties
+                        .Any(f => f.FacultyId == faculty2)
+
+                );
+
+                if (clash)
+                {
+                    return (false, "Faculty clash");
+                }
             }
-            catch
-            {
-                return (false, "Swap failed due to conflict.");
-            }
+
+            // ================= SWAP CONTENT ONLY =================
+
+            // swap subject
+            (entry1.SubjectSemesterId, entry2.SubjectSemesterId) =
+                (entry2.SubjectSemesterId, entry1.SubjectSemesterId);
+
+            // swap faculty
+            (entry1.FacultyId, entry2.FacultyId) =
+                (entry2.FacultyId, entry1.FacultyId);
+
+            // swap entry type
+            (entry1.EntryType, entry2.EntryType) =
+                (entry2.EntryType, entry1.EntryType);
+
+            // optional room swap
+            (entry1.RoomId, entry2.RoomId) =
+                (entry2.RoomId, entry1.RoomId);
+
+            await _context.SaveChangesAsync();
+
+            return (true, "Swapped successfully");
         }
     }
 }

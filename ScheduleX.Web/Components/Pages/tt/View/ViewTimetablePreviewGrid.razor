@@ -60,14 +60,19 @@ else
                     x.DayOfWeek == day &&
                     x.SlotNo == slot);
 
-                    <div class="view-tt-cell"
+                    <div class="view-tt-cell
+     @(FirstSelectedCell?.EntryId == item?.EntryId
+        ? "swap-selected-cell"
+        : "")"
+                         @onclick="() => OnCellClick.InvokeAsync(item)"
                          style="
-                            border-color:@Style.BorderColor;
-                            padding:@Style.CellPadding;
-                            font-size:@Style.FontSize;
-                            text-align:@Style.TitleAlign;
-                            background:@GetCellBackground(item);
-                            color:@GetCellText(item);">
+        cursor:@(SwapMode ? "pointer" : "default");
+        border-color:@Style.BorderColor;
+        padding:@Style.CellPadding;
+        font-size:@Style.FontSize;
+        text-align:@Style.TitleAlign;
+        background:@GetCellBackground(item);
+        color:@GetCellText(item);">
 
                         @if (item != null)
                         {
@@ -125,6 +130,15 @@ else
 }
 
 @code {
+
+    [Parameter]
+    public bool SwapMode { get; set; }
+
+    [Parameter]
+    public PreviewDto? FirstSelectedCell { get; set; }
+
+    [Parameter]
+    public EventCallback<PreviewDto?> OnCellClick { get; set; }
     [Parameter]
     public List<PreviewDto> Data { get; set; } = new();
 

@@ -1,6 +1,36 @@
-﻿using ScheduleX.Web.DTOs;
+﻿//using ScheduleX.Web.DTOs;
 
-namespace ScheduleX.Web.Services.TT.TimeTable
+//namespace ScheduleX.Web.Services.TT.TimeTable
+//{
+//    public interface IViewTimetableService
+//    {
+//        Task<ViewTimetableResultDto> GetBatchesAsync(
+//            LoadViewTimetableRequestDto dto
+//        );
+
+//        Task<ViewTimetableResultDto> GetBatchPreviewAsync(
+//            int batchId,
+//            int userId
+//        );
+
+//        Task<ViewTimetableResultDto> DownloadBatchAsync(
+//            int batchId,
+//            int userId
+//        );
+
+//        Task<bool> DeleteBatchAsync(
+//            int batchId,
+//            int userId
+//        );
+
+
+//    }
+//}
+
+
+using ScheduleX.Web.DTOs;
+
+namespace ScheduleX.Web.Services.TimeTable
 {
     public interface IViewTimetableService
     {
@@ -22,7 +52,5 @@ namespace ScheduleX.Web.Services.TT.TimeTable
             int batchId,
             int userId
         );
-
-        
     }
 }

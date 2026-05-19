@@ -1,18 +1,330 @@
-﻿@page "/tt/view"
+﻿@* @page "/tt/view" *@
+@* @using ScheduleX.Web.Components.Layout.tt *@
+@* @layout TTLayout *@
+@* @attribute [Authorize(Roles = "TTCoordinator")] *@
+
+@* @using System.Security.Claims *@
+@* @using Microsoft.AspNetCore.Components.Authorization *@
+@* @using Microsoft.JSInterop *@
+@* @using ScheduleX.Web.DTOs *@
+@* @using ScheduleX.Web.Services *@
+@* @using ScheduleX.Web.Services.TT.TimeTable *@
+
+@* @inject AuthenticationStateProvider AuthProvider *@
+@* @inject TTSessionState TTSessionState *@
+@* @inject IViewTimetableService ViewService *@
+@* @inject IJSRuntime JS *@
+
+@* <link href="/css/tt/tt-tt-view.css" rel="stylesheet" /> *@
+
+@* <PageTitle>View Timetable</PageTitle> *@
+
+@* <div class="view-tt"> *@
+
+@*     <!-- HEADER --> *@
+@*     <div class="view-tt-header"> *@
+@*         <div> *@
+@*             <h2>Generated Timetables</h2> *@
+@*             <p>Click any timetable batch to preview, download, or delete it</p> *@
+@*         </div> *@
+@*     </div> *@
+
+@*     <!-- BATCHES --> *@
+@*     @if (Batches.Any()) *@
+@*     { *@
+@*         <div class="view-tt-batch-grid"> *@
+
+@*             @foreach (var batch in Batches) *@
+@*             { *@
+@*                 <div class="view-tt-batch-card @(SelectedBatchId == batch.BatchId ? "view-tt-batch-card-active" : "")" *@
+@*                      @onclick="() => SelectBatch(batch.BatchId)"> *@
+
+@*                     <div class="view-tt-batch-title"> *@
+@*                         @batch.Course *@
+@*                     </div> *@
+
+@*                     <div class="view-tt-batch-meta"> *@
+@*                         @batch.AcademicYear *@
+@*                     </div> *@
+
+@*                     <div class="view-tt-batch-meta"> *@
+@*                         @batch.Term *@
+@*                     </div> *@
+
+@*                     <div class="view-tt-batch-meta"> *@
+@*                         Template: @batch.TemplateName *@
+@*                     </div> *@
+
+@*                     <div class="view-tt-batch-meta"> *@
+@*                         Divisions: @batch.TotalDivisions *@
+@*                     </div> *@
+
+@*                     <div class="view-tt-batch-date"> *@
+@*                         @batch.CreatedAt.ToString("dd MMM yyyy hh:mm tt") *@
+@*                     </div> *@
+
+@*                 </div> *@
+@*             } *@
+
+@*         </div> *@
+@*     } *@
+@*     else *@
+@*     { *@
+@*         <div class="view-tt-empty"> *@
+@*             No generated timetable batches found. *@
+@*         </div> *@
+@*     } *@
+
+@*     <!-- DIVISION PILLS --> *@
+@*     @if (ShowPreview && PreviewGroups.Any()) *@
+@*     { *@
+@*         <div class="view-tt-pill-wrap"> *@
+
+@*             @foreach (var pill in PreviewGroups) *@
+@*             { *@
+@*                 <button type="button" *@
+@*                         class="view-tt-pill @(SelectedDivisionKey == pill.Key ? "view-tt-pill-active" : "")" *@
+@*                         @onclick="() => SelectDivision(pill.Key)"> *@
+@*                     @pill.Semester - @pill.Division *@
+@*                 </button> *@
+@*             } *@
+
+@*         </div> *@
+@*     } *@
+
+@*     <!-- ACTION BAR --> *@
+@*     @if (ShowPreview && SelectedBatchId > 0) *@
+@*     { *@
+@*         <div class="view-tt-action-bar"> *@
+
+@*             <button type="button" *@
+@*                     class="view-tt-btn-success" *@
+@*                     @onclick="DownloadExcel"> *@
+@*                 Download Excel *@
+@*             </button> *@
+
+@*             <button type="button" *@
+@*                     class="view-tt-btn-danger" *@
+@*                     @onclick="DeleteBatch"> *@
+@*                 Delete Timetable *@
+@*             </button> *@
+
+@*             <button type="button" *@
+@*                     class="view-tt-btn-close" *@
+@*                     @onclick="ClosePreview"> *@
+@*                 Close Preview *@
+@*             </button> *@
+
+@*         </div> *@
+@*     } *@
+
+@*     <!-- PREVIEW --> *@
+@*     @if (ShowPreview && SelectedEntries.Any()) *@
+@*     { *@
+@*         <ViewTimetablePreviewGrid Data="SelectedEntries" *@
+@*                                   Style="CurrentStyle" /> *@
+@*     } *@
+
+@* </div> *@
+
+@* @code { *@
+@*     private int CurrentUserId; *@
+@*     private int SelectedBatchId; *@
+@*     private string SelectedDivisionKey = ""; *@
+@*     private bool ShowPreview = false; *@
+@*     private bool IsLoading = false; *@
+@*     private bool IsDownloading = false; *@
+@*     private List<ViewBatchCardDto> Batches = new(); *@
+@*     private List<DivisionPreviewGroupDto> PreviewGroups = new(); *@
+@*     private List<PreviewDto> SelectedEntries = new(); *@
+
+@*     private Models.Template.TemplateStyle CurrentStyle = new(); *@
+
+@*     protected override async Task OnInitializedAsync() *@
+@*     { *@
+@*         var auth = await AuthProvider.GetAuthenticationStateAsync(); *@
+@*         var user = auth.User; *@
+
+@*         var id = user.FindFirst(ClaimTypes.NameIdentifier); *@
+
+@*         if (id != null) *@
+@*         { *@
+@*             CurrentUserId = int.Parse(id.Value); *@
+@*         } *@
+
+@*         TTSessionState.OnChange += HandleSessionChanged; *@
+@*         await LoadBatches(); *@
+@*     } *@
+
+@*     private async Task HandleSessionChanged() *@
+@*     { *@
+@*         ClosePreview(); *@
+
+@*         Batches.Clear(); *@
+
+@*         await LoadBatches(); *@
+
+@*         await InvokeAsync(StateHasChanged); *@
+@*     } *@
+
+@*     private async Task LoadBatches() *@
+@*     { *@
+@*         if (!TTSessionState.AcademicYearId.HasValue || *@
+@*             !TTSessionState.CourseId.HasValue || *@
+@*             !TTSessionState.AcademicTermId.HasValue) *@
+@*         { *@
+@*             Batches.Clear(); *@
+@*             return; *@
+@*         } *@
+
+@*         var result = await ViewService.GetBatchesAsync( *@
+@*             new LoadViewTimetableRequestDto *@
+@*                 { *@
+@*                     UserId = CurrentUserId, *@
+@*                     AcademicYearId = TTSessionState.AcademicYearId.Value, *@
+@*                     CourseId = TTSessionState.CourseId.Value, *@
+@*                     AcademicTermId = TTSessionState.AcademicTermId.Value *@
+@*                 }); *@
+
+@*         Batches = result.Batches ?? new List<ViewBatchCardDto>(); *@
+@*     } *@
+
+@*     private async Task SelectBatch(int batchId) *@
+@*     { *@
+@*         if (IsLoading) *@
+@*             return; *@
+
+@*         IsLoading = true; *@
+
+@*         try *@
+@*         { *@
+@*             SelectedBatchId = batchId; *@
+
+@*             PreviewGroups.Clear(); *@
+@*             SelectedEntries.Clear(); *@
+@*             SelectedDivisionKey = ""; *@
+@*             ShowPreview = false; *@
+
+@*             StateHasChanged(); *@
+
+@*             var result = await ViewService.GetBatchPreviewAsync( *@
+@*                 batchId, *@
+@*                 CurrentUserId); *@
+
+@*             if (!result.Success) *@
+@*                 return; *@
+
+@*             PreviewGroups = result.Groups ?? new(); *@
+@*             CurrentStyle = result.TemplateStyle ?? new(); *@
+
+@*             if (PreviewGroups.Any()) *@
+@*             { *@
+@*                 var first = PreviewGroups.First(); *@
+
+@*                 SelectedDivisionKey = first.Key; *@
+@*                 SelectedEntries = first.Entries ?? new(); *@
+@*                 ShowPreview = true; *@
+@*             } *@
+@*         } *@
+@*         finally *@
+@*         { *@
+@*             IsLoading = false; *@
+@*         } *@
+@*     } *@
+
+@*     private void SelectDivision(string key) *@
+@*     { *@
+@*         SelectedDivisionKey = key; *@
+
+@*         var selected = PreviewGroups.FirstOrDefault(x => x.Key == key); *@
+
+@*         if (selected != null) *@
+@*         { *@
+@*             SelectedEntries = selected.Entries; *@
+@*         } *@
+@*     } *@
+
+@*     private void ClosePreview() *@
+@*     { *@
+@*         ShowPreview = false; *@
+@*         SelectedBatchId = 0; *@
+@*         SelectedDivisionKey = ""; *@
+
+@*         PreviewGroups.Clear(); *@
+@*         SelectedEntries.Clear(); *@
+@*     } *@
+
+@*     private async Task DownloadExcel() *@
+@*     { *@
+@*         if (IsDownloading) *@
+@*             return; *@
+
+@*         IsDownloading = true; *@
+
+@*         try *@
+@*         { *@
+@*             var result = await ViewService.DownloadBatchAsync( *@
+@*                 SelectedBatchId, *@
+@*                 CurrentUserId); *@
+
+@*             if (!result.Success || string.IsNullOrWhiteSpace(result.Base64)) *@
+@*                 return; *@
+
+@*             await JS.InvokeVoidAsync( *@
+@*                 "downloadFile", *@
+@*                 "Timetable.xlsx", *@
+@*                 result.Base64); *@
+@*         } *@
+@*         finally *@
+@*         { *@
+@*             IsDownloading = false; *@
+@*         } *@
+@*     } *@
+
+@*     private async Task DeleteBatch() *@
+@*     { *@
+@*         var deleted = await ViewService.DeleteBatchAsync( *@
+@*             SelectedBatchId, *@
+@*             CurrentUserId); *@
+
+@*         if (!deleted) *@
+@*             return; *@
+
+@*         Batches.RemoveAll(x => x.BatchId == SelectedBatchId); *@
+
+@*         ClosePreview(); *@
+
+@*         StateHasChanged(); *@
+@*     } *@
+
+@*     public void Dispose() *@
+@*     { *@
+@*         TTSessionState.OnChange -= HandleSessionChanged; *@
+@*     } *@
+@* } *@
+
+
+
+@page "/tt/view"
+
 @using ScheduleX.Web.Components.Layout.tt
-@layout TTLayout
-@attribute [Authorize(Roles = "TTCoordinator")]
+@using ScheduleX.Web.DTOs
+@using ScheduleX.Web.Services
+@using ScheduleX.Web.Services.TimeTable
 
 @using System.Security.Claims
 @using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.JSInterop
-@using ScheduleX.Web.DTOs
-@using ScheduleX.Web.Services
-@using ScheduleX.Web.Services.TT.TimeTable
+
+@layout TTLayout
+@attribute [Authorize(Roles = "TTCoordinator")]
 
 @inject AuthenticationStateProvider AuthProvider
 @inject TTSessionState TTSessionState
+
 @inject IViewTimetableService ViewService
+@inject ITimeTableService TTService
+
 @inject IJSRuntime JS
 
 <link href="/css/tt/tt-tt-view.css" rel="stylesheet" />
@@ -23,10 +335,16 @@
 
     <!-- HEADER -->
     <div class="view-tt-header">
+
         <div>
             <h2>Generated Timetables</h2>
-            <p>Click any timetable batch to preview, download, or delete it</p>
+
+            <p>
+                Click any timetable batch to preview,
+                update, download or delete it
+            </p>
         </div>
+
     </div>
 
     <!-- BATCHES -->
@@ -36,7 +354,10 @@
 
             @foreach (var batch in Batches)
             {
-                <div class="view-tt-batch-card @(SelectedBatchId == batch.BatchId ? "view-tt-batch-card-active" : "")"
+                <div class="view-tt-batch-card
+                    @(SelectedBatchId == batch.BatchId
+                        ? "view-tt-batch-card-active"
+                        : "")"
                      @onclick="() => SelectBatch(batch.BatchId)">
 
                     <div class="view-tt-batch-title">
@@ -68,14 +389,8 @@
 
         </div>
     }
-    else
-    {
-        <div class="view-tt-empty">
-            No generated timetable batches found.
-        </div>
-    }
 
-    <!-- DIVISION PILLS -->
+    <!-- DIVISION BUTTONS -->
     @if (ShowPreview && PreviewGroups.Any())
     {
         <div class="view-tt-pill-wrap">
@@ -83,16 +398,21 @@
             @foreach (var pill in PreviewGroups)
             {
                 <button type="button"
-                        class="view-tt-pill @(SelectedDivisionKey == pill.Key ? "view-tt-pill-active" : "")"
+                        class="view-tt-pill
+                        @(SelectedDivisionKey == pill.Key
+                            ? "view-tt-pill-active"
+                            : "")"
                         @onclick="() => SelectDivision(pill.Key)">
+
                     @pill.Semester - @pill.Division
+
                 </button>
             }
 
         </div>
     }
 
-    <!-- ACTION BAR -->
+    <!-- ACTION BUTTONS -->
     @if (ShowPreview && SelectedBatchId > 0)
     {
         <div class="view-tt-action-bar">
@@ -100,135 +420,210 @@
             <button type="button"
                     class="view-tt-btn-success"
                     @onclick="DownloadExcel">
+
                 Download Excel
+
+            </button>
+
+            <button type="button"
+                    class="view-tt-btn-warning"
+                    @onclick="ToggleSwapMode">
+
+                @(IsSwapMode
+                    ? "Cancel Update"
+                    : "Update Timetable")
+
             </button>
 
             <button type="button"
                     class="view-tt-btn-danger"
                     @onclick="DeleteBatch">
-                Delete Timetable
-            </button>
 
-            <button type="button"
-                    class="view-tt-btn-close"
-                    @onclick="ClosePreview">
-                Close Preview
+                Delete Timetable
+
             </button>
 
         </div>
+
+        @if (!string.IsNullOrWhiteSpace(SwapError))
+        {
+            <div class="alert alert-danger mt-3">
+                @SwapError
+            </div>
+        }
     }
 
-    <!-- PREVIEW -->
+    <!-- TIMETABLE -->
     @if (ShowPreview && SelectedEntries.Any())
     {
-        <ViewTimetablePreviewGrid Data="SelectedEntries"
-                                  Style="CurrentStyle" />
+        <div class="table-responsive">
+
+            <table class="table table-bordered">
+
+                <thead>
+                    <tr>
+
+                        <th>Time</th>
+
+                        <th>Mon</th>
+                        <th>Tue</th>
+                        <th>Wed</th>
+                        <th>Thu</th>
+                        <th>Fri</th>
+                        <th>Sat</th>
+
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    @foreach (var slot in SelectedEntries
+                   .Select(x => x.SlotNo)
+                   .Distinct()
+                   .OrderBy(x => x))
+                    {
+                        <tr>
+
+                            <td>
+                                Slot @slot
+                            </td>
+
+                            @for (int day = 1; day <= 6; day++)
+                            {
+                                var cell = SelectedEntries.FirstOrDefault(x =>
+                                x.DayOfWeek == day &&
+                                x.SlotNo == slot);
+
+                                <td class="@(FirstSelectedCell?.EntryId == cell?.EntryId
+                                            ? "swap-selected-cell"
+                                            : "")"
+                                    style="
+                                        cursor:pointer;
+                                        min-width:170px;
+                                        height:110px;
+                                        vertical-align:top;"
+                                    @onclick="() => SelectCell(cell)">
+
+                                    @if (cell != null)
+                                    {
+                                        <div>
+
+                                            <strong>
+                                                @cell.Subject
+                                            </strong>
+
+                                        </div>
+
+                                        <div>
+                                            @cell.Faculty
+                                        </div>
+
+                                        <div>
+                                            @cell.Room
+                                        </div>
+                                    }
+
+                                </td>
+                            }
+
+                        </tr>
+                    }
+
+                </tbody>
+
+            </table>
+
+        </div>
     }
 
 </div>
 
 @code {
-    private int CurrentUserId;
-    private int SelectedBatchId;
-    private string SelectedDivisionKey = "";
-    private bool ShowPreview = false;
-    private bool IsLoading = false;
-    private bool IsDownloading = false;
-    private List<ViewBatchCardDto> Batches = new();
-    private List<DivisionPreviewGroupDto> PreviewGroups = new();
-    private List<PreviewDto> SelectedEntries = new();
 
-    private Models.Template.TemplateStyle CurrentStyle = new();
+    private int CurrentUserId;
+
+    private int SelectedBatchId;
+
+    private bool ShowPreview;
+
+    private bool IsSwapMode;
+
+    private string SelectedDivisionKey = "";
+
+    private string SwapError = "";
+
+    private PreviewDto? FirstSelectedCell;
+
+    private PreviewDto? SecondSelectedCell;
+
+    private List<ViewBatchCardDto> Batches = new();
+
+    private List<DivisionPreviewGroupDto> PreviewGroups = new();
+
+    private List<PreviewDto> SelectedEntries = new();
 
     protected override async Task OnInitializedAsync()
     {
-        var auth = await AuthProvider.GetAuthenticationStateAsync();
+        var auth =
+            await AuthProvider.GetAuthenticationStateAsync();
+
         var user = auth.User;
 
-        var id = user.FindFirst(ClaimTypes.NameIdentifier);
+        var id =
+            user.FindFirst(ClaimTypes.NameIdentifier);
 
         if (id != null)
         {
             CurrentUserId = int.Parse(id.Value);
         }
 
-        TTSessionState.OnChange += HandleSessionChanged;
         await LoadBatches();
-    }
-
-    private async Task HandleSessionChanged()
-    {
-        ClosePreview();
-
-        Batches.Clear();
-
-        await LoadBatches();
-
-        await InvokeAsync(StateHasChanged);
     }
 
     private async Task LoadBatches()
     {
-        if (!TTSessionState.AcademicYearId.HasValue ||
-            !TTSessionState.CourseId.HasValue ||
-            !TTSessionState.AcademicTermId.HasValue)
-        {
-            Batches.Clear();
-            return;
-        }
+        var result =
+            await ViewService.GetBatchesAsync(
+                new LoadViewTimetableRequestDto
+                    {
+                        UserId = CurrentUserId,
 
-        var result = await ViewService.GetBatchesAsync(
-            new LoadViewTimetableRequestDto
-                {
-                    UserId = CurrentUserId,
-                    AcademicYearId = TTSessionState.AcademicYearId.Value,
-                    CourseId = TTSessionState.CourseId.Value,
-                    AcademicTermId = TTSessionState.AcademicTermId.Value
-                });
+                        AcademicYearId =
+                            TTSessionState.AcademicYearId ?? 0,
 
-        Batches = result.Batches ?? new List<ViewBatchCardDto>();
+                        CourseId =
+                            TTSessionState.CourseId ?? 0,
+
+                        AcademicTermId =
+                            TTSessionState.AcademicTermId ?? 0
+                    });
+
+        Batches = result.Batches ?? new();
     }
 
     private async Task SelectBatch(int batchId)
     {
-        if (IsLoading)
-            return;
+        SelectedBatchId = batchId;
 
-        IsLoading = true;
-
-        try
-        {
-            SelectedBatchId = batchId;
-
-            PreviewGroups.Clear();
-            SelectedEntries.Clear();
-            SelectedDivisionKey = "";
-            ShowPreview = false;
-
-            StateHasChanged();
-
-            var result = await ViewService.GetBatchPreviewAsync(
+        var result =
+            await ViewService.GetBatchPreviewAsync(
                 batchId,
                 CurrentUserId);
 
-            if (!result.Success)
-                return;
+        if (!result.Success)
+            return;
 
-            PreviewGroups = result.Groups ?? new();
-            CurrentStyle = result.TemplateStyle ?? new();
+        PreviewGroups = result.Groups ?? new();
 
-            if (PreviewGroups.Any())
-            {
-                var first = PreviewGroups.First();
-
-                SelectedDivisionKey = first.Key;
-                SelectedEntries = first.Entries ?? new();
-                ShowPreview = true;
-            }
-        }
-        finally
+        if (PreviewGroups.Any())
         {
-            IsLoading = false;
+            var first = PreviewGroups.First();
+
+            SelectedDivisionKey = first.Key;
+
+            SelectedEntries = first.Entries ?? new();
+
+            ShowPreview = true;
         }
     }
 
@@ -236,7 +631,8 @@
     {
         SelectedDivisionKey = key;
 
-        var selected = PreviewGroups.FirstOrDefault(x => x.Key == key);
+        var selected =
+            PreviewGroups.FirstOrDefault(x => x.Key == key);
 
         if (selected != null)
         {
@@ -244,61 +640,121 @@
         }
     }
 
-    private void ClosePreview()
+    private void ToggleSwapMode()
     {
-        ShowPreview = false;
-        SelectedBatchId = 0;
-        SelectedDivisionKey = "";
+        IsSwapMode = !IsSwapMode;
 
-        PreviewGroups.Clear();
-        SelectedEntries.Clear();
+        FirstSelectedCell = null;
+
+        SecondSelectedCell = null;
+
+        SwapError = "";
+    }
+
+    private async Task SelectCell(PreviewDto? cell)
+    {
+        if (!IsSwapMode)
+            return;
+
+        if (cell == null)
+            return;
+
+        if (cell.IsBreak)
+            return;
+
+        if (FirstSelectedCell == null)
+        {
+            FirstSelectedCell = cell;
+            return;
+        }
+
+        if (FirstSelectedCell.EntryId == cell.EntryId)
+        {
+            FirstSelectedCell = null;
+            return;
+        }
+
+        SecondSelectedCell = cell;
+
+        await SwapCells();
+    }
+
+    private async Task SwapCells()
+    {
+        if (FirstSelectedCell == null ||
+            SecondSelectedCell == null)
+        {
+            return;
+        }
+
+        var dto = new SwapEntryDto
+            {
+                EntryId1 = FirstSelectedCell.EntryId,
+                EntryId2 = SecondSelectedCell.EntryId,
+                UserId = CurrentUserId
+            };
+
+        var result =
+            await TTService.SwapEntriesAsync(dto);
+
+        if (!result.Success)
+        {
+            SwapError = result.Message;
+
+            FirstSelectedCell = null;
+
+            SecondSelectedCell = null;
+
+            return;
+        }
+
+        SwapError = "";
+
+        await SelectBatch(SelectedBatchId);
+
+        FirstSelectedCell = null;
+
+        SecondSelectedCell = null;
     }
 
     private async Task DownloadExcel()
     {
-        if (IsDownloading)
-            return;
-
-        IsDownloading = true;
-
-        try
-        {
-            var result = await ViewService.DownloadBatchAsync(
+        var result =
+            await ViewService.DownloadBatchAsync(
                 SelectedBatchId,
                 CurrentUserId);
 
-            if (!result.Success || string.IsNullOrWhiteSpace(result.Base64))
-                return;
-
-            await JS.InvokeVoidAsync(
-                "downloadFile",
-                "Timetable.xlsx",
-                result.Base64);
-        }
-        finally
+        if (!result.Success ||
+            string.IsNullOrWhiteSpace(result.Base64))
         {
-            IsDownloading = false;
+            return;
         }
+
+        await JS.InvokeVoidAsync(
+            "downloadFile",
+            "Timetable.xlsx",
+            result.Base64);
     }
 
     private async Task DeleteBatch()
     {
-        var deleted = await ViewService.DeleteBatchAsync(
-            SelectedBatchId,
-            CurrentUserId);
+        var deleted =
+            await ViewService.DeleteBatchAsync(
+                SelectedBatchId,
+                CurrentUserId);
 
         if (!deleted)
             return;
 
-        Batches.RemoveAll(x => x.BatchId == SelectedBatchId);
+        Batches.RemoveAll(x =>
+            x.BatchId == SelectedBatchId);
 
-        ClosePreview();
+        ShowPreview = false;
+
+        SelectedEntries.Clear();
+
+        PreviewGroups.Clear();
 
         StateHasChanged();
-    }
-
-    public void Dispose()
-    {
-        TTSessionState.OnChange -= HandleSessionChanged;
     }
 }

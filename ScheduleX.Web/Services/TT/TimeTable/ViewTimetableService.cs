@@ -5,7 +5,7 @@ using ScheduleX.Web.DTOs;
 using ScheduleX.Web.Models.Template;
 using ScheduleX.Web.Services.Excel;
 
-namespace ScheduleX.Web.Services.TT.TimeTable
+namespace ScheduleX.Web.Services.TimeTable
 {
     public class ViewTimetableService : IViewTimetableService
     {
