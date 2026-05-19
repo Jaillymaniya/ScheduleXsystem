@@ -332,7 +332,14 @@
 <PageTitle>View Timetable</PageTitle>
 
 <div class="view-tt">
-
+    @if (!string.IsNullOrWhiteSpace(ToastMessage))
+    {
+        <div class="toast-container">
+            <div class="toast-message @(IsSuccess ? "success" : "danger")">
+                @ToastMessage
+            </div>
+        </div>
+    }
     <!-- HEADER -->
     <div class="view-tt-header">
 
@@ -561,6 +568,9 @@
     private List<DivisionPreviewGroupDto> PreviewGroups = new();
 
     private List<PreviewDto> SelectedEntries = new();
+    private bool IsSuccess = false;
+    private string ToastMessage = "";
+    private Models.Template.TemplateStyle CurrentStyle = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -724,28 +734,60 @@
                 SelectedBatchId,
                 CurrentUserId);
 
+            if (!result.Success || string.IsNullOrWhiteSpace(result.Base64))
+            {
+                IsSuccess = false;
+                ToastMessage = "Download failed.";
+                return;
         if (!result.Success ||
             string.IsNullOrWhiteSpace(result.Base64))
         {
             return;
         }
+            }
 
-        await JS.InvokeVoidAsync(
-            "downloadFile",
-            "Timetable.xlsx",
-            result.Base64);
+            await JS.InvokeVoidAsync(
+                "downloadFile",
+                "Timetable.xlsx",
+                result.Base64);
+
+            IsSuccess = true;
+            ToastMessage = "Timetable downloaded successfully.";
+        }
+        catch
+        {
+            IsSuccess = false;
+            ToastMessage = "Download failed.";
+        }
+        finally
+        {
+            IsDownloading = false;
+
+            await InvokeAsync(StateHasChanged);
+
+            await Task.Delay(3000);
+
+            ToastMessage = "";
+            await InvokeAsync(StateHasChanged);
+        }
     }
 
     private async Task DeleteBatch()
     {
-        var deleted =
-            await ViewService.DeleteBatchAsync(
+        var deleted = await ViewService.DeleteBatchAsync(
+        {
+            var deleted = await ViewService.DeleteBatchAsync(
                 SelectedBatchId,
                 CurrentUserId);
 
-        if (!deleted)
-            return;
+            if (!deleted)
+            {
+                IsSuccess = false;
+                ToastMessage = "Delete failed.";
+                return;
+            }
 
+        Batches.RemoveAll(x => x.BatchId == SelectedBatchId);
         Batches.RemoveAll(x =>
             x.BatchId == SelectedBatchId);
 
@@ -753,8 +795,29 @@
 
         SelectedEntries.Clear();
 
-        PreviewGroups.Clear();
+        ClosePreview();
 
+        PreviewGroups.Clear();
         StateHasChanged();
+            ToastMessage = "Timetable deleted successfully.";
+
+            StateHasChanged();
+
+            await Task.Delay(3000);
+
+            ToastMessage = "";
+
+            StateHasChanged();
+        }
+        catch
+        {
+            IsSuccess = false;
+            ToastMessage = "Delete failed.";
+        }
+    }
+
+    public void Dispose()
+    {
+        TTSessionState.OnChange -= HandleSessionChanged;
     }
 }
